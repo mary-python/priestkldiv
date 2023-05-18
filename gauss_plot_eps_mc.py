@@ -24,7 +24,7 @@ dist3 = np.linspace(-2, np.minimum(rv3.dist.b, 2))
 dist4 = np.linspace(-2, np.minimum(rv4.dist.b, 2))
 dist5 = np.linspace(-2, np.minimum(rv5.dist.b, 2))
 
-plot4 = plt.plot(dist4, rv4.pdf(dist4), label = "\u03B5=0.1")
+plot4 = plt.plot(dist4, rv4.pdf(dist4), label = "\u03B5=0.2")
 plot3 = plt.plot(dist3, rv3.pdf(dist3), label = "\u03B5=0.5")
 plot1 = plt.plot(dist1, rv1.pdf(dist1), label = "\u03B5=1")
 plot2 = plt.plot(dist2, rv2.pdf(dist2), label = "\u03B5=2")
