@@ -3,6 +3,8 @@ import torch.distributions as dis
 from math import log
 import tensorflow_probability as tfp
 import numpy as np
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 p = dis.Normal(loc=0, scale=1)
 q = dis.Normal(loc=0.1, scale=1)
