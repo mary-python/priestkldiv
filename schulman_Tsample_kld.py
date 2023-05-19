@@ -27,6 +27,7 @@ noise = tfp.distributions.Laplace(loc=a, scale=b1)
 k3noise = k3 + noise.sample(sample_shape=20_000_000)
 print(f'Approx KLD (noise vs no noise): {(np.mean(k3noise) - k3.mean()) / k3.mean(), np.std(k3noise) / k3.std()}')
 
+# additional comparisons with true KLD
 trueklnoise = truekl + noise.sample(sample_shape=20_000_000)
 print(f'Approx vs true KLD (with noise): {(np.mean(k3noise) - np.mean(trueklnoise)) / np.mean(trueklnoise), np.std(k3noise) / np.std(trueklnoise)}')
 print(f'True KLD (noise vs no noise): {(np.mean(trueklnoise) - truekl) / truekl, np.std(trueklnoise) / truekl}')
