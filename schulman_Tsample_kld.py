@@ -6,8 +6,8 @@ import numpy as np
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
-p = dis.Normal(loc=0, scale=1)
-q = dis.Normal(loc=1, scale=1)
+p = dis.Normal(loc=1, scale=1)
+q = dis.Normal(loc=0, scale=1)
 truekl = dis.kl_divergence(p, q)
 print("true", truekl)
 
