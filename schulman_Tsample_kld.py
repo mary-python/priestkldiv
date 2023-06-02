@@ -6,13 +6,13 @@ import numpy as np
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
-p = dis.Normal(loc=1, scale=1)
+p = dis.Laplace(loc=0.1, scale=1)
 q = dis.Normal(loc=0, scale=1)
 truekl = dis.kl_divergence(p, q)
 print("true", truekl)
 
 # sample T points
-T = 10_000_000
+T = 500_000
 
 # round to 2 d.p., find indices of and eliminate unique values
 qSample = q.sample(sample_shape=(T,))
@@ -32,8 +32,8 @@ k3 = ((logr.exp() - 1) - logr)
 print(f'Approx vs true KLD (no noise): {(k3.mean() - truekl) / truekl, k3.std() / truekl}')
 
 # add Laplace or Gaussian noise with parameter(s) eps (and dta)
-eps = 1
-dta = 1
+eps = 0.1
+dta = 0.1
 a = 0
 b1 = log(2)
 b2 = 2*((log(1.25))/dta)*b1
