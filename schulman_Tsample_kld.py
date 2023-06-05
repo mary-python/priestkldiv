@@ -15,19 +15,19 @@ print("true", truekl)
 T = 500_000
 
 # round to 2 d.p., find indices of and eliminate unique values
-qSample = q.sample(sample_shape=(T,))
-qRound = torch.round(qSample, decimals=2)
-qUnique = torch.unique(qRound, return_counts=True)
-qIndices = (qUnique[1] == 1).nonzero().flatten()
-qUniqueIndices = qUnique[0][qIndices]
+pSample = p.sample(sample_shape=(T,))
+pRound = torch.round(pSample, decimals=2)
+pUnique = torch.unique(pRound, return_counts=True)
+pIndices = (pUnique[1] == 1).nonzero().flatten()
+pUniqueIndices = pUnique[0][pIndices]
 
-for i in qUniqueIndices:
-    qRound = qRound[qRound != i]
+for i in pUniqueIndices:
+    pRound = pRound[pRound != i]
 
-qT = torch.numel(qRound)
+pT = torch.numel(pRound)
 
 # skip Prio step for now
-logr = (p.log_prob(qRound) - q.log_prob(qRound))
+logr = (p.log_prob(pRound) - q.log_prob(pRound))
 k3 = ((logr.exp() - 1) - logr)
 print(f'Approx vs true KLD (no noise): {(k3.mean() - truekl) / truekl, k3.std() / truekl}')
 
@@ -39,10 +39,10 @@ b1 = log(2)
 b2 = 2*((log(1.25))/dta)*b1
 noise = tfp.distributions.Laplace(loc=a, scale=b1)
 # noise = tfp.distributions.Normal(loc=a, scale=b2)
-k3noise = k3 + (noise.sample(sample_shape=qT))/eps
+k3noise = k3 + (noise.sample(sample_shape=pT))/eps
 print(f'Approx KLD (noise vs no noise): {(np.mean(k3noise) - k3.mean()) / k3.mean(), np.std(k3noise) / k3.std()}')
 
 # additional comparisons with true KLD
-trueklnoise = truekl + noise.sample(sample_shape=qT)
+trueklnoise = truekl + noise.sample(sample_shape=pT)
 print(f'Approx vs true KLD (with noise): {(np.mean(k3noise) - np.mean(trueklnoise)) / np.mean(trueklnoise), np.std(k3noise) / np.std(trueklnoise)}')
 print(f'True KLD (noise vs no noise): {(np.mean(trueklnoise) - truekl) / truekl, np.std(trueklnoise) / truekl}')
