@@ -3,6 +3,8 @@ import torch.distributions as dis
 from math import log
 import tensorflow_probability as tfp
 import numpy as np
+from scipy.stats import laplace, norm
+import matplotlib.pyplot as plt
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
@@ -15,19 +17,19 @@ print("true", truekl)
 T = 500_000
 
 # round to 2 d.p., find indices of and eliminate unique values
-pSample = p.sample(sample_shape=(T,))
-pRound = torch.round(pSample, decimals=2)
-pUnique = torch.unique(pRound, return_counts=True)
-pIndices = (pUnique[1] == 1).nonzero().flatten()
-pUniqueIndices = pUnique[0][pIndices]
+qSample = q.sample(sample_shape=(T,))
+qRound = torch.round(qSample, decimals=2)
+qUnique = torch.unique(qRound, return_counts=True)
+qIndices = (qUnique[1] == 1).nonzero().flatten()
+qUniqueIndices = qUnique[0][qIndices]
 
-for i in pUniqueIndices:
-    pRound = pRound[pRound != i]
+for i in qUniqueIndices:
+    qRound = qRound[qRound != i]
 
-pT = torch.numel(pRound)
+qT = torch.numel(qRound)
 
 # skip Prio step for now
-logr = (p.log_prob(pRound) - q.log_prob(pRound))
+logr = (p.log_prob(qRound) - q.log_prob(qRound))
 k3 = ((logr.exp() - 1) - logr)
 print(f'Approx vs true KLD (no noise): {(k3.mean() - truekl) / truekl, k3.std() / truekl}')
 
@@ -39,10 +41,20 @@ b1 = log(2)
 b2 = 2*((log(1.25))/dta)*b1
 noise = tfp.distributions.Laplace(loc=a, scale=b1)
 # noise = tfp.distributions.Normal(loc=a, scale=b2)
-k3noise = k3 + (noise.sample(sample_shape=pT))/eps
+k3noise = k3 + (noise.sample(sample_shape=qT))/eps
 print(f'Approx KLD (noise vs no noise): {(np.mean(k3noise) - k3.mean()) / k3.mean(), np.std(k3noise) / k3.std()}')
 
 # additional comparisons with true KLD
-trueklnoise = truekl + noise.sample(sample_shape=pT)
+trueklnoise = truekl + noise.sample(sample_shape=qT)
 print(f'Approx vs true KLD (with noise): {(np.mean(k3noise) - np.mean(trueklnoise)) / np.mean(trueklnoise), np.std(k3noise) / np.std(trueklnoise)}')
 print(f'True KLD (noise vs no noise): {(np.mean(trueklnoise) - truekl) / truekl, np.std(trueklnoise) / truekl}')
+
+rv1 = laplace(a, b1)
+rv2 = norm(a, b1)
+dist1 = np.linspace(-2, np.minimum(rv1.dist.b, 2))
+dist2 = np.linspace(-2, np.minimum(rv2.dist.b, 2))
+plot1 = plt.plot(dist1, rv1.pdf(dist1), label = f"Lap dist: \u03B5={eps}")
+plot2 = plt.plot(dist2, rv2.pdf(dist2), label = f"N dist: \u03B5={eps}, \u03B4={dta}")
+
+plt.legend(loc="upper left")
+plt.show()
