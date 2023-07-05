@@ -1,4 +1,5 @@
 import torch
+torch.manual_seed(12)
 import torch.distributions as dis
 from math import log
 import tensorflow as tf
