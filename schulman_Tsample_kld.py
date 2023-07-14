@@ -3,7 +3,7 @@ torch.manual_seed(12)
 import torch.distributions as dis
 from math import log
 import tensorflow as tf
-tf.random.set_seed(12)
+tf.random.set_seed(638)
 import tensorflow_probability as tfp
 import numpy as np
 import matplotlib.pyplot as plt
@@ -35,6 +35,7 @@ logr = (p.log_prob(qRound) - q.log_prob(qRound))
 k3 = ((logr.exp() - 1) - logr)
 
 # add Laplace or Gaussian noise with parameter(s) eps (and dta)
+epssetlow = [0.001, 0.0025, 0.005, 0.01, 0.025, 0.05, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5]
 epsset = [0.01, 0.025, 0.05, 0.1, 0.2, 0.4, 0.8, 1, 1.5, 2, 3, 4]
 dta = 0.1
 a = 0
