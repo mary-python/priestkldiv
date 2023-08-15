@@ -100,7 +100,7 @@ qT = torch.numel(qRound)
 # INSERT CODE HERE
 # What kind of images do I want?
 # 3D (10000, 28, 28) or vector (7.84M)?
-# Use qRound indices to sample from oddImageSet
+# Use qRound values to sample from oddImageSet
 
 # skip Prio step for now
 logr = (p.log_prob(qRound) - q.log_prob(qRound))
