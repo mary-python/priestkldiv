@@ -11,132 +11,254 @@ images = np.concatenate((images1, images2))
 labels = np.concatenate((labels1, labels2))
 
 # NUMPY ARRAYS WITH DIMENSION OF LABELS
-evenSet = np.zeros(140000)
-oddSet = np.zeros(140000)
-evenIndexSet = np.zeros(140000)
-oddIndexSet = np.zeros(140000)
+zeroSet = np.zeros(28000)
+oneSet = np.zeros(28000)
+twoSet = np.zeros(28000)
+threeSet = np.zeros(28000)
+fourSet = np.zeros(28000)
+fiveSet = np.zeros(28000)
+sixSet = np.zeros(28000)
+sevenSet = np.zeros(28000)
+eightSet = np.zeros(28000)
+nineSet = np.zeros(28000)
 
-# KEEP TRACK OF HOW MANY ODD/EVEN/TOTAL DIGITS ARE PROCESSED
-evenCount = 0
-oddCount = 0
-count = 0
+# TO STORE WHICH LABELS ARE ASSOCIATED WITH WHICH DIGIT
+zeroIndexSet = np.zeros(28000)
+oneIndexSet = np.zeros(28000)
+twoIndexSet = np.zeros(28000)
+threeIndexSet = np.zeros(28000)
+fourIndexSet = np.zeros(28000)
+fiveIndexSet = np.zeros(28000)
+sixIndexSet = np.zeros(28000)
+sevenIndexSet = np.zeros(28000)
+eightIndexSet = np.zeros(28000)
+nineIndexSet = np.zeros(28000)
 
-# SPLIT NUMBERS 0-9 INTO ODD AND EVEN
+# KEEP TRACK OF HOW MANY OF EACH DIGIT (AND TOTAL) ARE PROCESSED
+zeroCount = 0
+oneCount = 0
+twoCount = 0
+threeCount = 0
+fourCount = 0
+fiveCount = 0
+sixCount = 0
+sevenCount = 0
+eightCount = 0
+nineCount = 0
+totalCount = 0
+
+# SPLIT NUMBERS 0-9
 for digit in labels:
     
-    # IF NO REMAINDER WHEN DIVIDED BY 2 THEN EVEN
-    if (digit % 2) == 0:
-        evenSet[evenCount] = digit
-        evenIndexSet[evenCount] = count
-        evenCount = evenCount + 1
+    # ADD DIGIT TO SET, INDEX TO INDEX SET AND INCREMENT COUNT
+    if digit == 0:
+        zeroSet[zeroCount] = digit
+        zeroIndexSet[zeroCount] = totalCount
+        zeroCount = zeroCount + 1
 
-    # IF REMAINDER WHEN DIVIDED BY 2 THEN ODD
-    else:
-        oddSet[oddCount] = digit
-        oddIndexSet[oddCount] = count
-        oddCount = oddCount + 1
+    elif digit == 1:
+        oneSet[oneCount] = digit
+        oneIndexSet[oneCount] = totalCount
+        oneCount = oneCount + 1
 
-    count = count + 1
+    elif digit == 2:
+        twoSet[twoCount] = digit
+        twoIndexSet[twoCount] = totalCount
+        twoCount = twoCount + 1
+
+    elif digit == 3:
+        threeSet[threeCount] = digit
+        threeIndexSet[threeCount] = totalCount
+        threeCount = threeCount + 1
+
+    elif digit == 4:
+        fourSet[fourCount] = digit
+        fourIndexSet[fourCount] = totalCount
+        fourCount = fourCount + 1
+
+    elif digit == 5:
+        fiveSet[fiveCount] = digit
+        fiveIndexSet[fiveCount] = totalCount
+        fiveCount = fiveCount + 1
+
+    elif digit == 6:
+        sixSet[sixCount] = digit
+        sixIndexSet[sixCount] = totalCount
+        sixCount = sixCount + 1
+
+    elif digit == 7:
+        sevenSet[sevenCount] = digit
+        sevenIndexSet[sevenCount] = totalCount
+        sevenCount = sevenCount + 1
+
+    elif digit == 8:
+        eightSet[eightCount] = digit
+        eightIndexSet[eightCount] = totalCount
+        eightCount = eightCount + 1
+
+    elif digit == 9:
+        nineSet[nineCount] = digit
+        nineIndexSet[nineCount] = totalCount
+        nineCount = nineCount + 1
+
+    totalCount = totalCount + 1
+
+print(zeroSet.shape)
+print(oneSet.shape)
+print(twoSet.shape)
+print(threeSet.shape)
+print(fourSet.shape)
+print(fiveSet.shape)
+print(sixSet.shape)
+print(sevenSet.shape)
+print(eightSet.shape)
+print(nineSet.shape)
+
+print(zeroIndexSet.shape)
+print(oneIndexSet.shape)
+print(twoIndexSet.shape)
+print(threeIndexSet.shape)
+print(fourIndexSet.shape)
+print(fiveIndexSet.shape)
+print(sixIndexSet.shape)
+print(sevenIndexSet.shape)
+print(eightIndexSet.shape)
+print(nineIndexSet.shape)
+
+print(zeroCount)
+print(oneCount)
+print(twoCount)
+print(threeCount)
+print(fourCount)
+print(fiveCount)
+print(sixCount)
+print(sevenCount)
+print(eightCount)
+print(nineCount)
+print(totalCount)
 
 # NUMPY ARRAYS WITH DIMENSION OF IMAGES
-evenImageSet = np.zeros((140000, 28, 28))
-oddImageSet = np.zeros((140000, 28, 28))
-evenImageIndexSet = np.zeros(140000)
-oddImageIndexSet = np.zeros(140000)
+zeroImageSet = np.zeros((28000, 28, 28))
+oneImageSet = np.zeros((28000, 28, 28))
+twoImageSet = np.zeros((28000, 28, 28))
+threeImageSet = np.zeros((28000, 28, 28))
+fourImageSet = np.zeros((28000, 28, 28))
+fiveImageSet = np.zeros((28000, 28, 28))
+sixImageSet = np.zeros((28000, 28, 28))
+sevenImageSet = np.zeros((28000, 28, 28))
+eightImageSet = np.zeros((28000, 28, 28))
+nineImageSet = np.zeros((28000, 28, 28))
 
-# KEEP TRACK OF HOW MANY ODD/EVEN/TOTAL IMAGES ARE PROCESSED
-evenImageCount = 0
-oddImageCount = 0
-imageCount = 0
+# TO STORE WHICH IMAGES ARE ASSOCIATED WITH WHICH DIGIT
+zeroImageIndexSet = np.zeros(28000)
+oneImageIndexSet = np.zeros(28000)
+twoImageIndexSet = np.zeros(28000)
+threeImageIndexSet = np.zeros(28000)
+fourImageIndexSet = np.zeros(28000)
+fiveImageIndexSet = np.zeros(28000)
+sixImageIndexSet = np.zeros(28000)
+sevenImageIndexSet = np.zeros(28000)
+eightImageIndexSet = np.zeros(28000)
+nineImageIndexSet = np.zeros(28000)
+
+# KEEP TRACK OF HOW MANY OF EACH IMAGE (AND TOTAL) ARE PROCESSED
+zeroImageCount = 0
+oneImageCount = 0
+twoImageCount = 0
+threeImageCount = 0
+fourImageCount = 0
+fiveImageCount = 0
+sixImageCount = 0
+sevenImageCount = 0
+eightImageCount = 0
+nineImageCount = 0
+totalImageCount = 0
 
 for pic in images:
 
-    # IF ASSOCIATED WITH AN EVEN LABEL THEN ADD TO EVEN IMAGE SET
-    if imageCount in evenIndexSet:
-        evenImageSet[evenImageCount] = pic
-        evenImageIndexSet[evenImageCount] = imageCount
-        evenImageCount = evenImageCount + 1
+    # ADD IMAGE TO SET, INDEX TO INDEX SET AND INCREMENT COUNT
+    if totalImageCount in zeroIndexSet:
+        zeroImageSet[zeroImageCount] = pic
+        zeroImageIndexSet[zeroImageCount] = totalImageCount
+        zeroImageCount = zeroImageCount + 1
 
-    # IF ASSOCIATED WITH AN ODD LABEL THEN ADD TO ODD IMAGE SET
-    else:
-        oddImageSet[oddImageCount] = pic
-        oddImageIndexSet[oddImageCount] = imageCount
-        oddImageCount = oddImageCount + 1
+    elif totalImageCount in oneIndexSet:
+        oneImageSet[oneImageCount] = pic
+        oneImageIndexSet[oneImageCount] = totalImageCount
+        oneImageCount = oneImageCount + 1
+    
+    elif totalImageCount in twoIndexSet:
+        twoImageSet[twoImageCount] = pic
+        twoImageIndexSet[twoImageCount] = totalImageCount
+        twoImageCount = twoImageCount + 1
+    
+    elif totalImageCount in threeIndexSet:
+        threeImageSet[threeImageCount] = pic
+        threeImageIndexSet[threeImageCount] = totalImageCount
+        threeImageCount = threeImageCount + 1
+    
+    elif totalImageCount in fourIndexSet:
+        fourImageSet[fourImageCount] = pic
+        fourImageIndexSet[fourImageCount] = totalImageCount
+        fourImageCount = fourImageCount + 1
+    
+    elif totalImageCount in fiveIndexSet:
+        fiveImageSet[fiveImageCount] = pic
+        fiveImageIndexSet[fiveImageCount] = totalImageCount
+        fiveImageCount = fiveImageCount + 1
+    
+    elif totalImageCount in sixIndexSet:
+        sixImageSet[sixImageCount] = pic
+        sixImageIndexSet[sixImageCount] = totalImageCount
+        sixImageCount = sixImageCount + 1
+    
+    elif totalImageCount in sevenIndexSet:
+        sevenImageSet[sevenImageCount] = pic
+        sevenImageIndexSet[sevenImageCount] = totalImageCount
+        sevenImageCount = sevenImageCount + 1
+    
+    elif totalImageCount in eightIndexSet:
+        eightImageSet[eightImageCount] = pic
+        eightImageIndexSet[eightImageCount] = totalImageCount
+        eightImageCount = eightImageCount + 1
+    
+    elif totalImageCount in nineIndexSet:
+        nineImageSet[nineImageCount] = pic
+        nineImageIndexSet[nineImageCount] = totalImageCount
+        nineImageCount = nineImageCount + 1
 
-    imageCount = imageCount + 1
+    totalImageCount = totalImageCount + 1
 
-# INSERT SCHULMAN TSAMPLE EPS CODE BELOW
-import torch
-torch.manual_seed(12)
-import torch.distributions as dis
-from math import log
-import tensorflow as tf
-tf.random.set_seed(638)
-import tensorflow_probability as tfp
-import matplotlib.pyplot as plt
-import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+print(zeroImageSet.shape)
+print(oneImageSet.shape)
+print(twoImageSet.shape)
+print(threeImageSet.shape)
+print(fourImageSet.shape)
+print(fiveImageSet.shape)
+print(sixImageSet.shape)
+print(sevenImageSet.shape)
+print(eightImageSet.shape)
+print(nineImageSet.shape)
 
-p = dis.Laplace(loc=0.1, scale=1)
-q = dis.Normal(loc=0, scale=1)
-truekl = dis.kl_divergence(p, q)
-print("true", truekl)
+print(zeroImageIndexSet.shape)
+print(oneImageIndexSet.shape)
+print(twoImageIndexSet.shape)
+print(threeImageIndexSet.shape)
+print(fourImageIndexSet.shape)
+print(fiveImageIndexSet.shape)
+print(sixImageIndexSet.shape)
+print(sevenImageIndexSet.shape)
+print(eightImageIndexSet.shape)
+print(nineImageIndexSet.shape)
 
-# sample T points
-T = 10_000
-
-# round to 2 d.p., find indices of and eliminate unique values
-qSample = q.sample(sample_shape=(T,))
-qRound = torch.round(qSample, decimals=2)
-qUnique = torch.unique(qRound, return_counts=True)
-qIndices = (qUnique[1] == 1).nonzero().flatten()
-qUniqueIndices = qUnique[0][qIndices]
-
-for i in qUniqueIndices:
-    qRound = qRound[qRound != i]
-
-qT = torch.numel(qRound)
-
-# INSERT CODE HERE
-# What kind of images do I want?
-# 3D (10000, 28, 28) or vector (7.84M)?
-# Use qRound values to sample from oddImageSet
-
-# skip Prio step for now
-logr = (p.log_prob(qRound) - q.log_prob(qRound))
-k3 = ((logr.exp() - 1) - logr)
-
-# add Laplace and Gaussian noise with parameter(s) eps (and dta)
-epsset = [0.01, 0.025, 0.05, 0.1, 0.2, 0.4, 0.8, 1, 1.5, 2, 3, 4]
-dta = 0.1
-a = 0
-b1 = log(2)
-b2 = 2*((log(1.25))/dta)*b1
-
-noise1 = tfp.distributions.Laplace(loc=a, scale=b1)
-noise2 = tfp.distributions.Normal(loc=a, scale=b2)
-KLDest1 = list()
-KLDest2 = list()
-
-for eps in epsset:
-
-    k3noise1 = list()
-    k3noise2 = list()
-
-    for j in range(0, 10):
-        k3noise1.append(k3 + (noise1.sample(sample_shape=qT, seed=12))/eps)
-        k3noise2.append(k3 + (noise2.sample(sample_shape=qT, seed=12))/eps)
-
-    average1 = sum(k3noise1) / len(k3noise1)
-    average2 = sum(k3noise2) / len(k3noise2)
-    KLDest1.append(abs(np.mean(average1) - truekl))
-    KLDest2.append(abs(np.mean(average2) - truekl))
-
-plot1 = plt.plot(epsset, KLDest1, label = f"Laplace dist")
-plot2 = plt.plot(epsset, KLDest2, label = f"Gaussian dist")
-
-plt.title("Effect of epsilon on noisy estimate of KLD")
-plt.xlabel("Value of epsilon")
-plt.ylabel("Difference in KLD")
-plt.legend(loc="best")
-plt.show()
+print(zeroImageCount)
+print(oneImageCount)
+print(twoImageCount)
+print(threeImageCount)
+print(fourImageCount)
+print(fiveImageCount)
+print(sixImageCount)
+print(sevenImageCount)
+print(eightImageCount)
+print(nineImageCount)
+print(totalImageCount)
