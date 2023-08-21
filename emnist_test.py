@@ -1,5 +1,6 @@
-# FOR NUMPY ARRAYS
+# FOR NUMPY ARRAYS AND PLOTS
 import numpy as np
+import matplotlib.pyplot as plt
 
 # LOAD TRAINING AND TEST SAMPLES FOR 'DIGITS' SUBSET
 from emnist import extract_training_samples, extract_test_samples
@@ -57,3 +58,10 @@ print(digitImageSet.shape)
 print(digitImageIndexSet.shape)
 print(digitImageCount)
 print(totalImageCount)
+
+print(digitImageSet[0, 0])
+print(digitImageSet[0, 0, 0])
+print(digitImageSet[0, 0, 0, 0])
+
+plt.gray()
+plt.imshow(digitImageSet[0, 0])
