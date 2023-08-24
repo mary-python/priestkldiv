@@ -1,7 +1,7 @@
 import numpy as np
 import random
 import matplotlib.pyplot as plt
-np.random.seed(3957204)
+random.seed(3957204)
 
 # LOAD TRAINING AND TEST SAMPLES FOR 'DIGITS' SUBSET
 from emnist import extract_training_samples, extract_test_samples
@@ -33,8 +33,9 @@ for digit in labels:
     addDigit(digit, digit, digitSet, digitIndexSet, digitCount, totalCount)
     totalCount = totalCount + 1
 
-# SIMILAR ARRAYS TO STORE IMAGES ASSOCIATED WITH EACH DIGIT
-digitImageSet = np.zeros((10, 28000, 28, 28), dtype = int)
+# SIMILAR ARRAYS TO STORE CONDENSED IMAGES ASSOCIATED WITH EACH DIGIT
+smallPic = np.zeros((4, 4))
+digitImageSet = np.zeros((10, 28000, 4, 4))
 digitImageIndexSet = np.zeros((10, 28000), dtype = int)
 
 # KEEP TRACK OF HOW MANY OF EACH IMAGE (AND TOTAL) ARE PROCESSED
@@ -43,10 +44,19 @@ totalImageCount = 0
 
 for pic in images:
 
+    # PARTITION EACH IMAGE INTO 16 7x7 SUBIMAGES
+    for i in range(4):
+        for j in range(4):
+            subImage = pic[7*i : 7*(i + 1), 7*j : 7*(j + 1)]
+
+            # SAVE ROUNDED MEAN OF EACH SUBIMAGE INTO CORRESPONDING CELL OF SMALLPIC
+            meanSubImage = np.mean(subImage)
+            smallPic[i, j] = 16*round(meanSubImage / 16)
+
     # SPLIT IMAGES BY ASSOCIATION WITH PARTICULAR LABEL
     for digit in range(0, 10):
         if totalImageCount in digitIndexSet[digit]:
-            addDigit(digit, pic, digitImageSet, digitImageIndexSet, digitImageCount, totalImageCount)
+            addDigit(digit, smallPic, digitImageSet, digitImageIndexSet, digitImageCount, totalImageCount)
             break
 
     totalImageCount = totalImageCount + 1
@@ -55,60 +65,49 @@ for pic in images:
 T = 100
 
 # PREPARE TEMPLATES FOR AVERAGE IMAGES AND TOTAL DIFFERENCES BETWEEN IMAGES
-firstDiff = np.zeros((T, 28, 28))
-secondDiff = np.zeros((T, 28, 28))
-firstTotalDiff = np.zeros(T)
-secondTotalDiff = np.zeros(T)
-firstAvgDiff = np.zeros(T)
-secondAvgDiff = np.zeros(T)
-firstImage = np.zeros((28, 28))
-secondImage = np.zeros((28, 28))
+oneDiff = np.zeros((T, 10, 4, 4))
+totalDiff = np.zeros((T, 10))
+avgDiff = np.zeros((T, 10))
+imageDiff = np.zeros((10, 4, 4))
 
 for A in range(T):
 
-    # CHOOSE RANDOM IMAGE FROM EACH OF LABELS ONE TWO AND THREE
-    randomOne = random.randint(0, 27999)
-    randomTwo = random.randint(0, 27999)
-    randomThree = random.randint(0, 27999)
+    # COMPARE DIGIT "1" WITH ALL OTHER DIGITS INCLUDING ITSELF
+    for D in range(10):
 
-    firstOne = digitImageSet[1, randomOne]
-    firstTwo = digitImageSet[2, randomTwo]
-    firstThree = digitImageSet[3, randomThree]
+        # CHOOSE RANDOM IMAGES FROM "1" SET AND "D" SET
+        randomOne = random.randint(0, 27999)
+        randomOther = random.randint(0, 27999)
+        oneImage = digitImageSet[1, randomOne]
+        otherImage = digitImageSet[D, randomOther]
 
-    # LOOP ACROSS ALL PIXELS IN EACH IMAGE
-    for i in range(28):
-        for j in range(28):
+        # LOOP ACROSS ALL SUBIMAGES IN EACH IMAGE
+        for i in range(4):
+            for j in range(4):
 
-            # COMPUTE MIDPOINT BETWEEN PIXELS AND ADD IT TO TOTAL DIFFERENCE
-            firstDiff[A, i, j] = abs(0.5*(firstOne[i, j] - firstTwo[i, j]))
-            secondDiff[A, i, j] = abs(0.5*(firstOne[i, j] - firstThree[i, j]))
-            firstTotalDiff[A] = firstTotalDiff[A] + firstDiff[A, i, j]
-            secondTotalDiff[A] = secondTotalDiff[A] + secondDiff[A, i, j]
-            firstImage[i, j] = firstImage[i, j] + firstDiff[A, i, j]
-            secondImage[i, j] = secondImage[i, j] + secondDiff[A, i, j]
+                # COMPUTE MIDPOINT BETWEEN SUBIMAGES AND ADD IT TO TOTAL DIFFERENCE
+                oneDiff[A, D, i, j] = abs(0.5*(oneImage[i, j] - otherImage[i, j]))
+                totalDiff[A, D] = totalDiff[A, D] + oneDiff[A, D, i, j]
+                imageDiff[D, i, j] = imageDiff[D, i, j] + oneDiff[A, D, i, j]
 
-    # DIVIDE BY NUMBER OF PIXELS IN AN IMAGE
-    firstAvgDiff[A] = firstTotalDiff[A] / 784
-    secondAvgDiff[A] = secondTotalDiff[A] / 784
+        # DIVIDE BY NUMBER OF SUBIMAGES IN AN IMAGE
+        avgDiff[A, D] = totalDiff[A, D] / 16
 
-print(firstImage[13])
-print(secondImage[13])
-
-for i in range(28):
-    for j in range(28):
-        firstImage[i, j] = firstImage[i, j] / T
-        secondImage[i, j] = secondImage[i, j] / T
-
-print(sum(firstTotalDiff)/T)
-print(sum(secondTotalDiff)/T)
-print(round(sum(firstAvgDiff)/T, 4))
-print(round(sum(secondAvgDiff)/T, 4))
-
-print(firstImage[13])
-print(secondImage[13])
+for D in range(10):
+    for i in range(4):
+        for j in range(4):
+            imageDiff[D, i, j] = imageDiff[D, i, j] / T
+    
+    print(round(sum(avgDiff[D])/T, 4))
+    print(imageDiff[D, 2])
 
 # SHOW BOTH AVERAGE IMAGES AT THE SAME TIME
-fig, (ax1, ax2) = plt.subplots(1, 2, sharex = True, sharey = True, figsize = (12, 6))
-ax1.imshow(firstImage, cmap = 'gray')
-ax2.imshow(secondImage, cmap = 'gray')
+fig, ax = plt.subplots(2, 5, sharex = True, sharey = True)
+
+plotCount = 0
+for row in ax:
+    for col in row:
+        col.imshow(imageDiff[plotCount], cmap = 'gray')
+        plotCount = plotCount + 1
+
 plt.show()
