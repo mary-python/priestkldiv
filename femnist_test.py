@@ -8,7 +8,7 @@ import torch
 # ENABLES EASY ACCESS AND FAST LOADING TO THE FEMNIST DATASET FROM LEAF WITH THE HELP OF HDF5
 
 # is this path genuine or do I need to change this to my path?
-path = 'path_to_your_femnist.hdf5'
+path = '.\Sayan Biswas\data'
 file = h5py.File(path, 'r')
 
 # create an list where each index stores the images and labels associated with a particular writer
@@ -25,9 +25,9 @@ w0_labels_tensor = torch.from_numpy(w0_labels)
 
 # sort writer 0's images into classes (digits 0 to 9)
 classes, counts = np.unique(w0_labels, return_counts = True)
-print(f'writer 0 has {len(w0_images)} images')
-print(f'writer 0 has {len(classes)} classes')
-print(f'writer 0 has {counts} images per class')
+print(f'writer 0 has {len(w0_images)} images') # should be 104
+print(f'writer 0 has {len(classes)} classes') # should be 10
+print(f'writer 0 has {counts} images per class') # should be [12 11 11 12 9 8 10 11 9 11]
 
 # dataset 0 stores all of writer 0's data
 d0 = file[writers[0]]
