@@ -1,5 +1,12 @@
 import numpy as np
 import random
+import torch
+torch.manual_seed(85)
+import torch.distributions as dis
+from math import log
+import tensorflow as tf
+tf.random.set_seed(475)
+import tensorflow_probability as tfp
 import matplotlib.pyplot as plt
 random.seed(3957204)
 
@@ -61,8 +68,8 @@ for pic in images:
 
     totalImageCount = totalImageCount + 1
 
-# NUMBER OF REPEATS
-T = 100
+# NUMBER OF REPEATS COVERS APPROX 5% OF DEVICES
+T = 180
 
 # PREPARE TEMPLATES FOR AVERAGE IMAGES AND TOTAL DIFFERENCES BETWEEN IMAGES
 oneDiff = np.zeros((T, 10, 4, 4))
@@ -75,9 +82,9 @@ for A in range(T):
     # COMPARE DIGIT "1" WITH ALL OTHER DIGITS INCLUDING ITSELF
     for D in range(10):
 
-        # CHOOSE RANDOM IMAGES FROM "1" SET AND "D" SET
-        randomOne = random.randint(0, 27999)
-        randomOther = random.randint(0, 27999)
+        # CHOOSE RANDOM IMAGES FROM FIRST HALF OF "1" SET AND SECOND HALF OF "D" SET
+        randomOne = random.randint(0, 13999)
+        randomOther = random.randint(14000, 27999)
         oneImage = digitImageSet[1, randomOne]
         otherImage = digitImageSet[D, randomOther]
 
@@ -93,21 +100,88 @@ for A in range(T):
         # DIVIDE BY NUMBER OF SUBIMAGES IN AN IMAGE
         avgDiff[A, D] = totalDiff[A, D] / 16
 
+sumDiff = np.zeros(10)
+
 for D in range(10):
     for i in range(4):
         for j in range(4):
             imageDiff[D, i, j] = imageDiff[D, i, j] / T
     
-    print(round(sum(avgDiff[D])/T, 4))
-    print(imageDiff[D, 2])
+    # SUM OVER ALL REPEATS FOR EACH DIGIT
+    sumDiff[D] = np.sum(avgDiff, axis = 0)
+    print(f'{avgDiff[D]}')
+    print(sumDiff[D])
 
-# SHOW BOTH AVERAGE IMAGES AT THE SAME TIME
+logr = np.zeros(10)
+k3 = np.zeros(10)
+KLDest1 = np.zeros((10, 12))
+KLDest2 = np.zeros((10, 12))
+
+# NORMAL DISTRIBUTION AROUND DIFFERENCE OF "1" SET
+p = dis.Normal(loc = sumDiff[1], scale = 1)
+
+for D in range(10):
+
+    # NORMAL DISTRIBUTION AROUND DIFFERENCE OF COMPARISON SET
+    q = dis.Normal(loc = sumDiff[D], scale = 1)
+    qT = torch.numel(sumDiff[D])
+    truekl = dis.kl_divergence(p, q)
+    print('true', truekl)
+
+    # COMPUTE LOGR AND K3
+    logr[D] = (p.log_prob(sumDiff[D]) - q.log_prob(sumDiff[D]))
+    k3[D] = ((logr[D].exp() - 1) - logr[D])
+
+    print(f'{logr[D]}')
+    print(k3[D])
+
+    # ADD LAPLACE AND GAUSSIAN NOISE
+    epsset = [0.01, 0.025, 0.05, 0.1, 0.2, 0.4, 0.8, 1, 1.5, 2, 3, 4]
+    dta = 0.1
+    a = 0
+    b1 = log(2)
+    b2 = 2*((log(1.25))/dta)*b1
+
+    noise1 = tfp.distributions.Laplace(loc=a, scale=b1)
+    noise2 = tfp.distributions.Normal(loc=a, scale=b2)
+    
+    for eps in epsset:
+
+        k3noise1 = list()
+        k3noise2 = list()
+
+        # FIND AVERAGE OF 10 NOISE TERMS FOR EACH
+        for j in range(0, 10):
+            k3noise1.append(k3[D] + (noise1.sample(sample_shape=qT, seed=12))/eps)
+            k3noise2.append(k3[D] + (noise2.sample(sample_shape=qT, seed=12))/eps)
+
+        average1 = sum(k3noise1) / len(k3noise1)
+        average2 = sum(k3noise2) / len(k3noise2)
+        KLDest1[D, eps] = abs(np.mean(average1) - truekl)
+        KLDest2[D, eps] = abs(np.mean(average2) - truekl)
+
+# PLOT EPSILON VS KLD ERROR FOR EACH COMPARISON
+fig, ax = plt.subplots(2, 5, sharex = True, sharey = True)
+
+plotCount = 0
+for row in ax:
+    for col in row:
+        col.plot(epsset, KLDest1[plotCount], label = f'Laplace dist')
+        col.plot(epsset, KLDest2[plotCount], label = f'Gaussian dist')
+        col.title(f'Comparing 1 and {plotCount}')
+        col.legend(loc = 'best')
+        plotCount = plotCount + 1
+
+plt.show()
+
+# SHOW ALL AVERAGE IMAGES AT THE SAME TIME
 fig, ax = plt.subplots(2, 5, sharex = True, sharey = True)
 
 plotCount = 0
 for row in ax:
     for col in row:
         col.imshow(imageDiff[plotCount], cmap = 'gray')
+        col.title(f'Average image of {plotCount}')
         plotCount = plotCount + 1
 
 plt.show()
