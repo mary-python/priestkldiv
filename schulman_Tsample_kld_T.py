@@ -23,18 +23,32 @@ b2 = 2*((log(1.25))/dta)*b1
 
 noise1 = tfp.distributions.Laplace(loc=a, scale=b1)
 noise2 = tfp.distributions.Normal(loc=a, scale=b2)
-KLDest1 = list()
-KLDest2 = list()
 
-# sample T points
-Tset = [5_000, 10_000, 25_000, 50_000, 100_000, 250_000, 500_000, 1_000_000, 2_500_000, 5_000_000]
+# 10-100K clients each with a few hundred points
+C = 10000
+N = 500
+
+# use multi-dimensional numpy arrays to save sampled points and statistics
+qClientSample = np.zeros((C, N))
+qT1 = np.zeros(C)
+qT2 = np.zeros(C)
+logr = np.zeros(C)
+k3 = np.zeros(C)
+
+# store T before C (clients)
+Tset = np.array([5_000, 10_000, 25_000, 50_000, 100_000, 250_000, 500_000, 1_000_000, 2_500_000, 5_000_000])
+L = np.size(Tset)
+KLDest1 = np.zeros(L, C)
+KLDest2 = np.zeros(L, C)
+TCount = 0
 
 for T in Tset:
 
-    k3noise1 = list()
-    k3noise2 = list()
+    k3noise1 = np.zeros(L)
+    k3noise2 = np.zeros(L)
 
-    for j in range(0, 10):
+    # carry out 10 repeats
+    for k in range(0, 10):
 
         # round to 2 d.p., find indices of and eliminate unique values
         qSample = q.sample(sample_shape=(T,))
@@ -46,22 +60,33 @@ for T in Tset:
         for i in qUniqueIndices:
             qRound = qRound[qRound != i]
 
-        qT1 = torch.numel(qRound)
-        qRound = qRound[abs(int(qT1 - 0.98*T)):]
-        qT2 = torch.numel(qRound)
-    
-        # skip Prio step for now
-        logr = (p.log_prob(qRound) - q.log_prob(qRound))
-        k3 = ((logr.exp() - 1) - logr)
-        
-        # add Laplace and Gaussian noise with parameter(s) eps (and dta)
-        k3noise1.append(k3 + (noise1.sample(sample_shape=qT2, seed=12)/eps))
-        k3noise2.append(k3 + (noise2.sample(sample_shape=qT2, seed=12)/eps))
+        for j in range(0, C):
 
-    average1 = sum(k3noise1) / len(k3noise1)
-    average2 = sum(k3noise2) / len(k3noise2)
-    KLDest1.append(abs(np.mean(average1) - truekl))
-    KLDest2.append(abs(np.mean(average2) - truekl))
+            # sample from the pre-processed sample
+            qClientSample[j] = qSample.sample(sample_shape=(N,))
+            qT1[j] = torch.numel(qClientSample[j])
+            qClientSample[j] = qClientSample[j][abs(int(qT1 - 0.98*T)):]
+            qT2[j] = torch.numel(qClientSample[j])
+    
+            # skip Prio step for now
+            logr[j] = (p.log_prob(qClientSample[j]) - q.log_prob(qClientSample[j]))
+            k3[j] = ((logr[j].exp() - 1) - logr[j])
+        
+            # add Laplace and Gaussian noise with parameter(s) eps (and dta)
+            k3noise1[k] = k3 + (noise1.sample(sample_shape=qT2[j], seed=12)/eps)
+            k3noise2[k] = k3 + (noise2.sample(sample_shape=qT2[j], seed=12)/eps)
+
+        average1 = np.sum(k3noise1) / np.size(k3noise1)
+        average2 = np.sum(k3noise2) / np.size(k3noise2)
+
+        # compare with true KLD
+        KLDest1[T, C] = abs(np.mean(average1) - truekl)
+        KLDest2[T, C] = abs(np.mean(average2) - truekl)
+        TCount = TCount + 1
+
+# compute mean of KLD for particular T across all clients
+KLDmean1 = np.mean(KLDest1, axis = 1)
+KLDmean2 = np.mean(KLDest2, axis = 1)
 
 plot1 = plt.plot(Tset, KLDest1, label = f"Laplace dist")
 plot2 = plt.plot(Tset, KLDest2, label = f"Gaussian dist")

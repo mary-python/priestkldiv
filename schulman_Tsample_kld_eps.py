@@ -28,14 +28,18 @@ qUniqueIndices = qUnique[0][qIndices]
 for i in qUniqueIndices:
     qRound = qRound[qRound != i]
 
-qT = torch.numel(qRound)
+# 10-100K clients each with a few hundred points
+C = 10000
+N = 500
 
-# skip Prio step for now
-logr = (p.log_prob(qRound) - q.log_prob(qRound))
-k3 = ((logr.exp() - 1) - logr)
+# use multi-dimensional numpy arrays to save sampled points and statistics
+qClientSample = np.zeros((C, N))
+qT = np.zeros(C)
+logr = np.zeros(C)
+k3 = np.zeros(C)
 
-# add Laplace and Gaussian noise with parameter(s) eps (and dta)
-epsset = [0.01, 0.025, 0.05, 0.1, 0.2, 0.4, 0.8, 1, 1.5, 2, 3, 4]
+# parameters for the addition of Laplace and Gaussian noise
+epsset = np.array([0.01, 0.025, 0.05, 0.1, 0.2, 0.4, 0.8, 1, 1.5, 2, 3, 4])
 dta = 0.1
 a = 0
 b1 = log(2)
@@ -43,25 +47,45 @@ b2 = 2*((log(1.25))/dta)*b1
 
 noise1 = tfp.distributions.Laplace(loc=a, scale=b1)
 noise2 = tfp.distributions.Normal(loc=a, scale=b2)
-KLDest1 = list()
-KLDest2 = list()
+L = np.size(epsset)
+KLDest1 = np.zeros(C, L)
+KLDest2 = np.zeros(C, L)
 
-for eps in epsset:
+for j in range(0, C):
 
-    k3noise1 = list()
-    k3noise2 = list()
+    # sample from the pre-processed sample
+    qClientSample[j] = qSample.sample(sample_shape=(N,))
+    qT[j] = torch.numel(qClientSample[j])
 
-    for j in range(0, 10):
-        k3noise1.append(k3 + (noise1.sample(sample_shape=qT, seed=12))/eps)
-        k3noise2.append(k3 + (noise2.sample(sample_shape=qT, seed=12))/eps)
+    # skip Prio step for now
+    logr[j] = (p.log_prob(qClientSample[j]) - q.log_prob(qClientSample[j]))
+    k3[j] = ((logr[j].exp() - 1) - logr[j])
+    epsCount = 0
 
-    average1 = sum(k3noise1) / len(k3noise1)
-    average2 = sum(k3noise2) / len(k3noise2)
-    KLDest1.append(abs(np.mean(average1) - truekl))
-    KLDest2.append(abs(np.mean(average2) - truekl))
+    for eps in epsset:
 
-plot1 = plt.plot(epsset, KLDest1, label = f"Laplace dist")
-plot2 = plt.plot(epsset, KLDest2, label = f"Gaussian dist")
+        k3noise1 = np.zeros(L)
+        k3noise2 = np.zeros(L)
+
+        # add average of 10 possible noise terms
+        for k in range(0, 10):
+            k3noise1[k] = k3 + (noise1.sample(sample_shape=qT[j], seed=12))/eps
+            k3noise2[k] = k3 + (noise2.sample(sample_shape=qT[j], seed=12))/eps
+
+        average1 = np.sum(k3noise1) / np.size(k3noise1)
+        average2 = np.sum(k3noise2) / np.size(k3noise2)
+
+        # compare with true KLD
+        KLDest1[C, epsCount] = abs(np.mean(average1) - truekl)
+        KLDest2[C, epsCount] = abs(np.mean(average2) - truekl)
+        epsCount = epsCount + 1
+
+# compute mean of KLD for particular epsilon across all clients
+KLDmean1 = np.mean(KLDest1, axis = 0)
+KLDmean2 = np.mean(KLDest2, axis = 0)
+
+plot1 = plt.plot(epsset, KLDmean1, label = f"Laplace dist")
+plot2 = plt.plot(epsset, KLDmean2, label = f"Gaussian dist")
 
 plt.title("Effect of epsilon on noisy estimate of KLD")
 plt.xlabel("Value of epsilon")
