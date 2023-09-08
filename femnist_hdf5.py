@@ -8,9 +8,25 @@ import os
 
 basePath = './data/by_class'
 savePath = './data/test.hdf5'
+imgPath = './data/by_class/30/hsf_0/hsf_0_00000.png'
+
+# print size of test image
+print('image size: %d bytes' %os.path.getsize(imgPath))
 
 # open the file in append mode
 hf = h5py.File(savePath, 'a')
+
+# open test image as python binary
+with open(imgPath, 'rb') as img:
+    binaryData = img.read()
+
+# create numpy array storing python binary
+binaryDataNp = np.asarray(binaryData)
+
+# save test image and close file
+dset = hf.create_dataset('default', data = binaryDataNp)
+hf.close()
+print('hdf5 file size: %d bytes'%os.path.getsize(savePath))
 
 # read all the folders
 for i in os.listdir(basePath):
@@ -35,3 +51,5 @@ for i in os.listdir(basePath):
 
             # save all images in the current subfolder
             dset = subgroup.create_dataset(k, data = binaryDataNp)
+
+hf.close()

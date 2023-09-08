@@ -66,6 +66,7 @@ T = 1400
 
 # STORE T IMAGES CORRESPONDING TO EACH DIGIT
 sampleImageSet = np.zeros((10, T, 4, 4))
+histogramSet = np.zeros((10, T, 4, 4))
 
 for D in range(0, 10):
 
@@ -79,6 +80,15 @@ for D in range(0, 10):
         randomImage = digitImageSet[D, index]
         sampleImageSet[D, sampleImageCount] = randomImage
         sampleImageCount = sampleImageCount + 1
+
+    # COMPUTE MULTIDIMENSIONAL HISTOGRAM OF SAMPLED IMAGES
+    tempHist, bins = np.histogramdd(sampleImageSet[D])
+    histogramSet[D] = tempHist
+
+    for i in range(0, 3):
+        print(f'Bins along dimension {i}: {bins[i]}')
+
+    print(f'Counts after binning: {histogramSet[D]}')
 
 # SHOW ALL RANDOM IMAGES AT THE SAME TIME
 fig, ax = plt.subplots(2, 5, sharex = True, sharey = True)
