@@ -29,7 +29,7 @@ C = 10000
 N = 500
 
 # use multi-dimensional numpy arrays to save sampled points and statistics
-qClientSample = np.zeros((C, N))
+qClientSample = np.zeros((N, C))
 qT1 = np.zeros(C)
 qT2 = np.zeros(C)
 logr = np.zeros(C)
@@ -38,8 +38,8 @@ k3 = np.zeros(C)
 # store T before C (clients)
 Tset = np.array([5_000, 10_000, 25_000, 50_000, 100_000, 250_000, 500_000, 1_000_000, 2_500_000, 5_000_000])
 L = np.size(Tset)
-KLDest1 = np.zeros(L, C)
-KLDest2 = np.zeros(L, C)
+KLDest1 = np.zeros((L, C))
+KLDest2 = np.zeros((L, C))
 TCount = 0
 
 for T in Tset:

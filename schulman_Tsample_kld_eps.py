@@ -48,8 +48,8 @@ b2 = 2*((log(1.25))/dta)*b1
 noise1 = tfp.distributions.Laplace(loc=a, scale=b1)
 noise2 = tfp.distributions.Normal(loc=a, scale=b2)
 L = np.size(epsset)
-KLDest1 = np.zeros(C, L)
-KLDest2 = np.zeros(C, L)
+KLDest1 = np.zeros((C, L))
+KLDest2 = np.zeros((C, L))
 
 for j in range(0, C):
 
