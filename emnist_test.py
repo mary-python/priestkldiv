@@ -100,13 +100,15 @@ for D in range(0, 10):
 print(len(imageList))
 print(len(freqList))
 
-cumFreqList = list()
+cumFreqList = np.zeros(10)
 
-for freq in range(0, 10):
-    if freq == 0:
-        cumFreqList.append(freqList[freq])
+for D in range(0, 10):
+    if D == 0:
+        cumFreqList[D] = sizeUniqueImages[D]
     else:
-        cumFreqList.append(freqList[freq] + cumFreqList[freq - 1])
+        cumFreqList[D] = sizeUniqueImages[D] + cumFreqList[D - 1]
+
+    print(cumFreqList)
 
 zeroImageList = imageList[0:(cumFreqList[0]-1)]
 oneImageList = imageList[cumFreqList[0]:(cumFreqList[1]-1)]
