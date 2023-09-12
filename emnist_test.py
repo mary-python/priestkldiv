@@ -3,6 +3,8 @@ import random
 import matplotlib.pyplot as plt
 random.seed(3957204)
 
+# ADD TOTAL RUNTIME AT START AND END
+
 # LOAD TRAINING AND TEST SAMPLES FOR 'DIGITS' SUBSET
 from emnist import extract_training_samples, extract_test_samples
 images1, labels1 = extract_training_samples('digits')
@@ -110,16 +112,16 @@ for D in range(0, 10):
 
     print(cumFreqList)
 
-zeroImageList = imageList[0:int(cumFreqList[0]-1)]
-oneImageList = imageList[int(cumFreqList[0]):int(cumFreqList[1]-1)]
-twoImageList = imageList[int(cumFreqList[1]):int(cumFreqList[2]-1)]
-threeImageList = imageList[int(cumFreqList[2]):int(cumFreqList[3]-1)]
-fourImageList = imageList[int(cumFreqList[3]):int(cumFreqList[4]-1)]
-fiveImageList = imageList[int(cumFreqList[4]):int(cumFreqList[5]-1)]
-sixImageList = imageList[int(cumFreqList[5]):int(cumFreqList[6]-1)]
-sevenImageList = imageList[int(cumFreqList[6]):int(cumFreqList[7]-1)]
-eightImageList = imageList[int(cumFreqList[7]):int(cumFreqList[8]-1)]
-nineImageList = imageList[int(cumFreqList[8]):int(cumFreqList[9]-1)]
+zeroImageList = imageList[0:int(cumFreqList[0])]
+oneImageList = imageList[int(cumFreqList[0]):int(cumFreqList[1])]
+twoImageList = imageList[int(cumFreqList[1]):int(cumFreqList[2])]
+threeImageList = imageList[int(cumFreqList[2]):int(cumFreqList[3])]
+fourImageList = imageList[int(cumFreqList[3]):int(cumFreqList[4])]
+fiveImageList = imageList[int(cumFreqList[4]):int(cumFreqList[5])]
+sixImageList = imageList[int(cumFreqList[5]):int(cumFreqList[6])]
+sevenImageList = imageList[int(cumFreqList[6]):int(cumFreqList[7])]
+eightImageList = imageList[int(cumFreqList[7]):int(cumFreqList[8])]
+nineImageList = imageList[int(cumFreqList[8]):int(cumFreqList[9])]
 
 print(len(zeroImageList))
 print(len(oneImageList))
@@ -144,3 +146,5 @@ for row in ax:
         plotCount = plotCount + 1
 
 plt.show()
+
+# ADD TOTAL RUNTIME AT START AND END
