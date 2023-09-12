@@ -51,7 +51,10 @@ for pic in images:
 
             # SAVE ROUNDED MEAN OF EACH SUBIMAGE INTO CORRESPONDING CELL OF SMALLPIC
             meanSubImage = np.mean(subImage)
-            smallPic[i, j] = 2*round(meanSubImage / 2)
+            if meanSubImage >= 128:
+                smallPic[i, j] = 1
+            else:
+                smallPic[i, j] = 0
 
     # SPLIT IMAGES BY ASSOCIATION WITH PARTICULAR LABEL
     for digit in range(0, 10):
@@ -66,7 +69,9 @@ T = 1400
 
 # STORE T IMAGES CORRESPONDING TO EACH DIGIT
 sampleImageSet = np.zeros((10, T, 4, 4))
-histogramSet = np.zeros((10, T, 4, 4))
+sizeUniqueImages = np.zeros(10)
+imageList = list()
+freqList = list()
 
 for D in range(0, 10):
 
@@ -80,15 +85,50 @@ for D in range(0, 10):
         randomImage = digitImageSet[D, index]
         sampleImageSet[D, sampleImageCount] = randomImage
         sampleImageCount = sampleImageCount + 1
+    
+    # FIND COUNTS OF ALL UNIQUE IMAGES IN SAMPLE IMAGE SET
+    uniqueImages = np.unique(sampleImageSet[D], axis = 0)
+    sizeUniqueImages[D] = len(uniqueImages)
+    print(len(uniqueImages))
 
-    # COMPUTE MULTIDIMENSIONAL HISTOGRAM OF SAMPLED IMAGES
-    tempHist, bins = np.histogramdd(sampleImageSet[D])
-    histogramSet[D] = tempHist
+    for image in uniqueImages:
+        where = np.where(np.all(image == sampleImageSet[D], axis = (1, 2)))
+        frequency = len(where[0])
+        imageList.append(image)
+        freqList.append(frequency)
 
-    for i in range(0, 3):
-        print(f'Bins along dimension {i}: {bins[i]}')
+print(len(imageList))
+print(len(freqList))
 
-    print(f'Counts after binning: {histogramSet[D]}')
+cumFreqList = list()
+
+for freq in range(0, 10):
+    if freq == 0:
+        cumFreqList.append(freqList[freq])
+    else:
+        cumFreqList.append(freqList[freq] + cumFreqList[freq - 1])
+
+zeroImageList = imageList[0:(cumFreqList[0]-1)]
+oneImageList = imageList[cumFreqList[0]:(cumFreqList[1]-1)]
+twoImageList = imageList[cumFreqList[1]:(cumFreqList[2]-1)]
+threeImageList = imageList[cumFreqList[2]:(cumFreqList[3]-1)]
+fourImageList = imageList[cumFreqList[3]:(cumFreqList[4]-1)]
+fiveImageList = imageList[cumFreqList[4]:(cumFreqList[5]-1)]
+sixImageList = imageList[cumFreqList[5]:(cumFreqList[6]-1)]
+sevenImageList = imageList[cumFreqList[6]:(cumFreqList[7]-1)]
+eightImageList = imageList[cumFreqList[7]:(cumFreqList[8]-1)]
+nineImageList = imageList[cumFreqList[8]:(cumFreqList[9]-1)]
+
+print(len(zeroImageList))
+print(len(oneImageList))
+print(len(twoImageList))
+print(len(threeImageList))
+print(len(fourImageList))
+print(len(fiveImageList))
+print(len(sixImageList))
+print(len(sevenImageList))
+print(len(eightImageList))
+print(len(nineImageList))
 
 # SHOW ALL RANDOM IMAGES AT THE SAME TIME
 fig, ax = plt.subplots(2, 5, sharex = True, sharey = True)
