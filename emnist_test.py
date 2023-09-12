@@ -110,16 +110,16 @@ for D in range(0, 10):
 
     print(cumFreqList)
 
-zeroImageList = imageList[0:(cumFreqList[0]-1)]
-oneImageList = imageList[cumFreqList[0]:(cumFreqList[1]-1)]
-twoImageList = imageList[cumFreqList[1]:(cumFreqList[2]-1)]
-threeImageList = imageList[cumFreqList[2]:(cumFreqList[3]-1)]
-fourImageList = imageList[cumFreqList[3]:(cumFreqList[4]-1)]
-fiveImageList = imageList[cumFreqList[4]:(cumFreqList[5]-1)]
-sixImageList = imageList[cumFreqList[5]:(cumFreqList[6]-1)]
-sevenImageList = imageList[cumFreqList[6]:(cumFreqList[7]-1)]
-eightImageList = imageList[cumFreqList[7]:(cumFreqList[8]-1)]
-nineImageList = imageList[cumFreqList[8]:(cumFreqList[9]-1)]
+zeroImageList = imageList[0:int(cumFreqList[0]-1)]
+oneImageList = imageList[int(cumFreqList[0]):int(cumFreqList[1]-1)]
+twoImageList = imageList[int(cumFreqList[1]):int(cumFreqList[2]-1)]
+threeImageList = imageList[int(cumFreqList[2]):int(cumFreqList[3]-1)]
+fourImageList = imageList[int(cumFreqList[3]):int(cumFreqList[4]-1)]
+fiveImageList = imageList[int(cumFreqList[4]):int(cumFreqList[5]-1)]
+sixImageList = imageList[int(cumFreqList[5]):int(cumFreqList[6]-1)]
+sevenImageList = imageList[int(cumFreqList[6]):int(cumFreqList[7]-1)]
+eightImageList = imageList[int(cumFreqList[7]):int(cumFreqList[8]-1)]
+nineImageList = imageList[int(cumFreqList[8]):int(cumFreqList[9]-1)]
 
 print(len(zeroImageList))
 print(len(oneImageList))
