@@ -72,7 +72,7 @@ for pic in images:
 
     totalImageCount = totalImageCount + 1
 
-print("Images partitioned, cell means computed and rounded.")
+print("ADD PROGRESS BAR FOR PREPROCESSING (PARTITIONING + COMPUTING AVERAGE INTENSITY OF CELLS).")
 
 # NUMBER OF REPEATS COVERS APPROX 5% OF IMAGES
 T = 1400
@@ -105,8 +105,6 @@ for D in range(0, 10):
         frequency = len(where[0])
         imageList.append(image)
         freqList.append(frequency)
-
-    print(f"Histogram created for digit {D}.")
 
 print(f"Number of unique images for each digit: {sizeUniqueImages}")
 
