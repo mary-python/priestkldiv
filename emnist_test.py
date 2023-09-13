@@ -1,9 +1,12 @@
+import time
 import numpy as np
 import random
 import matplotlib.pyplot as plt
-random.seed(3957204)
 
-# ADD TOTAL RUNTIME AT START AND END
+# INITIALISING START TIME AND SEED FOR RANDOM SAMPLING
+startTime = time.perf_counter()
+print("\nStarting...")
+random.seed(3249583)
 
 # LOAD TRAINING AND TEST SAMPLES FOR 'DIGITS' SUBSET
 from emnist import extract_training_samples, extract_test_samples
@@ -13,6 +16,7 @@ images2, labels2 = extract_test_samples('digits')
 # COMBINE TRAINING AND TEST SAMPLES INTO ONE NP ARRAY
 images = np.concatenate((images1, images2))
 labels = np.concatenate((labels1, labels2))
+print("Training and test samples loaded and combined.")
 
 # NUMPY ARRAYS TO STORE LABELS ASSOCIATED WITH WHICH DIGIT
 digitSet = np.zeros((10, 28000), dtype = int)
@@ -34,6 +38,8 @@ for digit in labels:
     # CALL FUNCTION DEFINED ABOVE
     addDigit(digit, digit, digitSet, digitIndexSet, digitCount, totalCount)
     totalCount = totalCount + 1
+
+print("Numbers 0-9 split.")
 
 # SIMILAR ARRAYS TO STORE CONDENSED IMAGES ASSOCIATED WITH EACH DIGIT
 smallPic = np.zeros((4, 4))
@@ -66,6 +72,8 @@ for pic in images:
 
     totalImageCount = totalImageCount + 1
 
+print("Images partitioned, cell means computed and rounded.")
+
 # NUMBER OF REPEATS COVERS APPROX 5% OF IMAGES
 T = 1400
 
@@ -91,7 +99,6 @@ for D in range(0, 10):
     # FIND COUNTS OF ALL UNIQUE IMAGES IN SAMPLE IMAGE SET
     uniqueImages = np.unique(sampleImageSet[D], axis = 0)
     sizeUniqueImages[D] = len(uniqueImages)
-    print(len(uniqueImages))
 
     for image in uniqueImages:
         where = np.where(np.all(image == sampleImageSet[D], axis = (1, 2)))
@@ -99,8 +106,7 @@ for D in range(0, 10):
         imageList.append(image)
         freqList.append(frequency)
 
-print(len(imageList))
-print(len(freqList))
+    print(f"Histogram created for digit {D}.")
 
 cumFreqList = np.zeros(10)
 
@@ -109,8 +115,6 @@ for D in range(0, 10):
         cumFreqList[D] = sizeUniqueImages[D]
     else:
         cumFreqList[D] = sizeUniqueImages[D] + cumFreqList[D - 1]
-
-    print(cumFreqList)
 
 zeroImageList = imageList[0:int(cumFreqList[0])]
 oneImageList = imageList[int(cumFreqList[0]):int(cumFreqList[1])]
@@ -123,16 +127,18 @@ sevenImageList = imageList[int(cumFreqList[6]):int(cumFreqList[7])]
 eightImageList = imageList[int(cumFreqList[7]):int(cumFreqList[8])]
 nineImageList = imageList[int(cumFreqList[8]):int(cumFreqList[9])]
 
-print(len(zeroImageList))
-print(len(oneImageList))
-print(len(twoImageList))
-print(len(threeImageList))
-print(len(fourImageList))
-print(len(fiveImageList))
-print(len(sixImageList))
-print(len(sevenImageList))
-print(len(eightImageList))
-print(len(nineImageList))
+zeroFreqList = freqList[0:int(cumFreqList[0])]
+oneFreqList = freqList[int(cumFreqList[0]):int(cumFreqList[1])]
+twoFreqList = freqList[int(cumFreqList[1]):int(cumFreqList[2])]
+threeFreqList = freqList[int(cumFreqList[2]):int(cumFreqList[3])]
+fourFreqList = freqList[int(cumFreqList[3]):int(cumFreqList[4])]
+fiveFreqList = freqList[int(cumFreqList[4]):int(cumFreqList[5])]
+sixFreqList = freqList[int(cumFreqList[5]):int(cumFreqList[6])]
+sevenFreqList = freqList[int(cumFreqList[6]):int(cumFreqList[7])]
+eightFreqList = freqList[int(cumFreqList[7]):int(cumFreqList[8])]
+nineFreqList = freqList[int(cumFreqList[8]):int(cumFreqList[9])]
+
+print(zeroFreqList)
 
 # SHOW ALL RANDOM IMAGES AT THE SAME TIME
 fig, ax = plt.subplots(2, 5, sharex = True, sharey = True)
@@ -148,3 +154,9 @@ for row in ax:
 plt.show()
 
 # ADD TOTAL RUNTIME AT START AND END
+totalTime = time.perf_counter() - startTime
+
+if (totalTime // 60) == 1:
+    print(f"Total runtime: {round(totalTime // 60)} minute {round((totalTime % 60), 2)} seconds")
+else:
+    print(f"Total runtime: {round(totalTime // 60)} minutes {round((totalTime % 60), 2)} seconds")
