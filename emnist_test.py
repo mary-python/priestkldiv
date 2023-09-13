@@ -127,6 +127,17 @@ sevenImageList = imageList[int(cumFreqList[6]):int(cumFreqList[7])]
 eightImageList = imageList[int(cumFreqList[7]):int(cumFreqList[8])]
 nineImageList = imageList[int(cumFreqList[8]):int(cumFreqList[9])]
 
+print(f"\n{zeroImageList}")
+print(f"\n{oneImageList}")
+print(f"\n{twoImageList}")
+print(f"\n{threeImageList}")
+print(f"\n{fourImageList}")
+print(f"\n{fiveImageList}")
+print(f"\n{sixImageList}")
+print(f"\n{sevenImageList}")
+print(f"\n{eightImageList}")
+print(f"\n{nineImageList}")
+
 zeroFreqList = freqList[0:int(cumFreqList[0])]
 oneFreqList = freqList[int(cumFreqList[0]):int(cumFreqList[1])]
 twoFreqList = freqList[int(cumFreqList[1]):int(cumFreqList[2])]
@@ -138,39 +149,16 @@ sevenFreqList = freqList[int(cumFreqList[6]):int(cumFreqList[7])]
 eightFreqList = freqList[int(cumFreqList[7]):int(cumFreqList[8])]
 nineFreqList = freqList[int(cumFreqList[8]):int(cumFreqList[9])]
 
-print(sum(zeroFreqList))
-print(sum(oneFreqList))
-print(sum(twoFreqList))
-print(sum(threeFreqList))
-print(sum(fourFreqList))
-print(sum(fiveFreqList))
-print(sum(sixFreqList))
-print(sum(sevenFreqList))
-print(sum(eightFreqList))
-print(sum(nineFreqList))
-
-zeroDistProbsList = [freq/(sum(zeroFreqList)) for freq in zeroFreqList]
-oneDistProbsList = [freq/(sum(oneFreqList)) for freq in oneFreqList]
-twoDistProbsList = [freq/(sum(twoFreqList)) for freq in twoFreqList]
-threeDistProbsList = [freq/(sum(threeFreqList)) for freq in threeFreqList]
-fourDistProbsList = [freq/(sum(fourFreqList)) for freq in fourFreqList]
-fiveDistProbsList = [freq/(sum(fiveFreqList)) for freq in fiveFreqList]
-sixDistProbsList = [freq/(sum(sixFreqList)) for freq in sixFreqList]
-sevenDistProbsList = [freq/(sum(sevenFreqList)) for freq in sevenFreqList]
-eightDistProbsList = [freq/(sum(eightFreqList)) for freq in eightFreqList]
-nineDistProbsList = [freq/(sum(nineFreqList)) for freq in nineFreqList]
-
-print(sum(zeroDistProbsList))
-print(sum(oneDistProbsList))
-print(sum(twoDistProbsList))
-print(sum(threeDistProbsList))
-print(sum(fourDistProbsList))
-print(sum(fiveDistProbsList))
-print(sum(sixDistProbsList))
-print(sum(sevenDistProbsList))
-print(sum(eightDistProbsList))
-print(sum(nineDistProbsList))
-print(zeroDistProbsList)
+zeroDistProbsList = [freq/T for freq in zeroFreqList]
+oneDistProbsList = [freq/T for freq in oneFreqList]
+twoDistProbsList = [freq/T for freq in twoFreqList]
+threeDistProbsList = [freq/T for freq in threeFreqList]
+fourDistProbsList = [freq/T for freq in fourFreqList]
+fiveDistProbsList = [freq/T for freq in fiveFreqList]
+sixDistProbsList = [freq/T for freq in sixFreqList]
+sevenDistProbsList = [freq/T for freq in sevenFreqList]
+eightDistProbsList = [freq/T for freq in eightFreqList]
+nineDistProbsList = [freq/T for freq in nineFreqList]
 
 # SHOW ALL RANDOM IMAGES AT THE SAME TIME
 fig, ax = plt.subplots(2, 5, sharex = True, sharey = True)
@@ -189,6 +177,6 @@ plt.show()
 totalTime = time.perf_counter() - startTime
 
 if (totalTime // 60) == 1:
-    print(f"Total runtime: {round(totalTime // 60)} minute {round((totalTime % 60), 2)} seconds")
+    print(f"\nTotal runtime: {round(totalTime // 60)} minute {round((totalTime % 60), 2)} seconds")
 else:
-    print(f"Total runtime: {round(totalTime // 60)} minutes {round((totalTime % 60), 2)} seconds")
+    print(f"\nTotal runtime: {round(totalTime // 60)} minutes {round((totalTime % 60), 2)} seconds")
