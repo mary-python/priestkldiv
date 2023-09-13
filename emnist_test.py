@@ -160,6 +160,7 @@ for row in ax:
         col.set_title(f'Digit: {plotCount}')
         plotCount = plotCount + 1
 
+print("ADAPT BLOCK TO SHOW IMAGE BUT END PROGRAM.")
 plt.show(block = False)
 
 # COMPUTE TOTAL RUNTIME IN MINUTES AND SECONDS
