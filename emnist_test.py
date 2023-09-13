@@ -108,6 +108,8 @@ for D in range(0, 10):
 
     print(f"Histogram created for digit {D}.")
 
+print(f"Number of unique images for each digit: {sizeUniqueImages}")
+
 cumFreqList = np.zeros(10)
 
 for D in range(0, 10):
@@ -126,17 +128,6 @@ sixImageList = imageList[int(cumFreqList[5]):int(cumFreqList[6])]
 sevenImageList = imageList[int(cumFreqList[6]):int(cumFreqList[7])]
 eightImageList = imageList[int(cumFreqList[7]):int(cumFreqList[8])]
 nineImageList = imageList[int(cumFreqList[8]):int(cumFreqList[9])]
-
-print(f"\n{zeroImageList}")
-print(f"\n{oneImageList}")
-print(f"\n{twoImageList}")
-print(f"\n{threeImageList}")
-print(f"\n{fourImageList}")
-print(f"\n{fiveImageList}")
-print(f"\n{sixImageList}")
-print(f"\n{sevenImageList}")
-print(f"\n{eightImageList}")
-print(f"\n{nineImageList}")
 
 zeroFreqList = freqList[0:int(cumFreqList[0])]
 oneFreqList = freqList[int(cumFreqList[0]):int(cumFreqList[1])]
@@ -171,12 +162,12 @@ for row in ax:
         col.set_title(f'Digit: {plotCount}')
         plotCount = plotCount + 1
 
-plt.show()
+plt.show(block = False)
 
-# ADD TOTAL RUNTIME AT START AND END
+# COMPUTE TOTAL RUNTIME IN MINUTES AND SECONDS
 totalTime = time.perf_counter() - startTime
 
 if (totalTime // 60) == 1:
-    print(f"\nTotal runtime: {round(totalTime // 60)} minute {round((totalTime % 60), 2)} seconds")
+    print(f"Total runtime: {round(totalTime // 60)} minute {round((totalTime % 60), 2)} seconds")
 else:
-    print(f"\nTotal runtime: {round(totalTime // 60)} minutes {round((totalTime % 60), 2)} seconds")
+    print(f"Total runtime: {round(totalTime // 60)} minutes {round((totalTime % 60), 2)} seconds")
