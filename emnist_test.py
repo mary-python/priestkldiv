@@ -138,7 +138,39 @@ sevenFreqList = freqList[int(cumFreqList[6]):int(cumFreqList[7])]
 eightFreqList = freqList[int(cumFreqList[7]):int(cumFreqList[8])]
 nineFreqList = freqList[int(cumFreqList[8]):int(cumFreqList[9])]
 
-print(zeroFreqList)
+print(sum(zeroFreqList))
+print(sum(oneFreqList))
+print(sum(twoFreqList))
+print(sum(threeFreqList))
+print(sum(fourFreqList))
+print(sum(fiveFreqList))
+print(sum(sixFreqList))
+print(sum(sevenFreqList))
+print(sum(eightFreqList))
+print(sum(nineFreqList))
+
+zeroDistProbsList = [freq/(sum(zeroFreqList)) for freq in zeroFreqList]
+oneDistProbsList = [freq/(sum(oneFreqList)) for freq in oneFreqList]
+twoDistProbsList = [freq/(sum(twoFreqList)) for freq in twoFreqList]
+threeDistProbsList = [freq/(sum(threeFreqList)) for freq in threeFreqList]
+fourDistProbsList = [freq/(sum(fourFreqList)) for freq in fourFreqList]
+fiveDistProbsList = [freq/(sum(fiveFreqList)) for freq in fiveFreqList]
+sixDistProbsList = [freq/(sum(sixFreqList)) for freq in sixFreqList]
+sevenDistProbsList = [freq/(sum(sevenFreqList)) for freq in sevenFreqList]
+eightDistProbsList = [freq/(sum(eightFreqList)) for freq in eightFreqList]
+nineDistProbsList = [freq/(sum(nineFreqList)) for freq in nineFreqList]
+
+print(sum(zeroDistProbsList))
+print(sum(oneDistProbsList))
+print(sum(twoDistProbsList))
+print(sum(threeDistProbsList))
+print(sum(fourDistProbsList))
+print(sum(fiveDistProbsList))
+print(sum(sixDistProbsList))
+print(sum(sevenDistProbsList))
+print(sum(eightDistProbsList))
+print(sum(nineDistProbsList))
+print(zeroDistProbsList)
 
 # SHOW ALL RANDOM IMAGES AT THE SAME TIME
 fig, ax = plt.subplots(2, 5, sharex = True, sharey = True)
