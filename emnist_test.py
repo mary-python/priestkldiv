@@ -16,7 +16,7 @@ images2, labels2 = extract_test_samples('digits')
 # COMBINE TRAINING AND TEST SAMPLES INTO ONE NP ARRAY
 images = np.concatenate((images1, images2))
 labels = np.concatenate((labels1, labels2))
-print("Training and test samples loaded and combined.")
+print("Loading training and test samples...")
 
 # NUMPY ARRAYS TO STORE LABELS ASSOCIATED WITH WHICH DIGIT
 digitSet = np.zeros((10, 28000), dtype = int)
@@ -39,7 +39,7 @@ for digit in labels:
     addDigit(digit, digit, digitSet, digitIndexSet, digitCount, totalCount)
     totalCount = totalCount + 1
 
-print("Numbers 0-9 split.")
+print("Splitting numbers 0-9...")
 
 # SIMILAR ARRAYS TO STORE CONDENSED IMAGES ASSOCIATED WITH EACH DIGIT
 smallPic = np.zeros((4, 4))
@@ -50,29 +50,32 @@ digitImageIndexSet = np.zeros((10, 28000), dtype = int)
 digitImageCount = np.zeros(10, dtype = int)
 totalImageCount = 0
 
-for pic in images:
+print(f"\nPreprocessing images...")
 
-    # PARTITION EACH IMAGE INTO 16 7x7 SUBIMAGES
-    for i in range(4):
-        for j in range(4):
-            subImage = pic[7*i : 7*(i + 1), 7*j : 7*(j + 1)]
+from alive_progress import alive_bar
+with alive_bar(len(images)) as bar:
+    for pic in images:
+    
+        # PARTITION EACH IMAGE INTO 16 7x7 SUBIMAGES
+        for i in range(4):
+            for j in range(4):
+                subImage = pic[7*i : 7*(i + 1), 7*j : 7*(j + 1)]
 
-            # SAVE ROUNDED MEAN OF EACH SUBIMAGE INTO CORRESPONDING CELL OF SMALLPIC
-            meanSubImage = np.mean(subImage)
-            if meanSubImage >= 128:
-                smallPic[i, j] = 1
-            else:
-                smallPic[i, j] = 0
+                # SAVE ROUNDED MEAN OF EACH SUBIMAGE INTO CORRESPONDING CELL OF SMALLPIC
+                meanSubImage = np.mean(subImage)
+                if meanSubImage >= 128:
+                    smallPic[i, j] = 1
+                else:
+                    smallPic[i, j] = 0
 
-    # SPLIT IMAGES BY ASSOCIATION WITH PARTICULAR LABEL
-    for digit in range(0, 10):
-        if totalImageCount in digitIndexSet[digit]:
-            addDigit(digit, smallPic, digitImageSet, digitImageIndexSet, digitImageCount, totalImageCount)
-            break
+        # SPLIT IMAGES BY ASSOCIATION WITH PARTICULAR LABEL
+        for digit in range(0, 10):
+            if totalImageCount in digitIndexSet[digit]:
+                addDigit(digit, smallPic, digitImageSet, digitImageIndexSet, digitImageCount, totalImageCount)
+                break
 
-    totalImageCount = totalImageCount + 1
-
-print("ADD PROGRESS BAR FOR PREPROCESSING (PARTITIONING + COMPUTING AVERAGE INTENSITY OF CELLS).")
+        totalImageCount = totalImageCount + 1
+        bar()
 
 # NUMBER OF REPEATS COVERS APPROX 5% OF IMAGES
 T = 1400
@@ -106,7 +109,7 @@ for D in range(0, 10):
         imageList.append(image)
         freqList.append(frequency)
 
-print(f"Number of unique images for each digit: {sizeUniqueImages}")
+print(f"\nNumber of unique images for each digit: {sizeUniqueImages}")
 
 cumFreqList = np.zeros(10)
 
@@ -160,13 +163,15 @@ for row in ax:
         col.set_title(f'Digit: {plotCount}')
         plotCount = plotCount + 1
 
-print("ADAPT BLOCK TO SHOW IMAGE BUT END PROGRAM.")
-plt.show(block = False)
+plt.ion()
+plt.show()
+plt.pause(0.001)
+input("Press [enter] to continue.")
 
 # COMPUTE TOTAL RUNTIME IN MINUTES AND SECONDS
 totalTime = time.perf_counter() - startTime
 
 if (totalTime // 60) == 1:
-    print(f"Total runtime: {round(totalTime // 60)} minute {round((totalTime % 60), 2)} seconds")
+    print(f"Total runtime: {round(totalTime // 60)} minute {round((totalTime % 60), 2)} seconds.\n")
 else:
-    print(f"Total runtime: {round(totalTime // 60)} minutes {round((totalTime % 60), 2)} seconds")
+    print(f"Total runtime: {round(totalTime // 60)} minutes {round((totalTime % 60), 2)} seconds.\n")
