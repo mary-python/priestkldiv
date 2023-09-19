@@ -118,7 +118,7 @@ oKLDmean2 = np.mean(oKLDest2, axis = 0)
 
 plot1 = plt.plot(epsset, KLDmean1, label = f"Laplace (sampled)")
 plot2 = plt.plot(epsset, KLDmean2, label = f"Gaussian (sampled)")
-plot3 = plt.plot(epsset, oKLDmean1, label = f"Lapplace (ordered)")
+plot3 = plt.plot(epsset, oKLDmean1, label = f"Laplace (ordered)")
 plot4 = plt.plot(epsset, oKLDmean2, label = f"Gaussian (ordered)")
 
 plt.title("Effect of epsilon on noisy estimate of KLD")
