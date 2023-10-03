@@ -152,6 +152,12 @@ sevenDistProbsList = [freq/T for freq in sevenFreqList]
 eightDistProbsList = [freq/T for freq in eightFreqList]
 nineDistProbsList = [freq/T for freq in nineFreqList]
 
+# CREATE LISTS OF OVERALL UNIQUE IMAGES AND FREQUENCIES
+uniqueImageList = np.unique(imageList, axis = 0)
+uniqueFreqList = np.unique(freqList, axis = 0)
+print(f"Number of unique images overall: {len(uniqueImageList)}")
+print(f"Number of unique frequencies overall: {len(uniqueFreqList)}\n")
+
 # SHOW ALL RANDOM IMAGES AT THE SAME TIME
 fig, ax = plt.subplots(2, 5, sharex = True, sharey = True)
 
