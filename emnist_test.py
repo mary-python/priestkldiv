@@ -1,5 +1,6 @@
 import time
 import numpy as np
+np.set_printoptions(suppress=True)
 import random
 import matplotlib.pyplot as plt
 
@@ -82,81 +83,61 @@ T = 1400
 
 # STORE T IMAGES CORRESPONDING TO EACH DIGIT
 sampleImageSet = np.zeros((10, T, 4, 4))
-sizeUniqueImages = np.zeros(10)
-imageList = list()
-freqList = list()
+sampleImageList = np.zeros((14000, 4, 4))
+sizeUniqueImageSet = np.zeros(10)
+overallCount = 0
 
 for D in range(0, 10):
 
     # RANDOMLY SAMPLE T INDICES FROM EACH DIGIT SET
     randomIndices = random.sample(range(0, 28000), T)
-    sampleImageCount = 0
-
+    sampleCount = 0
+    
     for index in randomIndices:
 
         # EXTRACT EACH IMAGE CORRESPONDING TO EACH OF THE T INDICES AND SAVE IN NEW STRUCTURE
         randomImage = digitImageSet[D, index]
-        sampleImageSet[D, sampleImageCount] = randomImage
-        sampleImageCount = sampleImageCount + 1
-    
+        sampleImageSet[D, sampleCount] = randomImage
+        sampleImageList[overallCount] = randomImage
+        sampleCount = sampleCount + 1
+        overallCount = overallCount + 1
+        
     # FIND COUNTS OF ALL UNIQUE IMAGES IN SAMPLE IMAGE SET
-    uniqueImages = np.unique(sampleImageSet[D], axis = 0)
-    sizeUniqueImages[D] = len(uniqueImages)
+    uniqueImageSet = np.unique(sampleImageSet[D], axis = 0)
+    sizeUniqueImageSet[D] = len(uniqueImageSet)
 
-    for image in uniqueImages:
-        where = np.where(np.all(image == sampleImageSet[D], axis = (1, 2)))
-        frequency = len(where[0])
-        imageList.append(image)
-        freqList.append(frequency)
+# FIND COUNTS OF UNIQUE IMAGES IN SAMPLE IMAGE LIST
+uniqueImageList = np.unique(sampleImageList, axis = 0)
+sizeUniqueImageList = len(uniqueImageList)
+print(f"\nNumber of unique images for each digit: {sizeUniqueImageSet}")
+print(f"Number of unique images overall: {sizeUniqueImageList}")
 
-print(f"\nNumber of unique images for each digit: {sizeUniqueImages}")
+# DOMAIN FOR EACH DIGIT DISTRIBUTION IS NUMBER OF UNIQUE IMAGES
+U = 207
 
-cumFreqList = np.zeros(10)
+# FIND AND STORE FREQUENCIES OF UNIQUE IMAGES FOR EACH DIGIT
+uDigitImageSet = np.zeros((10, U, 4, 4))
+uDigitFreqSet = np.zeros((10, U))
+uDigitProbsSet = np.zeros((10, U))
 
 for D in range(0, 10):
-    if D == 0:
-        cumFreqList[D] = sizeUniqueImages[D]
-    else:
-        cumFreqList[D] = sizeUniqueImages[D] + cumFreqList[D - 1]
+    uniqueCount = 0
 
-zeroImageList = imageList[0:int(cumFreqList[0])]
-oneImageList = imageList[int(cumFreqList[0]):int(cumFreqList[1])]
-twoImageList = imageList[int(cumFreqList[1]):int(cumFreqList[2])]
-threeImageList = imageList[int(cumFreqList[2]):int(cumFreqList[3])]
-fourImageList = imageList[int(cumFreqList[3]):int(cumFreqList[4])]
-fiveImageList = imageList[int(cumFreqList[4]):int(cumFreqList[5])]
-sixImageList = imageList[int(cumFreqList[5]):int(cumFreqList[6])]
-sevenImageList = imageList[int(cumFreqList[6]):int(cumFreqList[7])]
-eightImageList = imageList[int(cumFreqList[7]):int(cumFreqList[8])]
-nineImageList = imageList[int(cumFreqList[8]):int(cumFreqList[9])]
+    # STORE IMAGE AND PROBABILITY AS WELL AS FREQUENCY
+    for image in uniqueImageList:
+        where = np.where(np.all(image == sampleImageSet[D], axis = (1, 2)))
+        freq = len(where[0])
+        uDigitImageSet[D, uniqueCount] = image
+        uDigitFreqSet[D, uniqueCount] = int(freq)
+        uDigitProbsSet[D, uniqueCount] = float(freq/T)
+        uniqueCount = uniqueCount + 1
+    
+    print(f"Number of values recorded for digit {D}: {uniqueCount}")
 
-zeroFreqList = freqList[0:int(cumFreqList[0])]
-oneFreqList = freqList[int(cumFreqList[0]):int(cumFreqList[1])]
-twoFreqList = freqList[int(cumFreqList[1]):int(cumFreqList[2])]
-threeFreqList = freqList[int(cumFreqList[2]):int(cumFreqList[3])]
-fourFreqList = freqList[int(cumFreqList[3]):int(cumFreqList[4])]
-fiveFreqList = freqList[int(cumFreqList[4]):int(cumFreqList[5])]
-sixFreqList = freqList[int(cumFreqList[5]):int(cumFreqList[6])]
-sevenFreqList = freqList[int(cumFreqList[6]):int(cumFreqList[7])]
-eightFreqList = freqList[int(cumFreqList[7]):int(cumFreqList[8])]
-nineFreqList = freqList[int(cumFreqList[8]):int(cumFreqList[9])]
-
-zeroDistProbsList = [freq/T for freq in zeroFreqList]
-oneDistProbsList = [freq/T for freq in oneFreqList]
-twoDistProbsList = [freq/T for freq in twoFreqList]
-threeDistProbsList = [freq/T for freq in threeFreqList]
-fourDistProbsList = [freq/T for freq in fourFreqList]
-fiveDistProbsList = [freq/T for freq in fiveFreqList]
-sixDistProbsList = [freq/T for freq in sixFreqList]
-sevenDistProbsList = [freq/T for freq in sevenFreqList]
-eightDistProbsList = [freq/T for freq in eightFreqList]
-nineDistProbsList = [freq/T for freq in nineFreqList]
-
-# CREATE LISTS OF OVERALL UNIQUE IMAGES AND FREQUENCIES
-uniqueImageList = np.unique(imageList, axis = 0)
-uniqueFreqList = np.unique(freqList, axis = 0)
-print(f"Number of unique images overall: {len(uniqueImageList)}")
-print(f"Number of unique frequencies overall: {len(uniqueFreqList)}\n")
+for D in range(0, 10):
+    print(f"\nUnique images for digit {D}: {uDigitImageSet[D]}")
+    print(f"\nUnique frequencies for digit {D}: {uDigitFreqSet[D]}")
+    print(f"\nUnique probabilities for digit {D}: {uDigitProbsSet[D]}\n")
 
 # SHOW ALL RANDOM IMAGES AT THE SAME TIME
 fig, ax = plt.subplots(2, 5, sharex = True, sharey = True)
