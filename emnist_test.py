@@ -151,6 +151,7 @@ for C in range(0, 10):
         for i in range(0, U):
             KLDiv[C, D, i] = uDigitProbsSet[D, i] * np.log((uDigitProbsSet[D, i]) / (uDigitProbsSet[C, i]))
 
+        # ELIMINATE ALL ZERO VALUES WHEN DIGITS ARE IDENTICAL
         if sum(KLDiv[C, D]) != 0.0:
             sumKLDiv[C, D] = (sum(KLDiv[C, D]))
             KList.append(sum(KLDiv[C, D]))
