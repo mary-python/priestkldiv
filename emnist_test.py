@@ -3,6 +3,7 @@ import numpy as np
 np.set_printoptions(suppress=True)
 import random
 import matplotlib.pyplot as plt
+from collections import OrderedDict
 
 # INITIALISING START TIME AND SEED FOR RANDOM SAMPLING
 startTime = time.perf_counter()
@@ -87,6 +88,8 @@ sampleImageList = np.zeros((14000, 4, 4))
 sizeUniqueImageSet = np.zeros(10)
 overallCount = 0
 
+print(f"\nFinding unique images...")
+
 for D in range(0, 10):
 
     # RANDOMLY SAMPLE T INDICES FROM EACH DIGIT SET
@@ -109,8 +112,6 @@ for D in range(0, 10):
 # FIND COUNTS OF UNIQUE IMAGES IN SAMPLE IMAGE LIST
 uniqueImageList = np.unique(sampleImageList, axis = 0)
 sizeUniqueImageList = len(uniqueImageList)
-print(f"\nNumber of unique images for each digit: {sizeUniqueImageSet}")
-print(f"Number of unique images overall: {sizeUniqueImageList}")
 
 # DOMAIN FOR EACH DIGIT DISTRIBUTION IS NUMBER OF UNIQUE IMAGES
 U = 207
@@ -120,24 +121,49 @@ uDigitImageSet = np.zeros((10, U, 4, 4))
 uDigitFreqSet = np.zeros((10, U))
 uDigitProbsSet = np.zeros((10, U))
 
+print(f"Creating probability distributions...")
+
+# SMOOTHING PARAMETER: 0.1 AND 1 ARE TOO LARGE
+alpha = 0.01
+
 for D in range(0, 10):
     uniqueCount = 0
 
-    # STORE IMAGE AND PROBABILITY AS WELL AS FREQUENCY
+    # STORE IMAGE AND SMOOTHED PROBABILITY AS WELL AS FREQUENCY
     for image in uniqueImageList:
         where = np.where(np.all(image == sampleImageSet[D], axis = (1, 2)))
         freq = len(where[0])
         uDigitImageSet[D, uniqueCount] = image
         uDigitFreqSet[D, uniqueCount] = int(freq)
-        uDigitProbsSet[D, uniqueCount] = float(freq/T)
+        uDigitProbsSet[D, uniqueCount] = float((freq + alpha)/(T + (alpha*(sizeUniqueImageSet[D]))))
         uniqueCount = uniqueCount + 1
-    
-    print(f"Number of values recorded for digit {D}: {uniqueCount}")
 
-for D in range(0, 10):
-    print(f"\nUnique images for digit {D}: {uDigitImageSet[D]}")
-    print(f"\nUnique frequencies for digit {D}: {uDigitFreqSet[D]}")
-    print(f"\nUnique probabilities for digit {D}: {uDigitProbsSet[D]}\n")
+KLDiv = np.zeros((10, 10, U))
+sumKLDiv = np.zeros((10, 10))
+KList = list()
+CDList = list()
+
+print(f"Computing KL divergence...")
+
+# FOR EACH COMPARISON DIGIT COMPUTE KLD FOR ALL DIGITS
+for C in range(0, 10):
+    for D in range(0, 10):
+        for i in range(0, U):
+            KLDiv[C, D, i] = uDigitProbsSet[D, i] * np.log((uDigitProbsSet[D, i]) / (uDigitProbsSet[C, i]))
+
+        if sum(KLDiv[C, D]) != 0.0:
+            sumKLDiv[C, D] = (sum(KLDiv[C, D]))
+            KList.append(sum(KLDiv[C, D]))
+            CDList.append((C, D))
+
+KLDict = dict(zip(KList, CDList))
+orderedKLDict = OrderedDict(sorted(KLDict.items()))
+datafile = open("kl_divergence_in_order.txt", "w")
+datafile.write("KL Divergence In Order\n")
+datafile.write("Smaller corresponds to more similar digits\n\n")
+
+for i in orderedKLDict:
+    datafile.write(f"{i} : {orderedKLDict[i]}\n")
 
 # SHOW ALL RANDOM IMAGES AT THE SAME TIME
 fig, ax = plt.subplots(2, 5, sharex = True, sharey = True)
@@ -153,7 +179,7 @@ for row in ax:
 plt.ion()
 plt.show()
 plt.pause(0.001)
-input("Press [enter] to continue.")
+input("\nPress [enter] to continue.")
 
 # COMPUTE TOTAL RUNTIME IN MINUTES AND SECONDS
 totalTime = time.perf_counter() - startTime
