@@ -2,8 +2,8 @@ import h5py
 import numpy as np
 # from PIL import Image
 # import io
-import matplotlib.pyplot as plt
 import torch
+import matplotlib.pyplot as plt
 
 # FROM HDF5 BLOG: "HDF5 FILE FOR LARGE IMAGE DATASETS" BY SOUMYA TRIPATHY
 # https://blade6570.github.io/soumyatripathy/hdf5_blog.html
@@ -20,11 +20,13 @@ import torch
         # group.append((name, obj))
 
 # fetch hdf5 file from current directory
-path = './Sayan Biswas/data/femnist_digits.hdf5'
+# path = './Sayan Biswas/data/femnist_digits.hdf5'
+path = './Sayan Biswas/data/femnist_digits_mit.hdf5'
+# path = './Sayan Biswas/data/test.hdf5'
 file = h5py.File(path, 'r')
 # file.visititems(func)
 
-# numberFiles = 747260
+numberFiles = 747260
 # print(f"Extracting images from hdf5 file...\n")
 
 # from alive_progress import alive_bar
@@ -42,6 +44,7 @@ file = h5py.File(path, 'r')
 
 # create a list where each index stores the images and labels associated with a particular writer
 writers = sorted(file.keys())
+# writers = sorted(data.keys())
 print(f'\nThe dataset contains images from {len(writers)} writers.') # should be 3580
 
 # store writer 0's images and labels in numpy arrays

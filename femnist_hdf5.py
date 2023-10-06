@@ -7,8 +7,10 @@ import os
 # ENABLES IMAGES TO BE STORED IN A HDF5 FILE WHILE MAINTAINING FOLDERS AND SUBFOLDERS
 
 basePath = '.\\Sayan Biswas\\data\\by_class'
+# basePath = '.\\Sayan Biswas\\data\\by_class_mit'
 # savePath = '.\\Sayan Biswas\\data\\femnist_digits.hdf5'
-savePath = '.\\Sayan Biswas\\data\\test.hdf5'
+savePath = '.\\Sayan Biswas\\data\\femnist_digits_mit.hdf5'
+# savePath = '.\\Sayan Biswas\\data\\test.hdf5'
 
 # open the file in append mode
 hf = h5py.File(savePath, 'a')
@@ -21,14 +23,27 @@ with alive_bar(numberFiles) as bar:
     # read all the folders
     for i in os.listdir(basePath):
         name = os.path.join(basePath, i)
+        group = hf.create_group(name)
 
         # read all the folders inside the folders
         for j in os.listdir(name):
             track = os.path.join(name, j)
+            subgroup = group.create_group(j)
     
             # find all images in the subfolders
             for k in os.listdir(track):
-                imagePath = os.path.join(track, k)
+                if os.path.isdir():
+                    imagePath = os.path.join(track, k)
+                else:
+                    # open MIT files as python binary
+                    with open(track, 'rb') as mit:
+                        binaryDataMit = mit.read()
+            
+                    # create numpy array storing python binary
+                    binaryDataMitNp = np.asarray(binaryDataMit)
+
+                    # save all MIT files in the current folder
+                    dset = group.create_dataset(k, data = binaryDataMitNp)
 
                 # open images as python binary
                 with open(imagePath, 'rb') as image:
@@ -37,9 +52,8 @@ with alive_bar(numberFiles) as bar:
                 # create numpy array storing python binary
                 binaryDataNp = np.asarray(binaryData)
 
-                # TESTING: save all images without folders or subfolders
-                # AVOID DUPLICATE NAME: dset
-                dset = hf.create_dataset(k, data = binaryDataNp)
+                # save all images in the current subfolder
+                dset = subgroup.create_dataset(k, data = binaryDataNp)
                 bar()
 
 hf.close()
