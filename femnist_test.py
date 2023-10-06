@@ -21,12 +21,13 @@ import matplotlib.pyplot as plt
 
 # fetch hdf5 file from current directory
 # path = './Sayan Biswas/data/femnist_digits.hdf5'
-path = './Sayan Biswas/data/femnist_digits_mit.hdf5'
+# path = './Sayan Biswas/data/femnist_digits_mit.hdf5'
 # path = './Sayan Biswas/data/test.hdf5'
+path = './Sayan Biswas/data/write_all.hdf5'
 file = h5py.File(path, 'r')
 # file.visititems(func)
 
-numberFiles = 747260
+# numberFiles = 747260
 # print(f"Extracting images from hdf5 file...\n")
 
 # from alive_progress import alive_bar
