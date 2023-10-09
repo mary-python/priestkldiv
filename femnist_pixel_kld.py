@@ -150,7 +150,18 @@ print(f"\nExample of eightSet:\n{eightSet[eightIndex]}")
 axs[2, 1].imshow(eightSet[eightIndex])
 
 nineIndex = np.random.randint(len(nineSet))
-print(f"\nExample of nineSet:\n{nineSet[nineIndex]}\n")
+print(f"\nExample of nineSet:\n{nineSet[nineIndex]}")
 axs[2, 2].imshow(nineSet[nineIndex])
 
+plt.ion()
 plt.show()
+plt.pause(0.001)
+input("\nPress [enter] to continue.")
+
+# COMPUTE TOTAL RUNTIME IN MINUTES AND SECONDS
+totalTime = time.perf_counter() - startTime
+
+if (totalTime // 60) == 1:
+    print(f"Runtime: {round(totalTime // 60)} minute {round((totalTime % 60), 2)} seconds.\n")
+else:
+    print(f"Runtime: {round(totalTime // 60)} minutes {round((totalTime % 60), 2)} seconds.\n")
