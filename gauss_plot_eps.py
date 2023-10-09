@@ -1,5 +1,6 @@
-from scipy.stats import norm
+"""Modules are for mathematical / statistical computations, and for graph plotting."""
 from math import log
+from scipy.stats import norm
 import numpy as np
 import matplotlib.pyplot as plt
 

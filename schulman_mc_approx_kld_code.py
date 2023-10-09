@@ -1,3 +1,4 @@
+"""This package contains parameterisable probability distributions and sampling functions."""
 import torch.distributions as dis
 p = dis.Normal(loc=0, scale=1)
 q = dis.Normal(loc=0.1, scale=1)

@@ -1,3 +1,5 @@
+"""Modules provide both a high- and low-level interface to the HDF5 library, work with arrays
+and neural networks, and create static, animated, and interactive visualisations in Python."""
 import h5py
 import numpy as np
 # from PIL import Image
@@ -7,7 +9,7 @@ import matplotlib.pyplot as plt
 
 # FROM HDF5 BLOG: "HDF5 FILE FOR LARGE IMAGE DATASETS" BY SOUMYA TRIPATHY
 # https://blade6570.github.io/soumyatripathy/hdf5_blog.html
-# ENABLES IMAGES IN FOLDERS AND SUBFOLDERS TO BE EXTRACTED FROM THEIR HDF5 FILE 
+# ENABLES IMAGES IN FOLDERS AND SUBFOLDERS TO BE EXTRACTED FROM THEIR HDF5 FILE
 
 # data = [] # keys to access image data
 # group = [] # list all groups and subgroups in hdf5 file
@@ -24,8 +26,8 @@ import matplotlib.pyplot as plt
 # path = './Sayan Biswas/data/femnist_digits_mit.hdf5'
 # path = './Sayan Biswas/data/test.hdf5'
 # path = './Sayan Biswas/data/write_all.hdf5'
-path = './data/write_all.hdf5'
-file = h5py.File(path, 'r')
+PATH = './data/write_all.hdf5'
+file = h5py.File(PATH, 'r')
 # file.visititems(func)
 
 # numberFiles = 747260
@@ -65,15 +67,15 @@ print(f'Writer 0 has {counts} images per class\n') # should be [12 11 11 12 9 8 
 
 # dataset 0 stores all of writer 0's data
 d0 = file[writers[0]]
-fig, axs = plt.subplots(10, 10, figsize = (15, 15))
+fig, axs = plt.subplots(5, 13, figsize = (15, 15))
 
-for i in range(10):
-    for j in range(10):
+for i in range(5):
+    for j in range(13):
 
-        # randomly choose a 10 x 10 grid of labels to compare to images
-        id = np.random.randint(len[d0['labels']])
-        axs[i, j].imshow(d0['images'][id])
+        # randomly choose a 5 x 13 grid of labels to compare to images
+        index = np.random.randint(len(d0['labels']))
+        axs[i, j].imshow(d0['images'][index])
         axs[i, j].axis('off')
-        axs[i, j].set_title(d0['labels'][id] - 30)
+        axs[i, j].set_title(d0['labels'][index])
 
 plt.show()
