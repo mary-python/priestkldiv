@@ -23,7 +23,8 @@ import matplotlib.pyplot as plt
 # path = './Sayan Biswas/data/femnist_digits.hdf5'
 # path = './Sayan Biswas/data/femnist_digits_mit.hdf5'
 # path = './Sayan Biswas/data/test.hdf5'
-path = './Sayan Biswas/data/write_all.hdf5'
+# path = './Sayan Biswas/data/write_all.hdf5'
+path = './data/write_all.hdf5'
 file = h5py.File(path, 'r')
 # file.visititems(func)
 
