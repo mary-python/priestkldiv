@@ -1,6 +1,7 @@
-"""Modules provide various time-related functions, provide both a high- and low-level
-interface to the HDF5 library, and work with arrays in Python."""
+"""Modules provide various time-related functions, remember the order in which items are added,
+provide both a high- and low-level interface to the HDF5 library, and work with arrays in Python."""
 import time
+from collections import OrderedDict
 import matplotlib.pyplot as plt
 import h5py
 import numpy as np
@@ -9,7 +10,7 @@ np.set_printoptions(suppress=True)
 # initialising start time and seed for random sampling
 startTime = time.perf_counter()
 print("\nStarting...")
-np.random.seed(106742)
+np.random.seed(107642)
 
 # from HDF5-FEMNIST by Xiao-Chenguang
 # https://github.com/Xiao-Chenguang/HDF5-FEMNIST
@@ -40,24 +41,24 @@ for i in sampledWriters:
                 totalDigits[d] = totalDigits[d] + 1
 
 # create image store of appropriate dimensions for each digit
-zeroSet = np.zeros((totalDigits[0], 4, 4), dtype = int)
-oneSet = np.zeros((totalDigits[1], 4, 4), dtype = int)
-twoSet = np.zeros((totalDigits[2], 4, 4), dtype = int)
-threeSet = np.zeros((totalDigits[3], 4, 4), dtype = int)
-fourSet = np.zeros((totalDigits[4], 4, 4), dtype = int)
-fiveSet = np.zeros((totalDigits[5], 4, 4), dtype = int)
-sixSet = np.zeros((totalDigits[6], 4, 4), dtype = int)
-sevenSet = np.zeros((totalDigits[7], 4, 4), dtype = int)
-eightSet = np.zeros((totalDigits[8], 4, 4), dtype = int)
-nineSet = np.zeros((totalDigits[9], 4, 4), dtype = int)
+zeroSet = np.ones((totalDigits[0], 4, 4), dtype = int)
+oneSet = np.ones((totalDigits[1], 4, 4), dtype = int)
+twoSet = np.ones((totalDigits[2], 4, 4), dtype = int)
+threeSet = np.ones((totalDigits[3], 4, 4), dtype = int)
+fourSet = np.ones((totalDigits[4], 4, 4), dtype = int)
+fiveSet = np.ones((totalDigits[5], 4, 4), dtype = int)
+sixSet = np.ones((totalDigits[6], 4, 4), dtype = int)
+sevenSet = np.ones((totalDigits[7], 4, 4), dtype = int)
+eightSet = np.ones((totalDigits[8], 4, 4), dtype = int)
+nineSet = np.ones((totalDigits[9], 4, 4), dtype = int)
 
 # to store condensed image and frequency of each digit
-smallPic = np.zeros((4, 4), dtype = int)
-digitCount = np.zeros(10, dtype = int)
+smallPic = np.ones((4, 4), dtype = int)
+digCount = np.zeros(10, dtype = int)
 
 def add_digit(dset):
     """Method to add digit to set corresponding to label."""
-    dset[digitCount[label]] = smallPic
+    dset[digCount[label]] = smallPic
 
 for i in sampledWriters:
 
@@ -102,11 +103,132 @@ for i in sampledWriters:
         elif label == 9:
             add_digit(nineSet)
 
-        digitCount[label] = digitCount[label] + 1
+        digCount[label] = digCount[label] + 1
         PIC_COUNT = PIC_COUNT + 1
 
+# store frequency of unique images corresponding to each digit
+sizeUSet = np.zeros(11)
+
+def unique_images(dg, dset):
+    """Method to return unique images of set corresponding to digit."""
+    uset = np.unique(dset, axis = 0)
+    sizeUSet[dg] = len(uset)
+    return uset
+
+uZeroSet = unique_images(0, zeroSet)
+uOneSet = unique_images(1, oneSet)
+uTwoSet = unique_images(2, twoSet)
+uThreeSet = unique_images(3, threeSet)
+uFourSet = unique_images(4, fourSet)
+uFiveSet = unique_images(5, fiveSet)
+uSixSet = unique_images(6, sixSet)
+uSevenSet = unique_images(7, sevenSet)
+uEightSet = unique_images(8, eightSet)
+uNineSet = unique_images(9, nineSet)
+
+# store frequency of unique images in total
+uTotalSet = np.ones((159, 4, 4), dtype = int)
+TOTAL_COUNT = 0
+
+def total_set(uset, tset, tcount):
+    """Method to add each of the unique images for each digit."""
+    for m in uset:
+        tset[tcount] = m
+        tcount = tcount + 1
+    return tcount
+
+TOTAL_COUNT = total_set(uZeroSet, uTotalSet, TOTAL_COUNT)
+TOTAL_COUNT = total_set(uOneSet, uTotalSet, TOTAL_COUNT)
+TOTAL_COUNT = total_set(uTwoSet, uTotalSet, TOTAL_COUNT)
+TOTAL_COUNT = total_set(uThreeSet, uTotalSet, TOTAL_COUNT)
+TOTAL_COUNT = total_set(uFourSet, uTotalSet, TOTAL_COUNT)
+TOTAL_COUNT = total_set(uFiveSet, uTotalSet, TOTAL_COUNT)
+TOTAL_COUNT = total_set(uSixSet, uTotalSet, TOTAL_COUNT)
+TOTAL_COUNT = total_set(uSevenSet, uTotalSet, TOTAL_COUNT)
+TOTAL_COUNT = total_set(uEightSet, uTotalSet, TOTAL_COUNT)
+TOTAL_COUNT = total_set(uNineSet, uTotalSet, TOTAL_COUNT)
+
+uTotalSet = unique_images(10, uTotalSet)
+
+# domain for each digit distribution is number of unique images
+U = 27
+
+# find and store frequencies of unique images for each digit
+uImageSet = np.ones((10, U, 4, 4))
+uFreqSet = np.zeros((10, U))
+uProbsSet = np.zeros((10, U))
+
+print("Creating probability distributions...")
+
+# smoothing parameter: 0.1 and 1 are too large
+ALPHA = 0.01
+
+def smoothed_prob(dset, dig, im, ucount):
+    """Method to compute frequencies of unique images and return smoothed probabilities."""
+    where = np.where(np.all(im == dset, axis = (1, 2)))
+    freq = len(where[0])
+    uImageSet[dig, ucount] = im
+    uFreqSet[dig, ucount] = int(freq)
+    uProbsSet[dig, ucount] = float((freq + ALPHA)/(11*numSampledWriters + (ALPHA*(digCount[dig]))))
+
+for D in range(0, 10):
+    UNIQUE_COUNT = 0
+
+    # store image and smoothed probability as well as frequency
+    for image in uTotalSet:
+        if D == 0:
+            smoothed_prob(zeroSet, 0, image, UNIQUE_COUNT)
+        elif D == 1:
+            smoothed_prob(oneSet, 1, image, UNIQUE_COUNT)
+        elif D == 2:
+            smoothed_prob(twoSet, 2, image, UNIQUE_COUNT)
+        elif D == 3:
+            smoothed_prob(threeSet, 3, image, UNIQUE_COUNT)
+        elif D == 4:
+            smoothed_prob(fourSet, 4, image, UNIQUE_COUNT)
+        elif D == 5:
+            smoothed_prob(fiveSet, 5, image, UNIQUE_COUNT)
+        elif D == 6:
+            smoothed_prob(sixSet, 6, image, UNIQUE_COUNT)
+        elif D == 7:
+            smoothed_prob(sevenSet, 7, image, UNIQUE_COUNT)
+        elif D == 8:
+            smoothed_prob(eightSet, 8, image, UNIQUE_COUNT)
+        elif D == 9:
+            smoothed_prob(nineSet, 9, image, UNIQUE_COUNT)
+
+        UNIQUE_COUNT = UNIQUE_COUNT + 1
+
+KLDiv = np.zeros((10, 10, U))
+sumKLDiv = np.zeros((10, 10))
+KList = []
+CDList = []
+
+print("Computing KL divergence...")
+
+# FOR EACH COMPARISON DIGIT COMPUTE KLD FOR ALL DIGITS
+for C in range(0, 10):
+    for D in range(0, 10):
+        for i in range(0, U):
+            KLDiv[C, D, i] = uProbsSet[D, i] * (np.log((uProbsSet[D, i]) / (uProbsSet[C, i])))
+
+        # ELIMINATE ALL ZERO VALUES WHEN DIGITS ARE IDENTICAL
+        if sum(KLDiv[C, D]) != 0.0:
+            sumKLDiv[C, D] = sum(KLDiv[C, D])
+            KList.append(sum(KLDiv[C, D]))
+            CDList.append((C, D))
+
+KLDict = dict(zip(KList, CDList))
+orderedKLDict = OrderedDict(sorted(KLDict.items()))
+datafile = open("femnist_kld_in_order.txt", "w", encoding = 'utf-8')
+datafile.write("FEMNIST: KL Divergence In Order\n")
+datafile.write("Smaller corresponds to more similar digits\n\n")
+
+for i in orderedKLDict:
+    datafile.write(f"{i} : {orderedKLDict[i]}\n")
+
 # plot a random example of each digit
-fig, axs = plt.subplots(3, 4, figsize = (5, 3))
+fig, axs = plt.subplots(3, 4, figsize = (8, 7))
 
 for i in range(3):
     for j in range(4):
@@ -114,44 +236,44 @@ for i in range(3):
 
 # check whether images and labels match
 zeroIndex = np.random.randint(len(zeroSet))
-print(f"\nExample of zeroSet:\n{zeroSet[zeroIndex]}")
 axs[0, 0].imshow(zeroSet[zeroIndex])
+axs[0, 0].title.set_text("0")
 
 oneIndex = np.random.randint(len(oneSet))
-print(f"\nExample of oneSet:\n{oneSet[oneIndex]}")
 axs[0, 1].imshow(oneSet[oneIndex])
+axs[0, 1].title.set_text("1")
 
 twoIndex = np.random.randint(len(twoSet))
-print(f"\nExample of twoSet:\n{twoSet[twoIndex]}")
 axs[0, 2].imshow(twoSet[twoIndex])
+axs[0, 2].title.set_text("2")
 
 threeIndex = np.random.randint(len(threeSet))
-print(f"\nExample of threeSet:\n{threeSet[threeIndex]}")
 axs[0, 3].imshow(threeSet[threeIndex])
+axs[0, 3].title.set_text("3")
 
 fourIndex = np.random.randint(len(fourSet))
-print(f"\nExample of fourSet:\n{fourSet[fourIndex]}")
 axs[1, 0].imshow(fourSet[fourIndex])
+axs[1, 0].title.set_text("4")
 
 fiveIndex = np.random.randint(len(fiveSet))
-print(f"\nExample of fiveSet:\n{fiveSet[fiveIndex]}")
 axs[1, 1].imshow(fiveSet[fiveIndex])
+axs[1, 1].title.set_text("5")
 
 sixIndex = np.random.randint(len(sixSet))
-print(f"\nExample of sixSet:\n{sixSet[sixIndex]}")
 axs[1, 2].imshow(sixSet[sixIndex])
+axs[1, 2].title.set_text("6")
 
 sevenIndex = np.random.randint(len(sevenSet))
-print(f"\nExample of sevenSet:\n{sevenSet[sevenIndex]}")
 axs[1, 3].imshow(sevenSet[sevenIndex])
+axs[1, 3].title.set_text("7")
 
 eightIndex = np.random.randint(len(eightSet))
-print(f"\nExample of eightSet:\n{eightSet[eightIndex]}")
 axs[2, 1].imshow(eightSet[eightIndex])
+axs[2, 1].title.set_text("8")
 
 nineIndex = np.random.randint(len(nineSet))
-print(f"\nExample of nineSet:\n{nineSet[nineIndex]}")
 axs[2, 2].imshow(nineSet[nineIndex])
+axs[2, 2].title.set_text("9")
 
 plt.ion()
 plt.show()

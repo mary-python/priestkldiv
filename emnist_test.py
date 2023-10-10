@@ -163,8 +163,8 @@ for C in range(0, 10):
 
 KLDict = dict(zip(KList, CDList))
 orderedKLDict = OrderedDict(sorted(KLDict.items()))
-datafile = open("kl_divergence_in_order.txt", "w", encoding = 'utf-8')
-datafile.write("KL Divergence In Order\n")
+datafile = open("emnist_kld_in_order.txt", "w", encoding = 'utf-8')
+datafile.write("EMNIST: KL Divergence In Order\n")
 datafile.write("Smaller corresponds to more similar digits\n\n")
 
 for i in orderedKLDict:
