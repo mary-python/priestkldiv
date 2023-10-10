@@ -34,8 +34,8 @@ C = 10000
 N = 500
 
 # use multi-dimensional numpy arrays to save sampled points and statistics
-qCS = np.zeros((N, C))
-qOCS = np.zeros((N, C))
+qCS = np.zeros((C, N))
+qOCS = np.zeros((C, N))
 qT1 = np.zeros(C)
 qT2 = np.zeros(C)
 qOrderedT1 = np.zeros(C)
@@ -49,10 +49,10 @@ oK3 = np.zeros(C)
 F = 5_000
 Tset = np.array([1*F, 2*F, 5*F, 10*F, 20*F, 50*F, 100*F, 200*F, 500*F, 1_000*F])
 L = np.size(Tset)
-KLDest1 = np.zeros((L, C))
-KLDest2 = np.zeros((L, C))
-oKLDest1 = np.zeros((L, C))
-oKLDest2 = np.zeros((L, C))
+KLDest1 = np.zeros((C, L))
+KLDest2 = np.zeros((C, L))
+oKLDest1 = np.zeros((C, L))
+oKLDest2 = np.zeros((C, L))
 T_COUNT = 0
 
 for T in Tset:
@@ -117,17 +117,17 @@ for T in Tset:
         oAverage2 = np.sum(oK3noise2) / np.size(oK3noise2)
 
         # compare with true KLD
-        KLDest1[T_COUNT, C] = abs(np.mean(average1) - truekl)
-        KLDest2[T_COUNT, C] = abs(np.mean(average2) - truekl)
-        oKLDest1[T_COUNT, C] = abs(np.mean(oAverage1) - truekl)
-        oKLDest2[T_COUNT, C] = abs(np.mean(oAverage2) - truekl)
+        KLDest1[C, T_COUNT] = abs(np.mean(average1) - truekl)
+        KLDest2[C, T_COUNT] = abs(np.mean(average2) - truekl)
+        oKLDest1[C, T_COUNT] = abs(np.mean(oAverage1) - truekl)
+        oKLDest2[C, T_COUNT] = abs(np.mean(oAverage2) - truekl)
         T_COUNT = T_COUNT + 1
 
 # compute mean of KLD for particular T across all clients
-KLDmean1 = np.mean(KLDest1, axis = 1)
-KLDmean2 = np.mean(KLDest2, axis = 1)
-oKLDmean1 = np.mean(oKLDest1, axis = 1)
-oKLDmean2 = np.mean(oKLDest2, axis = 1)
+KLDmean1 = np.mean(KLDest1, axis = 0)
+KLDmean2 = np.mean(KLDest2, axis = 0)
+oKLDmean1 = np.mean(oKLDest1, axis = 0)
+oKLDmean2 = np.mean(oKLDest2, axis = 0)
 
 plot1 = plt.plot(Tset, KLDest1, label = "Laplace (sampled)")
 plot2 = plt.plot(Tset, KLDest2, label = "Gaussian (sampled)")
