@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import h5py
 import numpy as np
 np.set_printoptions(suppress=True)
+np.seterr(invalid='ignore')
 
 # initialising start time and seed for random sampling
 startTime = time.perf_counter()
@@ -26,7 +27,7 @@ numWriters = len(writers)
 numSampledWriters = int(numWriters / 20)
 
 # randomly sample 5% of writers without replacement
-sampledWriters = np.random.choice(numWriters, numSampledWriters)
+sampledWriters = np.random.choice(numWriters, numSampledWriters, replace = False)
 totalDigits = np.zeros(10, dtype = int)
 
 # add up how many times each digit is featured
@@ -74,7 +75,7 @@ for i in sampledWriters:
 
                 # save rounded mean of each subimage into corresponding cell of smallpic
                 meanSubImage = np.mean(subImage)
-                if meanSubImage >= 220:
+                if meanSubImage == 255:
                     smallPic[a, b] = 1
                 else:
                     smallPic[a, b] = 0
@@ -127,7 +128,7 @@ uEightSet = unique_images(8, eightSet)
 uNineSet = unique_images(9, nineSet)
 
 # store frequency of unique images in total
-uTotalSet = np.ones((159, 4, 4), dtype = int)
+uTotalSet = np.ones((1124, 4, 4), dtype = int)
 TOTAL_COUNT = 0
 
 def total_set(uset, tset, tcount):
@@ -151,7 +152,7 @@ TOTAL_COUNT = total_set(uNineSet, uTotalSet, TOTAL_COUNT)
 uTotalSet = unique_images(10, uTotalSet)
 
 # domain for each digit distribution is number of unique images
-U = 27
+U = 338
 
 # find and store frequencies of unique images for each digit
 uImageSet = np.ones((10, U, 4, 4))
@@ -199,33 +200,112 @@ for D in range(0, 10):
 
         UNIQUE_COUNT = UNIQUE_COUNT + 1
 
+# for k3 estimator (Schulman) take a small sample of unique images
+E = 17
+
+# store images, frequencies and probabilities for this subset
+eImageSet = np.ones((10, E, 4, 4))
+eFreqSet = np.zeros((10, E))
+eProbsSet = np.zeros((10, E))
+eTotalFreq = np.zeros(10)
+
+uSampledSet = np.random.choice(U, E, replace = False)
+T = (11/3)*numSampledWriters*(E/U)
+
+# borrow data from corresponding indices of main image and frequency sets
+for D in range(0, 10):
+    for i in range(E):
+        eImageSet[D, i] = uImageSet[D, uSampledSet[i]]
+        eFreqSet[D, i] = uFreqSet[D, uSampledSet[i]]
+        eTotalFreq[D] = sum(eFreqSet[D])
+        eProbsSet[D, i] = float((eFreqSet[D, i] + ALPHA)/(T + (ALPHA*(eTotalFreq[D]))))
+
+# stores for exact KLD
 KLDiv = np.zeros((10, 10, U))
 sumKLDiv = np.zeros((10, 10))
 KList = []
 CDList = []
 
+# stores for estimated KLD
+eKLDiv = np.zeros((10, 10, E))
+eSumKLDiv = np.zeros((10, 10))
+eKList = []
+eCDList = []
+
+# stores for accuracy of estimated KLD
+diffKList = []
+diffCDList = []
+percKList = []
+percCDList = []
+
 print("Computing KL divergence...")
 
-# FOR EACH COMPARISON DIGIT COMPUTE KLD FOR ALL DIGITS
+# for each comparison digit compute KLD for all digits
 for C in range(0, 10):
     for D in range(0, 10):
         for i in range(0, U):
             KLDiv[C, D, i] = uProbsSet[D, i] * (np.log((uProbsSet[D, i]) / (uProbsSet[C, i])))
 
-        # ELIMINATE ALL ZERO VALUES WHEN DIGITS ARE IDENTICAL
+        for j in range(0, E):
+            eKLDiv[C, D, j] = eProbsSet[D, j] * (np.log((eProbsSet[D, j]) / (eProbsSet[C, j])))
+
+        # eliminate all zero values when digits are identical
         if sum(KLDiv[C, D]) != 0.0:
-            sumKLDiv[C, D] = sum(KLDiv[C, D])
-            KList.append(sum(KLDiv[C, D]))
+            KList.append(sum(KLDiv[C,D]))
             CDList.append((C, D))
 
+        if sum(eKLDiv[C, D]) != 0.0:
+            eKList.append(sum(eKLDiv[C, D]))
+            eCDList.append((C, D))
+
+        # compute absolute and percentage measures of accuracy
+        absDifference = abs(sum(eKLDiv[C, D]) - sum(KLDiv[C, D]))
+        percDifference = 100*abs(sum(eKLDiv[C, D]) / sum(KLDiv[C, D]))
+
+        if absDifference != 0.0:
+            diffKList.append(absDifference)
+            diffCDList.append((C, D))
+
+        if percDifference != 0.0 and sum(KLDiv[C, D]) != 0.0:
+            percKList.append(percDifference)
+            percCDList.append((C, D))
+
+# create ordered dictionaries of stored KLD and digits
 KLDict = dict(zip(KList, CDList))
 orderedKLDict = OrderedDict(sorted(KLDict.items()))
-datafile = open("femnist_kld_in_order.txt", "w", encoding = 'utf-8')
-datafile.write("FEMNIST: KL Divergence In Order\n")
+datafile = open("femnist_exact_kld_in_order.txt", "w", encoding = 'utf-8')
+datafile.write("FEMNIST: Exact KL Divergence In Order\n")
 datafile.write("Smaller corresponds to more similar digits\n\n")
+
+eKLDict = dict(zip(eKList, eCDList))
+eOrderedKLDict = OrderedDict(sorted(eKLDict.items()))
+estfile = open("femnist_est_kld_in_order.txt", "w", encoding = 'utf-8')
+estfile.write("FEMNIST: Estimated KL Divergence In Order\n")
+estfile.write("Smaller corresponds to more similar digits\n\n")
+
+diffKLDict = dict(zip(diffKList, diffCDList))
+diffOrderedKLDict = OrderedDict(sorted(diffKLDict.items()))
+difffile = open("femnist_abs_accuracy_kld.txt", "w", encoding = 'utf-8')
+difffile.write("FEMNIST: Absolute Accuracy of KL Divergence Estimator\n")
+difffile.write("Smaller corresponds to a better estimate\n\n")
+
+percKLDict = dict(zip(percKList, percCDList))
+percOrderedKLDict = OrderedDict(sorted(percKLDict.items()))
+percfile = open("femnist_perc_accuracy_kld.txt", "w", encoding = 'utf-8')
+percfile.write("FEMNIST: Percentage Accuracy of KL Divergence Estimator\n")
+percfile.write("Closer to 100% corresponds to a better estimate\n\n")
 
 for i in orderedKLDict:
     datafile.write(f"{i} : {orderedKLDict[i]}\n")
+
+for j in eOrderedKLDict:
+    estfile.write(f"{j} : {eOrderedKLDict[j]}\n")
+
+for k in diffOrderedKLDict:
+    difffile.write(f"{k} : {diffOrderedKLDict[k]}\n")
+
+for l in percOrderedKLDict:
+    percfile.write(f"{l} % : {percOrderedKLDict[l]}\n")
 
 # plot a random example of each digit
 fig, axs = plt.subplots(3, 4, figsize = (8, 7))

@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 from emnist import extract_training_samples, extract_test_samples
 import numpy as np
 np.set_printoptions(suppress=True)
+np.seterr(invalid='ignore')
 
 # INITIALISING START TIME AND SEED FOR RANDOM SAMPLING
 startTime = time.perf_counter()
@@ -142,10 +143,42 @@ for D in range(0, 10):
         uProbsSet[D, UNIQUE_COUNT] = float((freq + ALPHA)/(T + (ALPHA*(sizeUniqueImSet[D]))))
         UNIQUE_COUNT = UNIQUE_COUNT + 1
 
+# FOR K3 ESTIMATOR (SCHULMAN) TAKE A SMALL SAMPLE OF UNIQUE IMAGES
+E = 10
+
+# STORE IMAGES, FREQUENCIES AND PROBABILITIES FOR THIS SUBSET
+eImageSet = np.ones((10, E, 4, 4))
+eFreqSet = np.zeros((10, E))
+eProbsSet = np.zeros((10, E))
+eTotalFreq = np.zeros(10)
+
+uSampledSet = np.random.choice(U, E, replace = False)
+
+# BORROW DATA FROM CORRESPONDING INDICES OF MAIN IMAGE AND FREQUENCY SETS
+for D in range(0, 10):
+    for i in range(E):
+        eImageSet[D, i] = uImageSet[D, uSampledSet[i]]
+        eFreqSet[D, i] = uFreqSet[D, uSampledSet[i]]
+        eTotalFreq[D] = sum(eFreqSet[D])
+        eProbsSet[D, i] = float((eFreqSet[D, i] + ALPHA)/(T + (ALPHA*(eTotalFreq[D]))))
+
+# STORES FOR EXACT KLD
 KLDiv = np.zeros((10, 10, U))
 sumKLDiv = np.zeros((10, 10))
 KList = []
 CDList = []
+
+# STORES FOR ESTIMATED KLD
+eKLDiv = np.zeros((10, 10, E))
+eSumKLDiv = np.zeros((10, 10))
+eKList = []
+eCDList = []
+
+# STORES FOR ACCURACY OF ESTIMATED KLD
+diffKList = []
+diffCDList = []
+percKList = []
+percCDList = []
 
 print("Computing KL divergence...")
 
@@ -155,20 +188,66 @@ for C in range(0, 10):
         for i in range(0, U):
             KLDiv[C, D, i] = uProbsSet[D, i] * (np.log((uProbsSet[D, i]) / (uProbsSet[C, i])))
 
+        for j in range(0, E):
+            eKLDiv[C, D, j] = eProbsSet[D, j] * (np.log((eProbsSet[D, j]) / (eProbsSet[C, j])))
+
         # ELIMINATE ALL ZERO VALUES WHEN DIGITS ARE IDENTICAL
         if sum(KLDiv[C, D]) != 0.0:
-            sumKLDiv[C, D] = sum(KLDiv[C, D])
             KList.append(sum(KLDiv[C, D]))
             CDList.append((C, D))
 
+        if sum(eKLDiv[C, D]) != 0.0:
+            eKList.append(sum(eKLDiv[C, D]))
+            eCDList.append((C, D))
+
+        # COMPUTE ABSOLUTE AND PERCENTAGE MEASURES OF ACCURACY
+        absDifference = abs(sum(eKLDiv[C, D]) - sum(KLDiv[C, D]))
+        percDifference = 100*abs(sum(eKLDiv[C, D]) / sum(KLDiv[C, D]))
+
+        if absDifference != 0.0:
+            diffKList.append(absDifference)
+            diffCDList.append((C, D))
+
+        if percDifference != 0.0 and sum(KLDiv[C, D]) != 0.0:
+            percKList.append(percDifference)
+            percCDList.append((C, D))
+
+# CREATE ORDERED DICTIONARIES OF STORED KLD AND DIGITS
 KLDict = dict(zip(KList, CDList))
 orderedKLDict = OrderedDict(sorted(KLDict.items()))
-datafile = open("emnist_kld_in_order.txt", "w", encoding = 'utf-8')
-datafile.write("EMNIST: KL Divergence In Order\n")
+datafile = open("emnist_exact_kld_in_order.txt", "w", encoding = 'utf-8')
+datafile.write("EMNIST: Exact KL Divergence In Order\n")
 datafile.write("Smaller corresponds to more similar digits\n\n")
+
+eKLDict = dict(zip(eKList, eCDList))
+eOrderedKLDict = OrderedDict(sorted(eKLDict.items()))
+estfile = open("emnist_est_kld_in_order.txt", "w", encoding = 'utf-8')
+estfile.write("EMNIST: Estimated KL Divergence In Order\n")
+estfile.write("Smaller corresponds to more similar digits\n\n")
+
+diffKLDict = dict(zip(diffKList, diffCDList))
+diffOrderedKLDict = OrderedDict(sorted(diffKLDict.items()))
+difffile = open("emnist_abs_accuracy_kld.txt", "w", encoding = 'utf-8')
+difffile.write("EMNIST: Absolute Accuracy of KL Divergence Estimator\n")
+difffile.write("Smaller corresponds to a better estimate\n\n")
+
+percKLDict = dict(zip(percKList, percCDList))
+percOrderedKLDict = OrderedDict(sorted(percKLDict.items()))
+percfile = open("emnist_perc_accuracy_kld.txt", "w", encoding = 'utf-8')
+percfile.write("EMNIST: Percentage Accuracy of KL Divergence Estimator\n")
+percfile.write("Closer to 100% corresponds to a better estimate\n\n")
 
 for i in orderedKLDict:
     datafile.write(f"{i} : {orderedKLDict[i]}\n")
+
+for j in eOrderedKLDict:
+    estfile.write(f"{j} : {eOrderedKLDict[j]}\n")
+
+for k in diffOrderedKLDict:
+    difffile.write(f"{k} : {diffOrderedKLDict[k]}\n")
+
+for l in percOrderedKLDict:
+    percfile.write(f"{l} % : {percOrderedKLDict[l]}\n")
 
 # SHOW ALL RANDOM IMAGES AT THE SAME TIME
 fig, ax = plt.subplots(2, 5, sharex = True, sharey = True)
