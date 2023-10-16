@@ -18,6 +18,7 @@ np.seterr(invalid='ignore')
 startTime = time.perf_counter()
 print("\nStarting...")
 random.seed(3249583)
+np.random.seed(107642)
 
 # LOAD TRAINING AND TEST SAMPLES FOR 'DIGITS' SUBSET
 images1, labels1 = extract_training_samples('digits')
@@ -185,10 +186,18 @@ lZeroKList = []
 lZeroCDList = []
 lOneKList = []
 lOneCDList = []
-LAMBDA_ZERO = 0
-LAMBDA_ONE = 1
+lHalfKList = []
+lHalfCDList = []
 
 print("Computing KL divergence...")
+
+def unbias_est(lda, rat, lklist, lcdlist, c, d):
+    """Compute unbiased estimator using computed ratio."""
+    lest = ((lda * (rat - 1)) - log(rat)) / T
+
+    if lest != 0.0:
+        lklist.append(lest)
+        lcdlist.append((c, d))
 
 # FOR EACH COMPARISON DIGIT COMPUTE KLD FOR ALL DIGITS
 for C in range(0, 10):
@@ -216,17 +225,10 @@ for C in range(0, 10):
             rKList.append(ratio)
             rCDList.append((C, D))
 
-            # COMPUTE UNBIASED ESTIMATORS WITH LAMBDA EQUAL TO ZERO AND ONE RESPECTIVELY
-            lZeroEst = ((LAMBDA_ZERO * (ratio - 1)) - log(ratio)) / T
-            lOneEst = ((LAMBDA_ONE * (ratio - 1)) - log(ratio)) / T
-
-            if lZeroEst != 0.0:
-                lZeroKList.append(lZeroEst)
-                lZeroCDList.append((C, D))
-
-            if lOneEst != 0.0 :
-                lOneKList.append(lOneEst)
-                lOneCDList.append((C, D))
+            # COMPUTE UNBIASED ESTIMATORS WITH LAMBDA EQUAL TO 0, 1 AND 0.5 RESPECTIVELY
+            unbias_est(0, ratio, lZeroKList, lZeroCDList, C, D)
+            unbias_est(1, ratio, lOneKList, lOneCDList, C, D)
+            unbias_est(0.5, ratio, lHalfKList, lHalfCDList, C, D)
 
 # CREATE ORDERED DICTIONARIES OF STORED KLD AND DIGITS
 KLDict = dict(zip(KList, CDList))
@@ -259,6 +261,12 @@ l1estfile = open("emnist_l1est_kld_in_order.txt", "w", encoding = 'utf-8')
 l1estfile.write("EMNIST: Unbiased Estimator Lambda One\n")
 l1estfile.write(f"Sum: {sum(lOneKList)}\n\n")
 
+lHalfKLDict = dict(zip(lHalfKList, lHalfCDList))
+lHalfOrderedKLDict = OrderedDict(sorted(lHalfKLDict.items()))
+l2estfile = open("emnist_l2est_kld_in_order.txt", "w", encoding = 'utf-8')
+l2estfile.write("EMNIST: Unbiased Estimator Lambda Half\n")
+l2estfile.write(f"Sum: {sum(lHalfKList)}\n\n")
+
 for i in orderedKLDict:
     datafile.write(f"{i} : {orderedKLDict[i]}\n")
 
@@ -273,6 +281,9 @@ for l in lZeroOrderedKLDict:
 
 for m in lOneOrderedKLDict:
     l1estfile.write(f"{m} : {lOneOrderedKLDict[m]}\n")
+
+for n in lHalfOrderedKLDict:
+    l2estfile.write(f"{n} : {lHalfOrderedKLDict[n]}\n")
 
 # SHOW ALL RANDOM IMAGES AT THE SAME TIME
 fig, ax = plt.subplots(2, 5, sharex = True, sharey = True)
