@@ -1,6 +1,8 @@
-"""Modules provide various time-related functions, remember the order in which items are added,
-provide both a high- and low-level interface to the HDF5 library, and work with arrays in Python."""
+"""Modules provide various time-related functions, compute the natural logarithm of a number, 
+remember the order in which items are added, provide both a high- and low-level interface to
+the HDF5 library, and work with arrays in Python."""
 import time
+from math import log
 from collections import OrderedDict
 import matplotlib.pyplot as plt
 import h5py
@@ -133,8 +135,8 @@ TOTAL_COUNT = 0
 
 def total_set(uset, tset, tcount):
     """Method to add each of the unique images for each digit."""
-    for m in uset:
-        tset[tcount] = m
+    for im in uset:
+        tset[tcount] = im
         tcount = tcount + 1
     return tcount
 
@@ -232,11 +234,17 @@ eSumKLDiv = np.zeros((10, 10))
 eKList = []
 eCDList = []
 
-# stores for accuracy of estimated KLD
-diffKList = []
-diffCDList = []
-percKList = []
-percCDList = []
+# stores for ratio between exact and estimated KLD
+rKList = []
+rCDList = []
+
+# stores for unbiased estimate of KLD
+lZeroKList = []
+lZeroCDList = []
+lOneKList = []
+lOneCDList = []
+LAMBDA_ZERO = 0
+LAMBDA_ONE = 1
 
 print("Computing KL divergence...")
 
@@ -258,17 +266,25 @@ for C in range(0, 10):
             eKList.append(sum(eKLDiv[C, D]))
             eCDList.append((C, D))
 
-        # compute absolute and percentage measures of accuracy
-        absDifference = abs(sum(eKLDiv[C, D]) - sum(KLDiv[C, D]))
-        percDifference = 100*abs(sum(eKLDiv[C, D]) / sum(KLDiv[C, D]))
+        # compute ratio between exact and estimated KLD
+        ratio = abs(sum(eKLDiv[C, D]) / sum(KLDiv[C, D]))
 
-        if absDifference != 0.0:
-            diffKList.append(absDifference)
-            diffCDList.append((C, D))
+        # eliminate all divide by zero errors
+        if ratio != 0.0 and sum(KLDiv[C, D]) != 0.0:
+            rKList.append(ratio)
+            rCDList.append((C, D))
 
-        if percDifference != 0.0 and sum(KLDiv[C, D]) != 0.0:
-            percKList.append(percDifference)
-            percCDList.append((C, D))
+            # compute unbiased estimators with lambda equal to zero and one respectively
+            lZeroEst = ((LAMBDA_ZERO * (ratio - 1)) - log(ratio)) / (11*numSampledWriters)
+            lOneEst = ((LAMBDA_ONE * (ratio - 1)) - log(ratio)) / (11*numSampledWriters)
+
+            if lZeroEst != 0.0:
+                lZeroKList.append(lZeroEst)
+                lZeroCDList.append((C, D))
+
+            if lOneEst != 0.0:
+                lOneKList.append(lOneEst)
+                lOneCDList.append((C, D))
 
 # create ordered dictionaries of stored KLD and digits
 KLDict = dict(zip(KList, CDList))
@@ -283,17 +299,23 @@ estfile = open("femnist_est_kld_in_order.txt", "w", encoding = 'utf-8')
 estfile.write("FEMNIST: Estimated KL Divergence In Order\n")
 estfile.write("Smaller corresponds to more similar digits\n\n")
 
-diffKLDict = dict(zip(diffKList, diffCDList))
-diffOrderedKLDict = OrderedDict(sorted(diffKLDict.items()))
-difffile = open("femnist_abs_accuracy_kld.txt", "w", encoding = 'utf-8')
-difffile.write("FEMNIST: Absolute Accuracy of KL Divergence Estimator\n")
-difffile.write("Smaller corresponds to a better estimate\n\n")
+rKLDict = dict(zip(rKList, rCDList))
+rOrderedKLDict = OrderedDict(sorted(rKLDict.items()))
+ratiofile = open("femnist_ratio_kld_in_order.txt", "w", encoding = 'utf-8')
+ratiofile.write("FEMNIST: Ratio Between Exact KL Divergence And Estimator\n")
+ratiofile.write("Closer to 1 corresponds to a better estimate\n\n")
 
-percKLDict = dict(zip(percKList, percCDList))
-percOrderedKLDict = OrderedDict(sorted(percKLDict.items()))
-percfile = open("femnist_perc_accuracy_kld.txt", "w", encoding = 'utf-8')
-percfile.write("FEMNIST: Percentage Accuracy of KL Divergence Estimator\n")
-percfile.write("Closer to 100% corresponds to a better estimate\n\n")
+lZeroKLDict = dict(zip(lZeroKList, lZeroCDList))
+lZeroOrderedKLDict = OrderedDict(sorted(lZeroKLDict.items()))
+l0estfile = open("femnist_l0est_kld_in_order.txt", "w", encoding = 'utf-8')
+l0estfile.write("FEMNIST: Unbiased Estimator Lambda Zero\n")
+l0estfile.write(f"Sum: {sum(lZeroKList)}\n\n")
+
+lOneKLDict = dict(zip(lOneKList, lOneCDList))
+lOneOrderedKLDict = OrderedDict(sorted(lOneKLDict.items()))
+l1estfile = open("femnist_l1est_kld_in_order.txt", "w", encoding = 'utf-8')
+l1estfile.write("FEMNIST: Unbiased Estimator Lambda One\n")
+l1estfile.write(f"Sum: {sum(lOneKList)}\n\n")
 
 for i in orderedKLDict:
     datafile.write(f"{i} : {orderedKLDict[i]}\n")
@@ -301,11 +323,14 @@ for i in orderedKLDict:
 for j in eOrderedKLDict:
     estfile.write(f"{j} : {eOrderedKLDict[j]}\n")
 
-for k in diffOrderedKLDict:
-    difffile.write(f"{k} : {diffOrderedKLDict[k]}\n")
+for k in rOrderedKLDict:
+    ratiofile.write(f"{k} : {rOrderedKLDict[k]}\n")
 
-for l in percOrderedKLDict:
-    percfile.write(f"{l} % : {percOrderedKLDict[l]}\n")
+for l in lZeroOrderedKLDict:
+    l0estfile.write(f"{l} : {lZeroOrderedKLDict[l]}\n")
+
+for m in lOneOrderedKLDict:
+    l1estfile.write(f"{m} : {lOneOrderedKLDict[m]}\n")
 
 # plot a random example of each digit
 fig, axs = plt.subplots(3, 4, figsize = (8, 7))
