@@ -39,9 +39,9 @@ for i in sampledWriters:
 
     for pic in range(len(tempDataset['labels'])):
 
-        for d in range(10):
-            if tempDataset['labels'][pic] == d:
-                totalDigits[d] = totalDigits[d] + 1
+        for count in range(10):
+            if tempDataset['labels'][pic] == count:
+                totalDigits[count] = totalDigits[count] + 1
 
 # create image store of appropriate dimensions for each digit
 zeroSet = np.ones((totalDigits[0], 4, 4), dtype = int)
@@ -160,6 +160,7 @@ U = 338
 uImageSet = np.ones((10, U, 4, 4))
 uFreqSet = np.zeros((10, U))
 uProbsSet = np.zeros((10, U))
+T1 = 11*numSampledWriters
 
 print("Creating probability distributions...")
 
@@ -172,7 +173,7 @@ def smoothed_prob(dset, dig, im, ucount):
     freq = len(where[0])
     uImageSet[dig, ucount] = im
     uFreqSet[dig, ucount] = int(freq)
-    uProbsSet[dig, ucount] = float((freq + ALPHA)/(11*numSampledWriters + (ALPHA*(digCount[dig]))))
+    uProbsSet[dig, ucount] = float((freq + ALPHA)/(T1 + (ALPHA*(digCount[dig]))))
 
 for D in range(0, 10):
     UNIQUE_COUNT = 0
@@ -212,7 +213,7 @@ eProbsSet = np.zeros((10, E))
 eTotalFreq = np.zeros(10)
 
 uSampledSet = np.random.choice(U, E, replace = False)
-T = (11/3)*numSampledWriters*(E/U)
+T2 = (11/3)*numSampledWriters*(E/U)
 
 # borrow data from corresponding indices of main image and frequency sets
 for D in range(0, 10):
@@ -220,7 +221,7 @@ for D in range(0, 10):
         eImageSet[D, i] = uImageSet[D, uSampledSet[i]]
         eFreqSet[D, i] = uFreqSet[D, uSampledSet[i]]
         eTotalFreq[D] = sum(eFreqSet[D])
-        eProbsSet[D, i] = float((eFreqSet[D, i] + ALPHA)/(T + (ALPHA*(eTotalFreq[D]))))
+        eProbsSet[D, i] = float((eFreqSet[D, i] + ALPHA)/(T2 + (ALPHA*(eTotalFreq[D]))))
 
 # stores for exact KLD
 KLDiv = np.zeros((10, 10, U))
@@ -243,10 +244,18 @@ lZeroKList = []
 lZeroCDList = []
 lOneKList = []
 lOneCDList = []
-LAMBDA_ZERO = 0
-LAMBDA_ONE = 1
+lHalfKList = []
+lHalfCDList = []
 
 print("Computing KL divergence...")
+
+def unbias_est(lda, rat, lklist, lcdlist, c, d):
+    """Compute unbiased estimator using computed ratio."""
+    lest = ((lda * (rat - 1)) - log(rat)) / T1
+
+    if lest != 0.0:
+        lklist.append(lest)
+        lcdlist.append((c, d))
 
 # for each comparison digit compute KLD for all digits
 for C in range(0, 10):
@@ -274,17 +283,10 @@ for C in range(0, 10):
             rKList.append(ratio)
             rCDList.append((C, D))
 
-            # compute unbiased estimators with lambda equal to zero and one respectively
-            lZeroEst = ((LAMBDA_ZERO * (ratio - 1)) - log(ratio)) / (11*numSampledWriters)
-            lOneEst = ((LAMBDA_ONE * (ratio - 1)) - log(ratio)) / (11*numSampledWriters)
-
-            if lZeroEst != 0.0:
-                lZeroKList.append(lZeroEst)
-                lZeroCDList.append((C, D))
-
-            if lOneEst != 0.0:
-                lOneKList.append(lOneEst)
-                lOneCDList.append((C, D))
+            # compute unbiased estimators with lambda equal to 0, 1 and 0.5 respectively
+            unbias_est(0, ratio, lZeroKList, lZeroCDList, C, D)
+            unbias_est(1, ratio, lOneKList, lOneCDList, C, D)
+            unbias_est(0.5, ratio, lHalfKList, lHalfCDList, C, D)
 
 # create ordered dictionaries of stored KLD and digits
 KLDict = dict(zip(KList, CDList))
@@ -317,6 +319,12 @@ l1estfile = open("femnist_l1est_kld_in_order.txt", "w", encoding = 'utf-8')
 l1estfile.write("FEMNIST: Unbiased Estimator Lambda One\n")
 l1estfile.write(f"Sum: {sum(lOneKList)}\n\n")
 
+lHalfKLDict = dict(zip(lHalfKList, lHalfCDList))
+lHalfOrderedKLDict = OrderedDict(sorted(lHalfKLDict.items()))
+l2estfile = open("femnist_l2est_kld_in_order.txt", "w", encoding = 'utf-8')
+l2estfile.write("FEMNIST: Unbiased Estimator Lambda Half\n")
+l2estfile.write(f"Sum: {sum(lHalfKList)}\n\n")
+
 for i in orderedKLDict:
     datafile.write(f"{i} : {orderedKLDict[i]}\n")
 
@@ -331,6 +339,9 @@ for l in lZeroOrderedKLDict:
 
 for m in lOneOrderedKLDict:
     l1estfile.write(f"{m} : {lOneOrderedKLDict[m]}\n")
+
+for n in lHalfOrderedKLDict:
+    l2estfile.write(f"{n} : {lHalfOrderedKLDict[n]}\n")
 
 # plot a random example of each digit
 fig, axs = plt.subplots(3, 4, figsize = (8, 7))
