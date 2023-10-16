@@ -186,8 +186,16 @@ lZeroKList = []
 lZeroCDList = []
 lOneKList = []
 lOneCDList = []
-lHalfKList = []
-lHalfCDList = []
+lTwoKList = []
+lTwoCDList = []
+lThreeKList = []
+lThreeCDList = []
+lFourKList = []
+lFourCDList = []
+lFiveKList = []
+lFiveCDList = []
+lSixKList = []
+lSixCDList = []
 
 print("Computing KL divergence...")
 
@@ -225,10 +233,15 @@ for C in range(0, 10):
             rKList.append(ratio)
             rCDList.append((C, D))
 
-            # COMPUTE UNBIASED ESTIMATORS WITH LAMBDA EQUAL TO 0, 1 AND 0.5 RESPECTIVELY
+            # COMPUTE UNBIASED ESTIMATORS WITH LAMBDA 0,1 THEN BINARY SEARCH
             unbias_est(0, ratio, lZeroKList, lZeroCDList, C, D)
             unbias_est(1, ratio, lOneKList, lOneCDList, C, D)
-            unbias_est(0.5, ratio, lHalfKList, lHalfCDList, C, D)
+            unbias_est(0.5, ratio, lTwoKList, lTwoCDList, C, D)
+            unbias_est(0.75, ratio, lThreeKList, lThreeCDList, C, D)
+            unbias_est(0.875, ratio, lFourKList, lFourCDList, C, D)
+            unbias_est(0.9375, ratio, lFiveKList, lFiveCDList, C, D)
+            unbias_est(0.96875, ratio, lSixKList, lSixCDList, C, D)
+
 
 # CREATE ORDERED DICTIONARIES OF STORED KLD AND DIGITS
 KLDict = dict(zip(KList, CDList))
@@ -261,11 +274,35 @@ l1estfile = open("emnist_l1est_kld_in_order.txt", "w", encoding = 'utf-8')
 l1estfile.write("EMNIST: Unbiased Estimator Lambda One\n")
 l1estfile.write(f"Sum: {sum(lOneKList)}\n\n")
 
-lHalfKLDict = dict(zip(lHalfKList, lHalfCDList))
-lHalfOrderedKLDict = OrderedDict(sorted(lHalfKLDict.items()))
+lTwoKLDict = dict(zip(lTwoKList, lTwoCDList))
+lTwoOrderedKLDict = OrderedDict(sorted(lTwoKLDict.items()))
 l2estfile = open("emnist_l2est_kld_in_order.txt", "w", encoding = 'utf-8')
-l2estfile.write("EMNIST: Unbiased Estimator Lambda Half\n")
-l2estfile.write(f"Sum: {sum(lHalfKList)}\n\n")
+l2estfile.write("EMNIST: Unbiased Estimator Lambda Two\n")
+l2estfile.write(f"Sum: {sum(lTwoKList)}\n\n")
+
+lThreeKLDict = dict(zip(lThreeKList, lThreeCDList))
+lThreeOrderedKLDict = OrderedDict(sorted(lThreeKLDict.items()))
+l3estfile = open("emnist_l3est_kld_in_order.txt", "w", encoding = 'utf-8')
+l3estfile.write("EMNIST: Unbiased Estimator Lambda Three\n")
+l3estfile.write(f"Sum: {sum(lThreeKList)}\n\n")
+
+lFourKLDict = dict(zip(lFourKList, lFourCDList))
+lFourOrderedKLDict = OrderedDict(sorted(lFourKLDict.items()))
+l4estfile = open("emnist_l4est_kld_in_order.txt", "w", encoding = 'utf-8')
+l4estfile.write("EMNIST: Unbiased Estimator Lambda Four\n")
+l4estfile.write(f"Sum: {sum(lFourKList)}\n\n")
+
+lFiveKLDict = dict(zip(lFiveKList, lFiveCDList))
+lFiveOrderedKLDict = OrderedDict(sorted(lFiveKLDict.items()))
+l5estfile = open("emnist_l5est_kld_in_order.txt", "w", encoding = 'utf-8')
+l5estfile.write("EMNIST: Unbiased Estimator Lambda Five\n")
+l5estfile.write(f"Sum: {sum(lFiveKList)}\n\n")
+
+lSixKLDict = dict(zip(lSixKList, lSixCDList))
+lSixOrderedKLDict = OrderedDict(sorted(lSixKLDict.items()))
+l6estfile = open("emnist_l6est_kld_in_order.txt", "w", encoding = 'utf-8')
+l6estfile.write("EMNIST: Unbiased Estimator Lambda Six\n")
+l6estfile.write(f"Sum: {sum(lSixKList)}\n\n")
 
 for i in orderedKLDict:
     datafile.write(f"{i} : {orderedKLDict[i]}\n")
@@ -282,8 +319,20 @@ for l in lZeroOrderedKLDict:
 for m in lOneOrderedKLDict:
     l1estfile.write(f"{m} : {lOneOrderedKLDict[m]}\n")
 
-for n in lHalfOrderedKLDict:
-    l2estfile.write(f"{n} : {lHalfOrderedKLDict[n]}\n")
+for n in lTwoOrderedKLDict:
+    l2estfile.write(f"{n} : {lTwoOrderedKLDict[n]}\n")
+
+for o in lThreeOrderedKLDict:
+    l3estfile.write(f"{o} : {lThreeOrderedKLDict[o]}\n")
+
+for p in lFourOrderedKLDict:
+    l4estfile.write(f"{p} : {lFourOrderedKLDict[p]}\n")
+
+for q in lFiveOrderedKLDict:
+    l5estfile.write(f"{q} : {lFiveOrderedKLDict[q]}\n")
+
+for r in lSixOrderedKLDict:
+    l6estfile.write(f"{r} : {lSixOrderedKLDict[r]}\n")
 
 # SHOW ALL RANDOM IMAGES AT THE SAME TIME
 fig, ax = plt.subplots(2, 5, sharex = True, sharey = True)

@@ -246,6 +246,16 @@ lOneKList = []
 lOneCDList = []
 lHalfKList = []
 lHalfCDList = []
+lTenthKList = []
+lTenthCDList = []
+lNextKList = []
+lNextCDList = []
+lHighKList = []
+lHighCDList = []
+lLowKList = []
+lLowCDList = []
+lFinalKList = []
+lFinalCDList = []
 
 print("Computing KL divergence...")
 
@@ -283,10 +293,15 @@ for C in range(0, 10):
             rKList.append(ratio)
             rCDList.append((C, D))
 
-            # compute unbiased estimators with lambda equal to 0, 1 and 0.5 respectively
+            # compute unbiased estimators with lambda equal to 0, 1, 0.5, 0.1 etc
             unbias_est(0, ratio, lZeroKList, lZeroCDList, C, D)
             unbias_est(1, ratio, lOneKList, lOneCDList, C, D)
             unbias_est(0.5, ratio, lHalfKList, lHalfCDList, C, D)
+            unbias_est(0.1, ratio, lTenthKList, lTenthCDList, C, D)
+            unbias_est(0.0875, ratio, lNextKList, lNextCDList, C, D)
+            unbias_est(0.0872, ratio, lHighKList, lHighCDList, C, D)
+            unbias_est(0.0871, ratio, lLowKList, lLowCDList, C, D)
+            unbias_est(0.08715, ratio, lFinalKList, lFinalCDList, C, D)
 
 # create ordered dictionaries of stored KLD and digits
 KLDict = dict(zip(KList, CDList))
@@ -325,6 +340,36 @@ l2estfile = open("femnist_l2est_kld_in_order.txt", "w", encoding = 'utf-8')
 l2estfile.write("FEMNIST: Unbiased Estimator Lambda Half\n")
 l2estfile.write(f"Sum: {sum(lHalfKList)}\n\n")
 
+lTenthKLDict = dict(zip(lTenthKList, lTenthCDList))
+lTenthOrderedKLDict = OrderedDict(sorted(lTenthKLDict.items()))
+l3estfile = open("femnist_l3est_kld_in_order.txt", "w", encoding = 'utf-8')
+l3estfile.write("FEMNIST: Unbiased Estimator Lambda Tenth\n")
+l3estfile.write(f"Sum: {sum(lTenthKList)}\n\n")
+
+lNextKLDict = dict(zip(lNextKList, lNextCDList))
+lNextOrderedKLDict = OrderedDict(sorted(lNextKLDict.items()))
+l4estfile = open("femnist_l4est_kld_in_order.txt", "w", encoding = 'utf-8')
+l4estfile.write("FEMNIST: Unbiased Estimator Lambda Next\n")
+l4estfile.write(f"Sum: {sum(lNextKList)}\n\n")
+
+lHighKLDict = dict(zip(lHighKList, lHighCDList))
+lHighOrderedKLDict = OrderedDict(sorted(lHighKLDict.items()))
+l5estfile = open("femnist_l5est_kld_in_order.txt", "w", encoding = 'utf-8')
+l5estfile.write("FEMNIST: Unbiased Estimator Lambda High\n")
+l5estfile.write(f"Sum: {sum(lHighKList)}\n\n")
+
+lLowKLDict = dict(zip(lLowKList, lLowCDList))
+lLowOrderedKLDict = OrderedDict(sorted(lLowKLDict.items()))
+l6estfile = open("femnist_l6est_kld_in_order.txt", "w", encoding = 'utf-8')
+l6estfile.write("FEMNIST: Unbiased Estimator Lambda Low\n")
+l6estfile.write(f"Sum: {sum(lLowKList)}\n\n")
+
+lFinalKLDict = dict(zip(lFinalKList, lFinalCDList))
+lFinalOrderedKLDict = OrderedDict(sorted(lFinalKLDict.items()))
+l7estfile = open("femnist_l7est_kld_in_order.txt", "w", encoding = 'utf-8')
+l7estfile.write("FEMNIST: Unbiased Estimator Lambda Final\n")
+l7estfile.write(f"Sum: {sum(lFinalKList)}\n\n")
+
 for i in orderedKLDict:
     datafile.write(f"{i} : {orderedKLDict[i]}\n")
 
@@ -342,6 +387,21 @@ for m in lOneOrderedKLDict:
 
 for n in lHalfOrderedKLDict:
     l2estfile.write(f"{n} : {lHalfOrderedKLDict[n]}\n")
+
+for o in lTenthOrderedKLDict:
+    l3estfile.write(f"{o} : {lTenthOrderedKLDict[o]}\n")
+
+for p in lNextOrderedKLDict:
+    l4estfile.write(f"{p} : {lNextOrderedKLDict[p]}\n")
+
+for q in lHighOrderedKLDict:
+    l5estfile.write(f"{q} : {lHighOrderedKLDict[q]}\n")
+
+for r in lLowOrderedKLDict:
+    l6estfile.write(f"{r} : {lLowOrderedKLDict[r]}\n")
+
+for s in lFinalOrderedKLDict:
+    l7estfile.write(f"{s} : {lFinalOrderedKLDict[s]}\n")
 
 # plot a random example of each digit
 fig, axs = plt.subplots(3, 4, figsize = (8, 7))
