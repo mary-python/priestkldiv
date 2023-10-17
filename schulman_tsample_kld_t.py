@@ -78,16 +78,18 @@ for T in Tset:
 
         # order the pre-processed sample and separate into + and - values
         qOrderedRound = torch.sort(qRound)
-        qPositiveRound = torch.where(qRound >= 0, qRound, -qRound)
-        qNegativeRound = torch.where(qRound < 0, qRound, -qRound)
+        qNegativeRound = qOrderedRound[0][0:2440]
+        qPositiveRound = qOrderedRound[0][2440:4918]
 
         for j in range(0, C):
 
             # even clients get positive values, odd clients get negative values
             if (j % 2) == 0:
-                qCS[j] = torch.multinomial(qPositiveRound, N, False)
+                indices = torch.randperm(len(qPositiveRound))[:N]
+                qCS[j] = qPositiveRound[indices]
             else:
-                qCS[j] = -torch.multinomial(qNegativeRound, N, False)
+                indices = torch.randperm(len(qNegativeRound))[:N]
+                qCS[j] = qNegativeRound[indices]
 
             qT1[j] = torch.numel(torch.from_numpy(qCS[j]))
             qCS[j] = qCS[j][abs(int(qT1 - 0.98*T)):]

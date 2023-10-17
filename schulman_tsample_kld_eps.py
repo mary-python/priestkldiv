@@ -33,8 +33,8 @@ for i in qUniqueIndices:
 
 # order the pre-processed sample and separate into + and - values
 qOrderedRound = torch.sort(qRound)
-qPositiveRound = torch.where(qRound >= 0, qRound, -qRound)
-qNegativeRound = torch.where(qRound < 0, qRound, -qRound)
+qNegativeRound = qOrderedRound[0][0:249151]
+qPositiveRound = qOrderedRound[0][249151:499947]
 
 # 10-100K clients each with a few hundred points
 C = 10000
@@ -70,9 +70,11 @@ for j in range(0, C):
 
     # even clients get positive values, odd clients get negative values
     if (j % 2) == 0:
-        qClSa[j] = torch.multinomial(qPositiveRound, N, False)
+        indices = torch.randperm(len(qPositiveRound))[:N]
+        qClSa[j] = qPositiveRound[indices]
     else:
-        qClSa[j] = -torch.multinomial(qNegativeRound, N, False)
+        indices = torch.randperm(len(qNegativeRound))[:N]
+        qClSa[j] = qNegativeRound[indices]
 
     qT[j] = torch.numel(torch.from_numpy(qClSa[j]))
 
