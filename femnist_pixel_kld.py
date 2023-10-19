@@ -322,6 +322,34 @@ ratiofile = open("femnist_ratio_kld_in_order.txt", "w", encoding = 'utf-8')
 ratiofile.write("FEMNIST: Ratio Between Exact KL Divergence And Estimator\n")
 ratiofile.write("Closer to 1 corresponds to a better estimate\n\n")
 
+# check whether ranking is preserved when estimator is used
+DATA_ROWS = 90
+TOP_COUNT = 0
+BOTTOM_COUNT = 0
+
+# look at top and bottom 10% of digit pairs in exact KLD ranking list
+topKLDict = list(orderedKLDict.values())[0:int(DATA_ROWS/10)]
+rTopKLDict = list(rOrderedKLDict.values())[0:int(DATA_ROWS/2)]
+bottomKLDict = list(orderedKLDict.values())[int(9*(DATA_ROWS/10)):DATA_ROWS]
+rBottomKLDict = list(rOrderedKLDict.values())[int(DATA_ROWS/2):DATA_ROWS]
+
+# do top 10% in exact KLD remain in top half of ratio?
+for ti in topKLDict:
+    for tj in rTopKLDict:    
+        if tj == ti:
+            TOP_COUNT = TOP_COUNT + 1
+
+# do bottom 10% in exact KLD remain in bottom half of ratio?
+for bi in bottomKLDict:
+    for bj in rBottomKLDict:
+        if bj == bi:
+            BOTTOM_COUNT = BOTTOM_COUNT + 1
+
+percTopKLD = 100*(TOP_COUNT / int(DATA_ROWS/10))
+percBottomKLD = 100*(BOTTOM_COUNT / int(DATA_ROWS/10))
+ratiofile.write(f"Top 10% exact KLD -> top half ratio ranking: {round(percTopKLD, 1)}%\n")
+ratiofile.write(f"Bottom 10% exact KLD -> bottom half ratio ranking: {round(percBottomKLD, 1)}%\n\n")
+
 lZeroKLDict = dict(zip(lZeroKList, lZeroCDList))
 lZeroOrderedKLDict = OrderedDict(sorted(lZeroKLDict.items()))
 l0estfile = open("femnist_l0est_kld_in_order.txt", "w", encoding = 'utf-8')
