@@ -261,9 +261,9 @@ for C in range(0, 10):
             unbias_est(-1, ratio, lMinusKList, lMinusCDList, C, D)
             unbias_est(-3, ratio, lTripleKList, lTripleCDList, C, D)
 
-            # FIND OPTIMAL LAMBDA FOR MAX (6, 9) PAIR
-            unbias_est(9, ratio, lMinKList, lMinCDList, C, D)
-            unbias_est(10, ratio, lMaxKList, lMaxCDList, C, D)
+            # FIND OPTIMAL LAMBDAS FOR MIN (0, 5) AND MAX (6, 9) PAIRS
+            unbias_est(3.0594, ratio, lMinKList, lMinCDList, C, D)
+            unbias_est(7.2723, ratio, lMaxKList, lMaxCDList, C, D)
 
             # LOOK AT EXTREME LAMBDAS
             unbias_est(10000, ratio, lPosKList, lPosCDList, C, D)
