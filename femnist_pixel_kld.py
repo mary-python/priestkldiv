@@ -254,8 +254,20 @@ lHighKList = []
 lHighCDList = []
 lLowKList = []
 lLowCDList = []
-lFinalKList = []
-lFinalCDList = []
+lDecideKList = []
+lDecideCDList = []
+lMinusKList = []
+lMinusCDList = []
+lTripleKList = []
+lTripleCDList = []
+lMinKList = []
+lMinCDList = []
+lMaxKList = []
+lMaxCDList = []
+lPosKList = []
+lPosCDList = []
+lNegKList = []
+lNegCDList = []
 
 print("Computing KL divergence...")
 
@@ -301,7 +313,19 @@ for C in range(0, 10):
             unbias_est(0.0875, ratio, lNextKList, lNextCDList, C, D)
             unbias_est(0.0872, ratio, lHighKList, lHighCDList, C, D)
             unbias_est(0.0871, ratio, lLowKList, lLowCDList, C, D)
-            unbias_est(0.08715, ratio, lFinalKList, lFinalCDList, C, D)
+            unbias_est(0.08715, ratio, lDecideKList, lDecideCDList, C, D)
+
+            # explore lambdas below 0
+            unbias_est(-1, ratio, lMinusKList, lMinusCDList, C, D)
+            unbias_est(-3, ratio, lTripleKList, lTripleCDList, C, D)
+
+            # find optimal lambdas for min (7, 9) and max (1, 5) pairs
+            unbias_est(1.3992, ratio, lMinKList, lMinCDList, C, D)
+            unbias_est(0.4633, ratio, lMaxKList, lMaxCDList, C, D)
+
+            # look at extreme lambdas
+            unbias_est(10000, ratio, lPosKList, lPosCDList, C, D)
+            unbias_est(-10000, ratio, lNegKList, lNegCDList, C, D)
 
 # create ordered dictionaries of stored KLD and digits
 KLDict = dict(zip(KList, CDList))
@@ -392,11 +416,47 @@ l6estfile = open("femnist_l6est_kld_in_order.txt", "w", encoding = 'utf-8')
 l6estfile.write("FEMNIST: Unbiased Estimator Lambda Low\n")
 l6estfile.write(f"Sum: {sum(lLowKList)}\n\n")
 
-lFinalKLDict = dict(zip(lFinalKList, lFinalCDList))
-lFinalOrderedKLDict = OrderedDict(sorted(lFinalKLDict.items()))
+lDecideKLDict = dict(zip(lDecideKList, lDecideCDList))
+lDecideOrderedKLDict = OrderedDict(sorted(lDecideKLDict.items()))
 l7estfile = open("femnist_l7est_kld_in_order.txt", "w", encoding = 'utf-8')
-l7estfile.write("FEMNIST: Unbiased Estimator Lambda Final\n")
-l7estfile.write(f"Sum: {sum(lFinalKList)}\n\n")
+l7estfile.write("FEMNIST: Unbiased Estimator Lambda Decide\n")
+l7estfile.write(f"Sum: {sum(lDecideKList)}\n\n")
+
+lMinusKLDict = dict(zip(lMinusKList, lMinusCDList))
+lMinusOrderedKLDict = OrderedDict(sorted(lMinusKLDict.items()))
+l8estfile = open("femnist_l8est_kld_in_order.txt", "w", encoding = 'utf-8')
+l8estfile.write("FEMNIST: Unbiased Estimator Lambda Minus\n")
+l8estfile.write(f"Sum: {sum(lMinusKList)}\n\n")
+
+lTripleKLDict = dict(zip(lTripleKList, lTripleCDList))
+lTripleOrderedKLDict = OrderedDict(sorted(lTripleKLDict.items()))
+l9estfile = open("femnist_l9est_kld_in_order.txt", "w", encoding = 'utf-8')
+l9estfile.write("FEMNIST: Unbiased Estimator Lambda Triple\n")
+l9estfile.write(f"Sum: {sum(lTripleKList)}\n\n")
+
+lMinKLDict = dict(zip(lMinKList, lMinCDList))
+lMinOrderedKLDict = OrderedDict(sorted(lMinKLDict.items()))
+l10estfile = open("femnist_l10est_kld_in_order.txt", "w", encoding = 'utf-8')
+l10estfile.write("FEMNIST: Unbiased Estimator Lambda Min\n")
+l10estfile.write(f"Sum: {sum(lMinKList)}\n\n")
+
+lMaxKLDict = dict(zip(lMaxKList, lMaxCDList))
+lMaxOrderedKLDict = OrderedDict(sorted(lMaxKLDict.items()))
+l11estfile = open("femnist_l11est_kld_in_order.txt", "w", encoding = 'utf-8')
+l11estfile.write("FEMNIST: Unbiased Estimator Lambda Max\n")
+l11estfile.write(f"Sum: {sum(lMaxKList)}\n\n")
+
+lPosKLDict = dict(zip(lPosKList, lPosCDList))
+lPosOrderedKLDict = OrderedDict(sorted(lPosKLDict.items()))
+l12estfile = open("femnist_l12est_kld_in_order.txt", "w", encoding = 'utf-8')
+l12estfile.write("FEMNIST: Unbiased Estimator Lambda Pos\n")
+l12estfile.write(f"Sum: {sum(lPosKList)}\n\n")
+
+lNegKLDict = dict(zip(lNegKList, lNegCDList))
+lNegOrderedKLDict = OrderedDict(sorted(lNegKLDict.items()))
+l13estfile = open("femnist_l13est_kld_in_order.txt", "w", encoding = 'utf-8')
+l13estfile.write("FEMNIST: Unbiased Estimator Lambda Neg\n")
+l13estfile.write(f"Sum: {sum(lNegKList)}\n\n")
 
 for i in orderedKLDict:
     datafile.write(f"{i} : {orderedKLDict[i]}\n")
@@ -428,8 +488,26 @@ for q in lHighOrderedKLDict:
 for r in lLowOrderedKLDict:
     l6estfile.write(f"{r} : {lLowOrderedKLDict[r]}\n")
 
-for s in lFinalOrderedKLDict:
-    l7estfile.write(f"{s} : {lFinalOrderedKLDict[s]}\n")
+for s in lDecideOrderedKLDict:
+    l7estfile.write(f"{s} : {lDecideOrderedKLDict[s]}\n")
+
+for t in lMinusOrderedKLDict:
+    l8estfile.write(f"{t} : {lMinusOrderedKLDict[t]}\n")
+
+for u in lTripleOrderedKLDict:
+    l9estfile.write(f"{u} : {lTripleOrderedKLDict[u]}\n")
+
+for v in lMinOrderedKLDict:
+    l10estfile.write(f"{v} : {lMinOrderedKLDict[v]}\n")
+
+for w in lMaxOrderedKLDict:
+    l11estfile.write(f"{w} : {lMaxOrderedKLDict[w]}\n")
+
+for x in lPosOrderedKLDict:
+    l12estfile.write(f"{x} : {lPosOrderedKLDict[x]}\n")
+
+for y in lNegOrderedKLDict:
+    l13estfile.write(f"{y} : {lNegOrderedKLDict[y]}\n")
 
 # plot a random example of each digit
 fig, axs = plt.subplots(3, 4, figsize = (8, 7))
