@@ -48,10 +48,10 @@ b2 = 2*((log(1.25))/DTA)*b1
 
 # multi-dimensional numpy arrays to store KLD estimates
 L = np.size(epsset)
-KLDest1 = np.zeros((C, L))
-KLDest2 = np.zeros((C, L))
-oKLDest1 = np.zeros((C, L))
-oKLDest2 = np.zeros((C, L))
+KLDestL = np.zeros((C, L))
+KLDestN = np.zeros((C, L))
+oKLDestL = np.zeros((C, L))
+oKLDestN = np.zeros((C, L))
 
 for j in range(0, C):
 
@@ -108,22 +108,22 @@ for j in range(0, C):
         oK3noiseN = (oLogrN.exp() - 1) - oLogrN
 
         # compare with true KLD
-        KLDest1[j, EPS_COUNT] = abs(k3noiseL.mean() - truekl)
-        KLDest2[j, EPS_COUNT] = abs(k3noiseN.mean() - truekl)
-        oKLDest1[j, EPS_COUNT] = abs(oK3noiseL.mean() - truekl)
-        oKLDest2[j, EPS_COUNT] = abs(oK3noiseN.mean() - truekl)
+        KLDestL[j, EPS_COUNT] = abs(k3noiseL.mean() - truekl)
+        KLDestN[j, EPS_COUNT] = abs(k3noiseN.mean() - truekl)
+        oKLDestL[j, EPS_COUNT] = abs(oK3noiseL.mean() - truekl)
+        oKLDestN[j, EPS_COUNT] = abs(oK3noiseN.mean() - truekl)
         EPS_COUNT = EPS_COUNT + 1
 
 # compute mean of KLD for particular epsilon across all clients
-KLDmean1 = np.mean(KLDest1, axis = 0)
-KLDmean2 = np.mean(KLDest2, axis = 0)
-oKLDmean1 = np.mean(oKLDest1, axis = 0)
-oKLDmean2 = np.mean(oKLDest2, axis = 0)
+KLDmeanL = np.mean(KLDestL, axis = 0)
+KLDmeanN = np.mean(KLDestN, axis = 0)
+oKLDmeanL = np.mean(oKLDestL, axis = 0)
+oKLDmeanN = np.mean(oKLDestN, axis = 0)
 
-plot1 = plt.plot(epsset, KLDmean1, label = "Laplace (sampled)")
-plot2 = plt.plot(epsset, KLDmean2, label = "Gaussian (sampled)")
-plot3 = plt.plot(epsset, oKLDmean1, label = "Laplace (ordered)")
-plot4 = plt.plot(epsset, oKLDmean2, label = "Gaussian (ordered)")
+plot1 = plt.plot(epsset, KLDmeanL, label = "Laplace (sampled)")
+plot2 = plt.plot(epsset, KLDmeanN, label = "Gaussian (sampled)")
+plot3 = plt.plot(epsset, oKLDmeanL, label = "Laplace (ordered)")
+plot4 = plt.plot(epsset, oKLDmeanN, label = "Gaussian (ordered)")
 
 plot1.set_yscale('log')
 plot2.set_yscale('log')

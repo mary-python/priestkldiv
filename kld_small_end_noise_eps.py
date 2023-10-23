@@ -8,8 +8,8 @@ import numpy as np
 torch.manual_seed(12)
 
 # p is private distribution, q is public
-# option 1b: KLD is large
-p = dis.Laplace(loc = 1, scale = 1)
+# option 1a: KLD is small
+p = dis.Laplace(loc = 0.1, scale = 1)
 q = dis.Normal(loc = 0, scale = 1)
 truekl = dis.kl_divergence(p, q)
 print("true", truekl)
@@ -46,12 +46,10 @@ R = 10
 b1 = log(2)
 b2 = 2*((log(1.25))/DTA)*b1
 
-# multi-dimensional numpy arrays to store KLD estimates
+# numpy arrays to store KLD estimates
 L = np.size(epsset)
-KLDestL = np.zeros((C, L))
-KLDestN = np.zeros((C, L))
-oKLDestL = np.zeros((C, L))
-oKLDestN = np.zeros((C, L))
+KLDest = np.zeros(C)
+oKLDest = np.zeros(C)
 
 for j in range(0, C):
 
@@ -68,57 +66,61 @@ for j in range(0, C):
     # each client gets 500 points in order from ordered pre-processed sample
     qOrdClientSamp = qOrderedRound[0][500*j : 500*(j + 1)]
     qOrderedT = torch.numel(qOrdClientSamp)
-    EPS_COUNT = 0
 
-    for eps in epsset:
+    # compute ratio between private and public distributions
+    logr = p.log_prob(qClientSamp) - q.log_prob(qClientSamp)
+    oLogr = p.log_prob(qOrdClientSamp) - q.log_prob(qOrdClientSamp)
 
-        totalNoiseL = 0
-        totalNoiseN = 0
-        oTotalNoiseL = 0
-        oTotalNoiseN = 0
+    # compute k3 estimator
+    k3noise = (logr.exp() - 1) - logr
+    oK3noise = (oLogr.exp() - 1) - oLogr
 
-        # load Laplace and Normal noise distributions, dependent on eps
-        s1 = b1 / eps
-        s2 = b2 / eps
-        noiseL = dis.Laplace(loc = A, scale = s1)
-        noiseN = dis.Normal(loc = A, scale = s2)
-
-        # compute average of R possible noise terms
-        for k in range(0, R):
-            totalNoiseL = totalNoiseL + (noiseL.sample(sample_shape = (qT,)))
-            totalNoiseN = totalNoiseN + (noiseN.sample(sample_shape = (qT,)))
-            oTotalNoiseL = oTotalNoiseL + (noiseL.sample(sample_shape = (qOrderedT,)))
-            oTotalNoiseN = oTotalNoiseN + (noiseN.sample(sample_shape = (qOrderedT,)))
-
-        avNoiseL = totalNoiseL / R
-        avNoiseN = totalNoiseN / R
-        oAvNoiseL = oTotalNoiseL / R
-        oAvNoiseN = oTotalNoiseN / R
-
-        # option 3a: add average noise term to private distribution
-        logrL = p.log_prob(qClientSamp + avNoiseL) - q.log_prob(qClientSamp)
-        logrN = p.log_prob(qClientSamp + avNoiseN) - q.log_prob(qClientSamp)
-        oLogrL = p.log_prob(qOrdClientSamp + oAvNoiseL) - q.log_prob(qOrdClientSamp)
-        oLogrN = p.log_prob(qOrdClientSamp + oAvNoiseN) - q.log_prob(qOrdClientSamp)
-
-        # compute k3 estimator
-        k3noiseL = (logrL.exp() - 1) - logrL
-        k3noiseN = (logrN.exp() - 1) - logrN
-        oK3noiseL = (oLogrL.exp() - 1) - oLogrL
-        oK3noiseN = (oLogrN.exp() - 1) - oLogrN
-
-        # compare with true KLD
-        KLDestL[j, EPS_COUNT] = abs(k3noiseL.mean() - truekl)
-        KLDestN[j, EPS_COUNT] = abs(k3noiseN.mean() - truekl)
-        oKLDestL[j, EPS_COUNT] = abs(oK3noiseL.mean() - truekl)
-        oKLDestN[j, EPS_COUNT] = abs(oK3noiseN.mean() - truekl)
-        EPS_COUNT = EPS_COUNT + 1
+    # compare with true KLD
+    KLDest[j] = abs(k3noise.mean() - truekl)
+    oKLDest[j] = abs(oK3noise.mean() - truekl)
 
 # compute mean of KLD for particular epsilon across all clients
-KLDmeanL = np.mean(KLDestL, axis = 0)
-KLDmeanN = np.mean(KLDestN, axis = 0)
-oKLDmeanL = np.mean(oKLDestL, axis = 0)
-oKLDmeanN = np.mean(oKLDestN, axis = 0)
+KLDmean = np.mean(KLDest, axis = 0)
+oKLDmean = np.mean(oKLDest, axis = 0)
+
+# numpy arrays to store noisy KLD means
+KLDmeanL = np.zeros(L)
+KLDmeanN = np.zeros(L)
+oKLDmeanL = np.zeros(L)
+oKLDmeanN = np.zeros(L)
+EPS_COUNT = 0
+
+for eps in epsset:
+
+    totalNoiseL = 0
+    totalNoiseN = 0
+    oTotalNoiseL = 0
+    oTotalNoiseN = 0
+
+    # load Laplace and Normal noise distributions, dependent on eps
+    s1 = b1 / eps
+    s2 = b2 / eps
+    noiseL = dis.Laplace(loc = A, scale = s1)
+    noiseN = dis.Normal(loc = A, scale = s2)
+
+    # compute average of R possible noise terms
+    for k in range(0, R):
+        totalNoiseL = totalNoiseL + (noiseL.sample(sample_shape = (qT*C,)))
+        totalNoiseN = totalNoiseN + (noiseN.sample(sample_shape = (qT*C,)))
+        oTotalNoiseL = oTotalNoiseL + (noiseL.sample(sample_shape = (qOrderedT*C,)))
+        oTotalNoiseN = oTotalNoiseN + (noiseN.sample(sample_shape = (qOrderedT*C,)))
+
+    avNoiseL = totalNoiseL / R
+    avNoiseN = totalNoiseN / R
+    oAvNoiseL = oTotalNoiseL / R
+    oAvNoiseN = oTotalNoiseN / R
+
+    # option 3b: add average noise term to final result
+    KLDmeanL[EPS_COUNT] = KLDmean[EPS_COUNT] + avNoiseL
+    KLDmeanN[EPS_COUNT] = KLDmean[EPS_COUNT] + avNoiseN
+    oKLDmeanL[EPS_COUNT] = oKLDmean[EPS_COUNT] + oAvNoiseL
+    oKLDmeanN[EPS_COUNT] = oKLDmean[EPS_COUNT] + oAvNoiseN
+    EPS_COUNT = EPS_COUNT + 1
 
 plot1 = plt.plot(epsset, KLDmeanL, label = "Laplace (sampled)")
 plot2 = plt.plot(epsset, KLDmeanN, label = "Gaussian (sampled)")

@@ -36,10 +36,10 @@ N = 500
 F = 5_000
 Tset = np.array([1*F, 2*F, 5*F, 10*F, 20*F, 50*F, 100*F, 200*F, 500*F, 1_000*F])
 L = np.size(Tset)
-KLDest1 = np.zeros((C, L))
-KLDest2 = np.zeros((C, L))
-oKLDest1 = np.zeros((C, L))
-oKLDest2 = np.zeros((C, L))
+KLDestL = np.zeros((C, L))
+KLDestN = np.zeros((C, L))
+oKLDestL = np.zeros((C, L))
+oKLDestN = np.zeros((C, L))
 
 for T in Tset:
 
@@ -109,22 +109,22 @@ for T in Tset:
         oK3noiseN = (oLogrN.exp() - 1) - oLogrN
 
         # compare with true KLD
-        KLDest1[j, T_COUNT] = abs(k3noiseL.mean() - truekl)
-        KLDest2[j, T_COUNT] = abs(k3noiseN.mean() - truekl)
-        oKLDest1[j, T_COUNT] = abs(oK3noiseL.mean() - truekl)
-        oKLDest2[j, T_COUNT] = abs(oK3noiseN.mean() - truekl)
+        KLDestL[j, T_COUNT] = abs(k3noiseL.mean() - truekl)
+        KLDestN[j, T_COUNT] = abs(k3noiseN.mean() - truekl)
+        oKLDestL[j, T_COUNT] = abs(oK3noiseL.mean() - truekl)
+        oKLDestN[j, T_COUNT] = abs(oK3noiseN.mean() - truekl)
         T_COUNT = T_COUNT + 1
 
 # compute mean of KLD for particular T across all clients
-KLDmean1 = np.mean(KLDest1, axis = 0)
-KLDmean2 = np.mean(KLDest2, axis = 0)
-oKLDmean1 = np.mean(oKLDest1, axis = 0)
-oKLDmean2 = np.mean(oKLDest2, axis = 0)
+KLDmeanL = np.mean(KLDestL, axis = 0)
+KLDmeanN = np.mean(KLDestN, axis = 0)
+oKLDmeanL = np.mean(oKLDestL, axis = 0)
+oKLDmeanN = np.mean(oKLDestN, axis = 0)
 
-plot1 = plt.plot(Tset, KLDest1, label = "Laplace (sampled)")
-plot2 = plt.plot(Tset, KLDest2, label = "Gaussian (sampled)")
-plot3 = plt.plot(Tset, oKLDest1, label = "Laplace (ordered)")
-plot4 = plt.plot(Tset, oKLDest2, label = "Gaussian (ordered)")
+plot1 = plt.plot(Tset, KLDmeanL, label = "Laplace (sampled)")
+plot2 = plt.plot(Tset, KLDmeanN, label = "Gaussian (sampled)")
+plot3 = plt.plot(Tset, oKLDmeanL, label = "Laplace (ordered)")
+plot4 = plt.plot(Tset, oKLDmeanN, label = "Gaussian (ordered)")
 
 plot1.set_yscale('log')
 plot2.set_yscale('log')
