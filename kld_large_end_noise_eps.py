@@ -1,10 +1,17 @@
-"""To compute the natural logarithm of a number, parameterise probability distributions,
+"""Modules provide various time-related functions as well as progress updates,
+compute the natural logarithm of a number, parameterise probability distributions,
 create static, animated, and interactive visualisations, and work with arrays."""
+import time
 from math import log
+from alive_progress import alive_bar
 import torch
 import torch.distributions as dis
 import matplotlib.pyplot as plt
 import numpy as np
+
+# initialising start time and seed for random sampling
+startTime = time.perf_counter()
+print("\nStarting...")
 torch.manual_seed(12)
 
 # p is private distribution, q is public
@@ -12,7 +19,6 @@ torch.manual_seed(12)
 p = dis.Laplace(loc = 1, scale = 1)
 q = dis.Normal(loc = 0, scale = 1)
 truekl = dis.kl_divergence(p, q)
-print("true", truekl)
 
 # sample T points
 T = 500_000
@@ -50,38 +56,41 @@ b2 = 2*((log(1.25))/DTA)*b1
 L = np.size(epsset)
 KLDest = np.zeros(C)
 oKLDest = np.zeros(C)
+print("Evaluating KL Divergence estimator...\n")
 
-for j in range(0, C):
+with alive_bar(C) as bar:
+    for j in range(0, C):
 
-    # even clients get positive values, odd clients get negative values
-    if (j % 2) == 0:
-        indices = torch.randperm(len(qPositiveRound))[:N]
-        qClientSamp = qPositiveRound[indices]
-    else:
-        indices = torch.randperm(len(qNegativeRound))[:N]
-        qClientSamp = qNegativeRound[indices]
+        # even clients get positive values, odd clients get negative values
+        if (j % 2) == 0:
+            indices = torch.randperm(len(qPositiveRound))[:N]
+            qClientSamp = qPositiveRound[indices]
+        else:
+            indices = torch.randperm(len(qNegativeRound))[:N]
+            qClientSamp = qNegativeRound[indices]
 
-    qT = torch.numel(qClientSamp)
+        qT = torch.numel(qClientSamp)
 
-    # each client gets 500 points in order from ordered pre-processed sample
-    qOrdClientSamp = qOrderedRound[0][500*j : 500*(j + 1)]
-    qOrderedT = torch.numel(qOrdClientSamp)
+        # each client gets 500 points in order from ordered pre-processed sample
+        qOrdClientSamp = qOrderedRound[0][500*j : 500*(j + 1)]
+        qOrderedT = torch.numel(qOrdClientSamp)
 
-    # compute ratio between private and public distributions
-    logr = p.log_prob(qClientSamp) - q.log_prob(qClientSamp)
-    oLogr = p.log_prob(qOrdClientSamp) - q.log_prob(qOrdClientSamp)
+        # compute ratio between private and public distributions
+        logr = p.log_prob(qClientSamp) - q.log_prob(qClientSamp)
+        oLogr = p.log_prob(qOrdClientSamp) - q.log_prob(qOrdClientSamp)
 
-    # compute k3 estimator
-    k3noise = (logr.exp() - 1) - logr
-    oK3noise = (oLogr.exp() - 1) - oLogr
+        # compute k3 estimator
+        k3noise = (logr.exp() - 1) - logr
+        oK3noise = (oLogr.exp() - 1) - oLogr
 
-    # compare with true KLD
-    KLDest[j] = abs(k3noise.mean() - truekl)
-    oKLDest[j] = abs(oK3noise.mean() - truekl)
+        # compare with true KLD
+        KLDest[j] = abs(k3noise.mean() - truekl)
+        oKLDest[j] = abs(oK3noise.mean() - truekl)
+        bar()
 
-# compute mean of KLD for particular epsilon across all clients
-KLDmean = np.mean(KLDest, axis = 0)
-oKLDmean = np.mean(oKLDest, axis = 0)
+# compute mean of KLD across all clients
+KLDmean = np.mean(KLDest)
+oKLDmean = np.mean(oKLDest)
 
 # numpy arrays to store noisy KLD means
 KLDmeanL = np.zeros(L)
@@ -105,10 +114,10 @@ for eps in epsset:
 
     # compute average of R possible noise terms
     for k in range(0, R):
-        totalNoiseL = totalNoiseL + (noiseL.sample(sample_shape = (qT*C,)))
-        totalNoiseN = totalNoiseN + (noiseN.sample(sample_shape = (qT*C,)))
-        oTotalNoiseL = oTotalNoiseL + (noiseL.sample(sample_shape = (qOrderedT*C,)))
-        oTotalNoiseN = oTotalNoiseN + (noiseN.sample(sample_shape = (qOrderedT*C,)))
+        totalNoiseL = totalNoiseL + (noiseL.sample(sample_shape = (1,)))
+        totalNoiseN = totalNoiseN + (noiseN.sample(sample_shape = (1,)))
+        oTotalNoiseL = oTotalNoiseL + (noiseL.sample(sample_shape = (1,)))
+        oTotalNoiseN = oTotalNoiseN + (noiseN.sample(sample_shape = (1,)))
 
     avNoiseL = totalNoiseL / R
     avNoiseN = totalNoiseN / R
@@ -116,10 +125,10 @@ for eps in epsset:
     oAvNoiseN = oTotalNoiseN / R
 
     # option 3b: add average noise term to final result
-    KLDmeanL[EPS_COUNT] = KLDmean[EPS_COUNT] + avNoiseL
-    KLDmeanN[EPS_COUNT] = KLDmean[EPS_COUNT] + avNoiseN
-    oKLDmeanL[EPS_COUNT] = oKLDmean[EPS_COUNT] + oAvNoiseL
-    oKLDmeanN[EPS_COUNT] = oKLDmean[EPS_COUNT] + oAvNoiseN
+    KLDmeanL[EPS_COUNT] = KLDmean + avNoiseL
+    KLDmeanN[EPS_COUNT] = KLDmean + avNoiseN
+    oKLDmeanL[EPS_COUNT] = oKLDmean + oAvNoiseL
+    oKLDmeanN[EPS_COUNT] = oKLDmean + oAvNoiseN
     EPS_COUNT = EPS_COUNT + 1
 
 plot1 = plt.plot(epsset, KLDmeanL, label = "Laplace (sampled)")
@@ -130,6 +139,18 @@ plot4 = plt.plot(epsset, oKLDmeanN, label = "Gaussian (ordered)")
 plt.title("Effect of epsilon on noisy estimate of KLD")
 plt.xlabel("Value of epsilon")
 plt.ylabel("Difference in KLD")
-plt.yscale('log')
+plt.yscale("log")
 plt.legend(loc = "best")
+
+plt.ion()
 plt.show()
+plt.pause(0.001)
+input("\nPress [enter] to continue.")
+
+# compute total runtime in minutes and seconds
+totalTime = time.perf_counter() - startTime
+
+if (totalTime // 60) == 1:
+    print(f"Runtime: {round(totalTime // 60)} minute {round((totalTime % 60), 2)} seconds.\n")
+else:
+    print(f"Runtime: {round(totalTime // 60)} minutes {round((totalTime % 60), 2)} seconds.\n")
