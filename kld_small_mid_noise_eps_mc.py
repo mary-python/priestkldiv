@@ -74,7 +74,7 @@ with alive_bar(C*L) as bar:
         qT = torch.numel(qClientSamp)
 
         # each client gets 500 points in order from ordered pre-processed sample
-        qOrdClientSamp = qOrderedRound[0][500*j : 500*(j + 1)]
+        qOrdClientSamp = qOrderedRound[0][500*(j % 1000) : 500*((j % 1000) + 1)]
         qOrderedT = torch.numel(qOrdClientSamp)
         EPS_COUNT = 0
 
@@ -120,6 +120,7 @@ with alive_bar(C*L) as bar:
             KLDestN[j, EPS_COUNT] = abs(k3noiseN.mean() - truekl)
             oKLDestL[j, EPS_COUNT] = abs(oK3noiseL.mean() - truekl)
             oKLDestN[j, EPS_COUNT] = abs(oK3noiseN.mean() - truekl)
+
             EPS_COUNT = EPS_COUNT + 1
             bar()
 
