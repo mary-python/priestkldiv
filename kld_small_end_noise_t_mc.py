@@ -79,7 +79,8 @@ with alive_bar(C*L) as bar:
             qT2 = torch.numel(qClientSamp)
 
             # each client gets 500 points in order from ordered pre-processed sample
-            qOrdClientSamp = qOrderedRound[0][500*(j % 1000) : 500*((j % 1000) + 1)]
+            # need mod 10 to reset ordered pre-processed sample (limit 9 clients)
+            qOrdClientSamp = qOrderedRound[0][500*(j % 10) : 500*((j % 10) + 1)]
             qOrderedT1 = torch.numel(qOrdClientSamp)
             qOrdClientSamp = qOrdClientSamp[abs(int(qOrderedT1 - 0.98*T)):]
             qOrderedT2 = torch.numel(qOrdClientSamp)

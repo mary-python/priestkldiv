@@ -74,6 +74,7 @@ with alive_bar(C*L) as bar:
         qT = torch.numel(qClientSamp)
 
         # each client gets 500 points in order from ordered pre-processed sample
+        # need mod 1000 to reset ordered pre-processed sample (limit 999 clients)
         qOrdClientSamp = qOrderedRound[0][500*(j % 1000) : 500*((j % 1000) + 1)]
         qOrderedT = torch.numel(qOrdClientSamp)
         EPS_COUNT = 0
