@@ -82,16 +82,12 @@ with alive_bar(C*L) as bar:
                 indices = torch.randperm(len(qNegativeRound))[:N]
                 qClientSamp = qNegativeRound[indices]
 
-            print(f"\nqClientSamp: {qClientSamp}")
             qT = torch.numel(qClientSamp)
-            print(f"\nqT: {qT}")
 
             # each client gets 500 points in order from ordered pre-processed sample
             # translated by 1 every time and added mod 4419 to stay below upper bound 4918
             qOrdClientSamp = qOrderedRound[0][(j % 4419) : (j % 4419) + 500]
-            print(f"\nqOrdClientSamp: {qOrdClientSamp}")
             qOrderedT = torch.numel(qOrdClientSamp)
-            print(f"\nqOrderedT: {qOrderedT}")
 
             # compute average of R possible noise terms
             for k in range(0, R):
@@ -105,21 +101,11 @@ with alive_bar(C*L) as bar:
             oAvNoiseL = oTotalNoiseL / R
             oAvNoiseN = oTotalNoiseN / R
 
-            print(f"\navNoiseL: {avNoiseL}")
-            print(f"\navNoiseN: {avNoiseN}")
-            print(f"\noAvNoiseL: {oAvNoiseL}")
-            print(f"\noAvNoiseN: {oAvNoiseN}")
-
             # option 3a: add average noise term to private distribution
             logrL = p.log_prob(qClientSamp + avNoiseL) - q.log_prob(qClientSamp)
             logrN = p.log_prob(qClientSamp + avNoiseN) - q.log_prob(qClientSamp)
             oLogrL = p.log_prob(qOrdClientSamp + oAvNoiseL) - q.log_prob(qOrdClientSamp)
             oLogrN = p.log_prob(qOrdClientSamp + oAvNoiseN) - q.log_prob(qOrdClientSamp)
-
-            print(f"\nlogrL: {logrL}")
-            print(f"\nlogrN: {logrN}")
-            print(f"\noLogrL: {oLogrL}")
-            print(f"\noLogrN: {oLogrN}")
 
             # compute k3 estimator
             k3noiseL = (logrL.exp() - 1) - logrL
@@ -127,21 +113,11 @@ with alive_bar(C*L) as bar:
             oK3noiseL = (oLogrL.exp() - 1) - oLogrL
             oK3noiseN = (oLogrN.exp() - 1) - oLogrN
 
-            print(f"\nk3noiseL: {k3noiseL}")
-            print(f"\nk3noiseN: {k3noiseN}")
-            print(f"\noK3noiseL: {oK3noiseL}")
-            print(f"\noK3noiseN: {oK3noiseN}")
-
             # compare with true KLD
             KLDestL[j, T_COUNT] = abs(k3noiseL.mean() - truekl)
             KLDestN[j, T_COUNT] = abs(k3noiseN.mean() - truekl)
             oKLDestL[j, T_COUNT] = abs(oK3noiseL.mean() - truekl)
             oKLDestN[j, T_COUNT] = abs(oK3noiseN.mean() - truekl)
-
-            print(f"\nKLDestL: {KLDestL}")
-            print(f"\nKLDestN: {KLDestN}")
-            print(f"\noKLDestL: {oKLDestL}")
-            print(f"\noKLDestN: {oKLDestN}")
 
             if T_COUNT < L - 1:
                 T_COUNT = T_COUNT + 1
