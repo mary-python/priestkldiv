@@ -69,12 +69,9 @@ with alive_bar(C) as bar:
             indices = torch.randperm(len(qNegativeRound))[:N]
             qClientSamp = qNegativeRound[indices]
 
-        qT = torch.numel(qClientSamp)
-
         # each client gets 500 points in order from ordered pre-processed sample
-        # need mod 1000 to reset ordered pre-processed sample (limit 999 clients)
-        qOrdClientSamp = qOrderedRound[0][500*(j % 1000) : 500*((j % 1000) + 1)]
-        qOrderedT = torch.numel(qOrdClientSamp)
+        # translated by 49 every time to stay below upper bound 499947 for client 10000
+        qOrdClientSamp = qOrderedRound[0][49*j : (49*j) + 500]
 
         # compute ratio between private and public distributions
         logr = p.log_prob(qClientSamp) - q.log_prob(qClientSamp)

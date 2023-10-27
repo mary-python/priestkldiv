@@ -82,28 +82,33 @@ with alive_bar(C*L) as bar:
                 indices = torch.randperm(len(qNegativeRound))[:N]
                 qClientSamp = qNegativeRound[indices]
 
-            qT1 = torch.numel(qClientSamp)
-            qClientSamp = qClientSamp[abs(int(qT1 - 0.98*T)):]
-            qT2 = torch.numel(qClientSamp)
+            print(f"\nqClientSamp: {qClientSamp}")
+            qT = torch.numel(qClientSamp)
+            print(f"\nqT: {qT}")
 
             # each client gets 500 points in order from ordered pre-processed sample
-            # need mod 10 to reset ordered pre-processed sample (limit 9 clients)
-            qOrdClientSamp = qOrderedRound[0][500*(j % 10) : 500*((j % 10) + 1)]
-            qOrderedT1 = torch.numel(qOrdClientSamp)
-            qOrdClientSamp = qOrdClientSamp[abs(int(qOrderedT1 - 0.98*T)):]
-            qOrderedT2 = torch.numel(qOrdClientSamp)
+            # translated by 1 every time and added mod 4419 to stay below upper bound 4918
+            qOrdClientSamp = qOrderedRound[0][(j % 4419) : (j % 4419) + 500]
+            print(f"\nqOrdClientSamp: {qOrdClientSamp}")
+            qOrderedT = torch.numel(qOrdClientSamp)
+            print(f"\nqOrderedT: {qOrderedT}")
 
             # compute average of R possible noise terms
             for k in range(0, R):
-                totalNoiseL = totalNoiseL + (noiseL.sample(sample_shape = (qT2,)))
-                totalNoiseN = totalNoiseN + (noiseN.sample(sample_shape = (qT2,)))
-                oTotalNoiseL = oTotalNoiseL + (noiseL.sample(sample_shape = (qOrderedT2,)))
-                oTotalNoiseN = oTotalNoiseN + (noiseN.sample(sample_shape = (qOrderedT2,)))
+                totalNoiseL = totalNoiseL + (noiseL.sample(sample_shape = (qT,)))
+                totalNoiseN = totalNoiseN + (noiseN.sample(sample_shape = (qT,)))
+                oTotalNoiseL = oTotalNoiseL + (noiseL.sample(sample_shape = (qOrderedT,)))
+                oTotalNoiseN = oTotalNoiseN + (noiseN.sample(sample_shape = (qOrderedT,)))
 
             avNoiseL = totalNoiseL / R
             avNoiseN = totalNoiseN / R
             oAvNoiseL = oTotalNoiseL / R
             oAvNoiseN = oTotalNoiseN / R
+
+            print(f"\navNoiseL: {avNoiseL}")
+            print(f"\navNoiseN: {avNoiseN}")
+            print(f"\noAvNoiseL: {oAvNoiseL}")
+            print(f"\noAvNoiseN: {oAvNoiseN}")
 
             # option 3a: add average noise term to private distribution
             logrL = p.log_prob(qClientSamp + avNoiseL) - q.log_prob(qClientSamp)
@@ -111,17 +116,32 @@ with alive_bar(C*L) as bar:
             oLogrL = p.log_prob(qOrdClientSamp + oAvNoiseL) - q.log_prob(qOrdClientSamp)
             oLogrN = p.log_prob(qOrdClientSamp + oAvNoiseN) - q.log_prob(qOrdClientSamp)
 
+            print(f"\nlogrL: {logrL}")
+            print(f"\nlogrN: {logrN}")
+            print(f"\noLogrL: {oLogrL}")
+            print(f"\noLogrN: {oLogrN}")
+
             # compute k3 estimator
             k3noiseL = (logrL.exp() - 1) - logrL
             k3noiseN = (logrN.exp() - 1) - logrN
             oK3noiseL = (oLogrL.exp() - 1) - oLogrL
             oK3noiseN = (oLogrN.exp() - 1) - oLogrN
 
+            print(f"\nk3noiseL: {k3noiseL}")
+            print(f"\nk3noiseN: {k3noiseN}")
+            print(f"\noK3noiseL: {oK3noiseL}")
+            print(f"\noK3noiseN: {oK3noiseN}")
+
             # compare with true KLD
             KLDestL[j, T_COUNT] = abs(k3noiseL.mean() - truekl)
             KLDestN[j, T_COUNT] = abs(k3noiseN.mean() - truekl)
             oKLDestL[j, T_COUNT] = abs(oK3noiseL.mean() - truekl)
             oKLDestN[j, T_COUNT] = abs(oK3noiseN.mean() - truekl)
+
+            print(f"\nKLDestL: {KLDestL}")
+            print(f"\nKLDestN: {KLDestN}")
+            print(f"\noKLDestL: {oKLDestL}")
+            print(f"\noKLDestN: {oKLDestN}")
 
             if T_COUNT < L - 1:
                 T_COUNT = T_COUNT + 1
