@@ -137,7 +137,7 @@ plt.title("Effect of T on noisy estimate of KLD")
 plt.xlabel("Value of T")
 plt.ylabel("Difference in KLD")
 plt.yscale("log")
-plt.legend(loc = "best")
+plt.legend(loc = "upper center")
 
 plt.ion()
 plt.show()
