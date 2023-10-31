@@ -251,7 +251,7 @@ for C in range(0, 10):
             # OPTION 2A: ADD LAPLACE NOISE (B: GAUSSIAN NOISE)
             # OPTION 3A: ADD NOISE IN MIDDLE (B: AT END, AFTER / T ABOVE)
             for k in range(0, R):
-                totalNoiseL = totalNoiseL + (noiseL.sample(sample_shape = (T,)))
+                totalNoiseL = totalNoiseL + (noiseL.sample(sample_shape = (1,)))
             
             # COMPUTE AVERAGE OF R POSSIBLE NOISE TERMS
             avNoiseL = totalNoiseL / R
