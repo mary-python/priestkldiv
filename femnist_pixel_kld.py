@@ -10,7 +10,7 @@ import numpy as np
 import tensorflow as tf
 import tensorflow_probability as tfp
 np.set_printoptions(suppress = True)
-np.seterr(invalid = 'ignore')
+np.seterr(divide = 'ignore', invalid = 'ignore')
 tf.random.set_seed(638)
 
 # initialising start time and seed for random sampling
