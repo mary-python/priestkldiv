@@ -263,10 +263,10 @@ for C in range(0, 10):
             KList.append(sum(KLDiv[C, D]))
             CDList.append((C, D))
 
-        # DO NOT NEED BELOW CONDITION ANY MORE?
-        # if sum(eKLDiv[C, D]) != 0.0:
-        eKList.append(sum(eKLDiv[C, D]))
-        eCDList.append((C, D))
+        # STILL NEED BELOW CONDITION TO AVOID ZERO ERROR IN RATIO
+        if sum(eKLDiv[C, D]) != 0.0:
+            eKList.append(sum(eKLDiv[C, D]))
+            eCDList.append((C, D))
 
         # COMPUTE RATIO BETWEEN EXACT AND ESTIMATED KLD
         ratio = abs(sum(eKLDiv[C, D]) / sum(KLDiv[C, D]))

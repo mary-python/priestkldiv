@@ -309,7 +309,7 @@ for C in range(0, 10):
             # option 2a: add Laplace noise (b: Gaussian noise)
             # option 3a: add noise in middle (b: at end, after / T1 above)
             for k in range(0, R):
-                totalNoiseL = totalNoiseL + (noiseL.sample(sample_shape = (T2,)))
+                totalNoiseL = totalNoiseL + (noiseL.sample(sample_shape = (1,)))
             
             # compute average of R possible noise terms
             avNoiseL = totalNoiseL / R
@@ -321,10 +321,10 @@ for C in range(0, 10):
             KList.append(sum(KLDiv[C,D]))
             CDList.append((C, D))
 
-        # do not need below condition any more?
-        # if sum(eKLDiv[C, D]) != 0.0:
-        eKList.append(sum(eKLDiv[C, D]))
-        eCDList.append((C, D))
+        # still need below condition to avoid zero error in ratio
+        if sum(eKLDiv[C, D]) != 0.0:
+            eKList.append(sum(eKLDiv[C, D]))
+            eCDList.append((C, D))
 
         # compute ratio between exact and estimated KLD
         ratio = abs(sum(eKLDiv[C, D]) / sum(KLDiv[C, D]))
