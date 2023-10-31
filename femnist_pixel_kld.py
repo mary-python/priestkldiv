@@ -1,14 +1,17 @@
 """Modules provide various time-related functions, compute the natural logarithm of a number, 
 remember the order in which items are added, provide both a high- and low-level interface to
-the HDF5 library, and work with arrays in Python."""
+the HDF5 library, work with arrays, and carry out fast numerical computations in Python."""
 import time
 from math import log
 from collections import OrderedDict
 import matplotlib.pyplot as plt
 import h5py
 import numpy as np
-np.set_printoptions(suppress=True)
-np.seterr(invalid='ignore')
+import tensorflow as tf
+import tensorflow_probability as tfp
+np.set_printoptions(suppress = True)
+np.seterr(invalid = 'ignore')
+tf.random.set_seed(638)
 
 # initialising start time and seed for random sampling
 startTime = time.perf_counter()
@@ -160,7 +163,7 @@ U = 338
 uImageSet = np.ones((10, U, 4, 4))
 uFreqSet = np.zeros((10, U))
 uProbsSet = np.zeros((10, U))
-T1 = 11*numSampledWriters
+T1 = 11*numSampledWriters # change this term so probs add up to 1
 
 print("Creating probability distributions...")
 
@@ -213,7 +216,7 @@ eProbsSet = np.zeros((10, E))
 eTotalFreq = np.zeros(10)
 
 uSampledSet = np.random.choice(U, E, replace = False)
-T2 = (11/3)*numSampledWriters*(E/U)
+T2 = (11/3)*numSampledWriters*(E/U) # change this term so probs add up to 1
 
 # borrow data from corresponding indices of main image and frequency sets
 for D in range(0, 10):
@@ -269,6 +272,20 @@ lPosCDList = []
 lNegKList = []
 lNegCDList = []
 
+# parameters for the addition of Laplace and Gaussian noise
+EPS = 0.1 # set EPS to be a range of values (0.01 to 4)
+DTA = 0.1
+A = 0
+R = 10
+
+# option 1a: querying entire distribution (b: Monte Carlo sampling)
+b1 = log(2) / EPS
+b2 = (2*((log(1.25))/DTA)*b1) / EPS
+
+# noise distributions
+noiseL = tfp.distributions.Laplace(loc = A, scale = b1)
+noiseN = tfp.distributions.Normal(loc = A, scale = b2)
+
 print("Computing KL divergence...")
 
 def unbias_est(lda, rat, lklist, lcdlist, c, d):
@@ -288,14 +305,25 @@ for C in range(0, 10):
         for j in range(0, E):
             eKLDiv[C, D, j] = eProbsSet[D, j] * (np.log((eProbsSet[D, j]) / (eProbsSet[C, j])))
 
+            # option 2a: add Laplace noise (b: Gaussian noise)
+            # option 3a: add noise in middle (b: at end, after / T1 above)
+            for k in range(0, R):
+                totalNoiseL = totalNoiseL + (noiseL.sample(sample_shape = (T2,)))
+            
+            # compute average of R possible noise terms
+            avNoiseL = totalNoiseL / R
+
+            eKLDiv[C, D, j] = eKLDiv[C, D, j] + avNoiseL
+
         # eliminate all zero values when digits are identical
         if sum(KLDiv[C, D]) != 0.0:
             KList.append(sum(KLDiv[C,D]))
             CDList.append((C, D))
 
-        if sum(eKLDiv[C, D]) != 0.0:
-            eKList.append(sum(eKLDiv[C, D]))
-            eCDList.append((C, D))
+        # do not need below condition any more?
+        # if sum(eKLDiv[C, D]) != 0.0:
+        eKList.append(sum(eKLDiv[C, D]))
+        eCDList.append((C, D))
 
         # compute ratio between exact and estimated KLD
         ratio = abs(sum(eKLDiv[C, D]) / sum(KLDiv[C, D]))
@@ -352,10 +380,10 @@ TOP_COUNT = 0
 BOTTOM_COUNT = 0
 
 # look at top and bottom 10% of digit pairs in exact KLD ranking list
-topKLDict = list(orderedKLDict.values())[0:int(DATA_ROWS/10)]
-rTopKLDict = list(rOrderedKLDict.values())[0:int(DATA_ROWS/2)]
-bottomKLDict = list(orderedKLDict.values())[int(9*(DATA_ROWS/10)):DATA_ROWS]
-rBottomKLDict = list(rOrderedKLDict.values())[int(DATA_ROWS/2):DATA_ROWS]
+topKLDict = list(orderedKLDict.values())[0 : int(DATA_ROWS / 10)]
+rTopKLDict = list(rOrderedKLDict.values())[0 : int(DATA_ROWS / 2)]
+bottomKLDict = list(orderedKLDict.values())[int(9*(DATA_ROWS / 10)) : DATA_ROWS]
+rBottomKLDict = list(rOrderedKLDict.values())[int(DATA_ROWS / 2) : DATA_ROWS]
 
 # do top 10% in exact KLD remain in top half of ratio?
 for ti in topKLDict:

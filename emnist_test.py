@@ -1,8 +1,8 @@
 """Modules provide various time-related functions, generate pseudo-random numbers,
 compute the natural logarithm of a number, remember the order in which items are added,
-have cool visual feedback of the current throughput, create static, animated,
-and interactive visualisations, provide functionality to automatically download
-and cache the EMNIST dataset, and work with arrays in Python."""
+have cool visual feedback of the current throughput, create static, animated, and
+interactive visualisations, provide functionality to automatically download and cache the
+EMNIST dataset, work with arrays, and carry out fast numerical computations in Python."""
 import time
 import random
 from math import log
@@ -11,8 +11,11 @@ from alive_progress import alive_bar
 import matplotlib.pyplot as plt
 from emnist import extract_training_samples, extract_test_samples
 import numpy as np
-np.set_printoptions(suppress=True)
-np.seterr(invalid='ignore')
+import tensorflow as tf
+import tensorflow_probability as tfp
+np.set_printoptions(suppress = True)
+np.seterr(invalid = 'ignore')
+tf.random.set_seed(638)
 
 # INITIALISING START TIME AND SEED FOR RANDOM SAMPLING
 startTime = time.perf_counter()
@@ -211,6 +214,20 @@ lPosCDList = []
 lNegKList = []
 lNegCDList = []
 
+# PARAMETERS FOR THE ADDITION OF LAPLACE AND GAUSSIAN NOISE
+EPS = 0.1 # SET EPS TO BE A RANGE OF VALUES (0.01 TO 4)
+DTA = 0.1
+A = 0
+R = 10
+
+# OPTION 1A: QUERYING ENTIRE DISTRIBUTION (B: MONTE CARLO SAMPLING)
+b1 = log(2) / EPS
+b2 = (2*((log(1.25))/DTA)*b1) / EPS
+
+# NOISE DISTRIBUTIONS
+noiseL = tfp.distributions.Laplace(loc = A, scale = b1)
+noiseN = tfp.distributions.Normal(loc = A, scale = b2)
+
 print("Computing KL divergence...")
 
 def unbias_est(lda, rat, lklist, lcdlist, c, d):
@@ -229,15 +246,27 @@ for C in range(0, 10):
 
         for j in range(0, E):
             eKLDiv[C, D, j] = eProbsSet[D, j] * (np.log((eProbsSet[D, j]) / (eProbsSet[C, j])))
+        
+            # OPTION 2A: ADD LAPLACE NOISE (B: GAUSSIAN NOISE)
+            # OPTION 3A: ADD NOISE IN MIDDLE (B: AT END, AFTER / T ABOVE)
+
+            for k in range(0, R):
+                totalNoiseL = totalNoiseL + (noiseL.sample(sample_shape = (T,)))
+            
+            # COMPUTE AVERAGE OF R POSSIBLE NOISE TERMS
+            avNoiseL = totalNoiseL / R
+
+            eKLDiv[C, D, j] = eKLDiv[C, D, j] + avNoiseL
 
         # ELIMINATE ALL ZERO VALUES WHEN DIGITS ARE IDENTICAL
         if sum(KLDiv[C, D]) != 0.0:
             KList.append(sum(KLDiv[C, D]))
             CDList.append((C, D))
 
-        if sum(eKLDiv[C, D]) != 0.0:
-            eKList.append(sum(eKLDiv[C, D]))
-            eCDList.append((C, D))
+        # DO NOT NEED BELOW CONDITION ANY MORE?
+        # if sum(eKLDiv[C, D]) != 0.0:
+        eKList.append(sum(eKLDiv[C, D]))
+        eCDList.append((C, D))
 
         # COMPUTE RATIO BETWEEN EXACT AND ESTIMATED KLD
         ratio = abs(sum(eKLDiv[C, D]) / sum(KLDiv[C, D]))
@@ -294,10 +323,10 @@ TOP_COUNT = 0
 BOTTOM_COUNT = 0
 
 # look at top and bottom 10% of digit pairs in exact KLD ranking list
-topKLDict = list(orderedKLDict.values())[0:int(DATA_ROWS/10)]
-rTopKLDict = list(rOrderedKLDict.values())[0:int(DATA_ROWS/2)]
-bottomKLDict = list(orderedKLDict.values())[int(9*(DATA_ROWS/10)):DATA_ROWS]
-rBottomKLDict = list(rOrderedKLDict.values())[int(DATA_ROWS/2):DATA_ROWS]
+topKLDict = list(orderedKLDict.values())[0 : int(DATA_ROWS / 10)]
+rTopKLDict = list(rOrderedKLDict.values())[0 : int(DATA_ROWS / 2)]
+bottomKLDict = list(orderedKLDict.values())[int(9*(DATA_ROWS / 10)) : DATA_ROWS]
+rBottomKLDict = list(rOrderedKLDict.values())[int(DATA_ROWS / 2) : DATA_ROWS]
 
 # do top 10% in exact KLD remain in top half of ratio?
 for ti in topKLDict:
