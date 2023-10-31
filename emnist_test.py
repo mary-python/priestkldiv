@@ -246,6 +246,7 @@ for C in range(0, 10):
 
         for j in range(0, E):
             eKLDiv[C, D, j] = eProbsSet[D, j] * (np.log((eProbsSet[D, j]) / (eProbsSet[C, j])))
+            totalNoiseL = 0
         
             # OPTION 2A: ADD LAPLACE NOISE (B: GAUSSIAN NOISE)
             # OPTION 3A: ADD NOISE IN MIDDLE (B: AT END, AFTER / T ABOVE)
