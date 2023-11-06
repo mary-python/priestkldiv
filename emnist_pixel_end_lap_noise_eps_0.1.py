@@ -229,12 +229,16 @@ noiseL = tfp.distributions.Laplace(loc = A, scale = b1)
 
 print("Computing KL divergence...")
 
-def unbias_est(lda, rat, lklist, lcdlist, c, d):
+def unbias_est(lda, rat, lklist, lcdlist, c, d, tnl):
     """Compute unbiased estimator using computed ratio."""
     lest = ((lda * (rat - 1)) - log(rat)) / T
 
     # OPTION 3B: ADD NOISE AT END (A: IN MIDDLE, TO eKLDiv BELOW)
-    lest = lest + noiseL.sample(sample_shape = (1,))
+    for k in range(0, R):
+        tnl = tnl + (noiseL.sample(sample_shape = (1,)))
+
+    # COMPUTE AVERAGE OF R POSSIBLE NOISE TERMS
+    lest = lest + (tnl / R)
 
     if lest != 0.0:
         lklist.append(lest)
@@ -268,26 +272,26 @@ for C in range(0, 10):
             rCDList.append((C, D))
 
             # COMPUTE UNBIASED ESTIMATORS WITH LAMBDA 0,1 THEN BINARY SEARCH
-            unbias_est(0, ratio, lZeroKList, lZeroCDList, C, D)
-            unbias_est(1, ratio, lOneKList, lOneCDList, C, D)
-            unbias_est(5, ratio, lFiveKList, lFiveCDList, C, D)
-            unbias_est(6, ratio, lSixKList, lSixCDList, C, D)
-            unbias_est(5.9, ratio, lNextKList, lNextCDList, C, D)
-            unbias_est(5.978, ratio, lHighKList, lHighCDList, C, D)
-            unbias_est(5.977, ratio, lLowKList, lLowCDList, C, D)
-            unbias_est(5.9775, ratio, lDecideKList, lDecideCDList, C, D)
+            unbias_est(0, ratio, lZeroKList, lZeroCDList, C, D, 0)
+            unbias_est(1, ratio, lOneKList, lOneCDList, C, D, 0)
+            unbias_est(5, ratio, lFiveKList, lFiveCDList, C, D, 0)
+            unbias_est(6, ratio, lSixKList, lSixCDList, C, D, 0)
+            unbias_est(5.9, ratio, lNextKList, lNextCDList, C, D, 0)
+            unbias_est(5.978, ratio, lHighKList, lHighCDList, C, D, 0)
+            unbias_est(5.977, ratio, lLowKList, lLowCDList, C, D, 0)
+            unbias_est(5.9775, ratio, lDecideKList, lDecideCDList, C, D, 0)
 
             # EXPLORE LAMBDAS BELOW 0
-            unbias_est(-1, ratio, lMinusKList, lMinusCDList, C, D)
-            unbias_est(-3, ratio, lTripleKList, lTripleCDList, C, D)
+            unbias_est(-1, ratio, lMinusKList, lMinusCDList, C, D, 0)
+            unbias_est(-3, ratio, lTripleKList, lTripleCDList, C, D, 0)
 
             # FIND OPTIMAL LAMBDAS FOR MIN (0, 5) AND MAX (6, 9) PAIRS
-            unbias_est(3.0594, ratio, lMinKList, lMinCDList, C, D)
-            unbias_est(7.2723, ratio, lMaxKList, lMaxCDList, C, D)
+            unbias_est(3.0594, ratio, lMinKList, lMinCDList, C, D, 0)
+            unbias_est(7.2723, ratio, lMaxKList, lMaxCDList, C, D, 0)
 
             # LOOK AT EXTREME LAMBDAS
-            unbias_est(10000, ratio, lPosKList, lPosCDList, C, D)
-            unbias_est(-10000, ratio, lNegKList, lNegCDList, C, D)
+            unbias_est(10000, ratio, lPosKList, lPosCDList, C, D, 0)
+            unbias_est(-10000, ratio, lNegKList, lNegCDList, C, D, 0)
 
 # CREATE ORDERED DICTIONARIES OF STORED KLD AND DIGITS
 KLDict = dict(zip(KList, CDList))
