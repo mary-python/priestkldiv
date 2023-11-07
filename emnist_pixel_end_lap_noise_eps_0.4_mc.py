@@ -215,13 +215,13 @@ lNegKList = []
 lNegCDList = []
 
 # PARAMETERS FOR THE ADDITION OF LAPLACE AND GAUSSIAN NOISE
-EPS = 0.1 # SET EPS TO BE A RANGE OF VALUES (0.01 TO 4)
+EPS = 0.4 # SET EPS TO BE A RANGE OF VALUES (0.01 TO 4)
 DTA = 0.1
 A = 0
 R = 10
 
-# OPTION 1A: QUERYING ENTIRE DISTRIBUTION (B: MONTE CARLO SAMPLING)
-b1 = log(2) / EPS
+# OPTION 1B: MONTE CARLO SAMPLING (A: QUERYING ENTIRE DISTRIBUTION)
+b1 = (1 + log(2)) / EPS
 b2 = (2*((log(1.25))/DTA)*b1) / EPS
 
 # OPTION 2A: ADD LAPLACE NOISE (B: GAUSSIAN NOISE)
@@ -236,7 +236,7 @@ def unbias_est(lda, rat, lklist, lcdlist, c, d, tnl):
     # OPTION 3B: ADD NOISE AT END (A: IN MIDDLE, TO eKLDiv BELOW)
     for k in range(0, R):
         tnl = tnl + (noiseL.sample(sample_shape = (1,)).numpy()[0])
-
+       
     # COMPUTE AVERAGE OF R POSSIBLE NOISE TERMS
     lest = lest + (tnl / R)
 
@@ -302,16 +302,16 @@ datafile.write("Smaller corresponds to more similar digits\n\n")
 
 eKLDict = dict(zip(eKList, eCDList))
 eOrderedKLDict = OrderedDict(sorted(eKLDict.items()))
-estfile = open(f"em_est_kld_end_lap_noise_eps_{EPS}.txt", "w", encoding = 'utf-8')
+estfile = open(f"em_est_kld_end_lap_noise_eps_{EPS}_mc.txt", "w", encoding = 'utf-8')
 estfile.write("EMNIST: Estimated KL Divergence In Order\n")
-estfile.write(f"Laplace Noise at End, no Monte Carlo, Eps = {EPS}\n")
+estfile.write(f"Laplace Noise at End, Monte Carlo, Eps = {EPS}\n")
 estfile.write("Smaller corresponds to more similar digits\n\n")
 
 rKLDict = dict(zip(rKList, rCDList))
 rOrderedKLDict = OrderedDict(sorted(rKLDict.items()))
-ratiofile = open(f"em_ratio_kld_end_lap_noise_eps_{EPS}.txt", "w", encoding = 'utf-8')
+ratiofile = open(f"em_ratio_kld_end_lap_noise_eps_{EPS}_mc.txt", "w", encoding = 'utf-8')
 ratiofile.write("EMNIST: Ratio Between Exact KL Divergence And Estimator\n")
-ratiofile.write(f"Laplace Noise at End, no Monte Carlo, Eps = {EPS}\n")
+ratiofile.write(f"Laplace Noise at End, Monte Carlo, Eps = {EPS}\n")
 ratiofile.write("Closer to 1 corresponds to a better estimate\n\n")
 
 # CHECK WHETHER RANKING IS PRESERVED WHEN ESTIMATOR IS USED
@@ -344,100 +344,100 @@ ratiofile.write(f"Bottom 10% exact KLD -> bottom half ratio ranking: {round(perc
 
 lZeroKLDict = dict(zip(lZeroKList, lZeroCDList))
 lZeroOrderedKLDict = OrderedDict(sorted(lZeroKLDict.items()))
-l0estfile = open(f"em_l0est_kld_end_lap_noise_eps_{EPS}.txt", "w", encoding = 'utf-8')
+l0estfile = open(f"em_l0est_kld_end_lap_noise_eps_{EPS}_mc.txt", "w", encoding = 'utf-8')
 l0estfile.write("EMNIST: Unbiased Estimator Lambda Zero\n")
-l0estfile.write(f"Laplace Noise at End, no Monte Carlo, Eps = {EPS}\n")
+l0estfile.write(f"Laplace Noise at End, Monte Carlo, Eps = {EPS}\n")
 l0estfile.write(f"Sum: {sum(lZeroKList)}\n\n")
 
 lOneKLDict = dict(zip(lOneKList, lOneCDList))
 lOneOrderedKLDict = OrderedDict(sorted(lOneKLDict.items()))
-l1estfile = open(f"em_l1est_kld_end_lap_noise_eps_{EPS}.txt", "w", encoding = 'utf-8')
+l1estfile = open(f"em_l1est_kld_end_lap_noise_eps_{EPS}_mc.txt", "w", encoding = 'utf-8')
 l1estfile.write("EMNIST: Unbiased Estimator Lambda One\n")
-l1estfile.write(f"Laplace Noise at End, no Monte Carlo, Eps = {EPS}\n")
+l1estfile.write(f"Laplace Noise at End, Monte Carlo, Eps = {EPS}\n")
 l1estfile.write(f"Sum: {sum(lOneKList)}\n\n")
 
 lFiveKLDict = dict(zip(lFiveKList, lFiveCDList))
 lFiveOrderedKLDict = OrderedDict(sorted(lFiveKLDict.items()))
-l2estfile = open(f"em_l2est_kld_end_lap_noise_eps_{EPS}.txt", "w", encoding = 'utf-8')
+l2estfile = open(f"em_l2est_kld_end_lap_noise_eps_{EPS}_mc.txt", "w", encoding = 'utf-8')
 l2estfile.write("EMNIST: Unbiased Estimator Lambda Five\n")
-l2estfile.write(f"Laplace Noise at End, no Monte Carlo, Eps = {EPS}\n")
+l2estfile.write(f"Laplace Noise at End, Monte Carlo, Eps = {EPS}\n")
 l2estfile.write(f"Sum: {sum(lFiveKList)}\n\n")
 
 lSixKLDict = dict(zip(lSixKList, lSixCDList))
 lSixOrderedKLDict = OrderedDict(sorted(lSixKLDict.items()))
-l3estfile = open(f"em_l3est_kld_end_lap_noise_eps_{EPS}.txt", "w", encoding = 'utf-8')
+l3estfile = open(f"em_l3est_kld_end_lap_noise_eps_{EPS}_mc.txt", "w", encoding = 'utf-8')
 l3estfile.write("EMNIST: Unbiased Estimator Lambda Six\n")
-l3estfile.write(f"Laplace Noise at End, no Monte Carlo, Eps = {EPS}\n")
+l3estfile.write(f"Laplace Noise at End, Monte Carlo, Eps = {EPS}\n")
 l3estfile.write(f"Sum: {sum(lSixKList)}\n\n")
 
 lNextKLDict = dict(zip(lNextKList, lNextCDList))
 lNextOrderedKLDict = OrderedDict(sorted(lNextKLDict.items()))
-l4estfile = open(f"em_l4est_kld_end_lap_noise_eps_{EPS}.txt", "w", encoding = 'utf-8')
+l4estfile = open(f"em_l4est_kld_end_lap_noise_eps_{EPS}_mc.txt", "w", encoding = 'utf-8')
 l4estfile.write("EMNIST: Unbiased Estimator Lambda Next\n")
-l4estfile.write(f"Laplace Noise at End, no Monte Carlo, Eps = {EPS}\n")
+l4estfile.write(f"Laplace Noise at End, Monte Carlo, Eps = {EPS}\n")
 l4estfile.write(f"Sum: {sum(lNextKList)}\n\n")
 
 lHighKLDict = dict(zip(lHighKList, lHighCDList))
 lHighOrderedKLDict = OrderedDict(sorted(lHighKLDict.items()))
-l5estfile = open(f"em_l5est_kld_end_lap_noise_eps_{EPS}.txt", "w", encoding = 'utf-8')
+l5estfile = open(f"em_l5est_kld_end_lap_noise_eps_{EPS}_mc.txt", "w", encoding = 'utf-8')
 l5estfile.write("EMNIST: Unbiased Estimator Lambda High\n")
-l5estfile.write(f"Laplace Noise at End, no Monte Carlo, Eps = {EPS}\n")
+l5estfile.write(f"Laplace Noise at End, Monte Carlo, Eps = {EPS}\n")
 l5estfile.write(f"Sum: {sum(lHighKList)}\n\n")
 
 lLowKLDict = dict(zip(lLowKList, lLowCDList))
 lLowOrderedKLDict = OrderedDict(sorted(lLowKLDict.items()))
-l6estfile = open(f"em_l6est_kld_end_lap_noise_eps_{EPS}.txt", "w", encoding = 'utf-8')
+l6estfile = open(f"em_l6est_kld_end_lap_noise_eps_{EPS}_mc.txt", "w", encoding = 'utf-8')
 l6estfile.write("EMNIST: Unbiased Estimator Lambda Low\n")
-l6estfile.write(f"Laplace Noise at End, no Monte Carlo, Eps = {EPS}\n")
+l6estfile.write(f"Laplace Noise at End, Monte Carlo, Eps = {EPS}\n")
 l6estfile.write(f"Sum: {sum(lLowKList)}\n\n")
 
 lDecideKLDict = dict(zip(lDecideKList, lDecideCDList))
 lDecideOrderedKLDict = OrderedDict(sorted(lDecideKLDict.items()))
-l7estfile = open(f"em_l7est_kld_end_lap_noise_eps_{EPS}.txt", "w", encoding = 'utf-8')
+l7estfile = open(f"em_l7est_kld_end_lap_noise_eps_{EPS}_mc.txt", "w", encoding = 'utf-8')
 l7estfile.write("EMNIST: Unbiased Estimator Lambda Decide\n")
-l7estfile.write(f"Laplace Noise at End, no Monte Carlo, Eps = {EPS}\n")
+l7estfile.write(f"Laplace Noise at End, Monte Carlo, Eps = {EPS}\n")
 l7estfile.write(f"Sum: {sum(lDecideKList)}\n\n")
 
 lMinusKLDict = dict(zip(lMinusKList, lMinusCDList))
 lMinusOrderedKLDict = OrderedDict(sorted(lMinusKLDict.items()))
-l8estfile = open(f"em_l8est_kld_end_lap_noise_eps_{EPS}.txt", "w", encoding = 'utf-8')
+l8estfile = open(f"em_l8est_kld_end_lap_noise_eps_{EPS}_mc.txt", "w", encoding = 'utf-8')
 l8estfile.write("EMNIST: Unbiased Estimator Lambda Minus\n")
-l8estfile.write(f"Laplace Noise at End, no Monte Carlo, Eps = {EPS}\n")
+l8estfile.write(f"Laplace Noise at End, Monte Carlo, Eps = {EPS}\n")
 l8estfile.write(f"Sum: {sum(lMinusKList)}\n\n")
 
 lTripleKLDict = dict(zip(lTripleKList, lTripleCDList))
 lTripleOrderedKLDict = OrderedDict(sorted(lTripleKLDict.items()))
-l9estfile = open(f"em_l9est_kld_end_lap_noise_eps_{EPS}.txt", "w", encoding = 'utf-8')
+l9estfile = open(f"em_l9est_kld_end_lap_noise_eps_{EPS}_mc.txt", "w", encoding = 'utf-8')
 l9estfile.write("EMNIST: Unbiased Estimator Lambda Triple\n")
-l9estfile.write(f"Laplace Noise at End, no Monte Carlo, Eps = {EPS}\n")
+l9estfile.write(f"Laplace Noise at End, Monte Carlo, Eps = {EPS}\n")
 l9estfile.write(f"Sum: {sum(lTripleKList)}\n\n")
 
 lMinKLDict = dict(zip(lMinKList, lMinCDList))
 lMinOrderedKLDict = OrderedDict(sorted(lMinKLDict.items()))
-l10estfile = open(f"em_l10est_kld_end_lap_noise_eps_{EPS}.txt", "w", encoding = 'utf-8')
+l10estfile = open(f"em_l10est_kld_end_lap_noise_eps_{EPS}_mc.txt", "w", encoding = 'utf-8')
 l10estfile.write("EMNIST: Unbiased Estimator Lambda Min\n")
-l10estfile.write(f"Laplace Noise at End, no Monte Carlo, Eps = {EPS}\n")
+l10estfile.write(f"Laplace Noise at End, Monte Carlo, Eps = {EPS}\n")
 l10estfile.write(f"Sum: {sum(lMinKList)}\n\n")
 
 lMaxKLDict = dict(zip(lMaxKList, lMaxCDList))
 lMaxOrderedKLDict = OrderedDict(sorted(lMaxKLDict.items()))
-l11estfile = open(f"em_l11est_kld_end_lap_noise_eps_{EPS}.txt", "w", encoding = 'utf-8')
+l11estfile = open(f"em_l11est_kld_end_lap_noise_eps_{EPS}_mc.txt", "w", encoding = 'utf-8')
 l11estfile.write("EMNIST: Unbiased Estimator Lambda Max\n")
-l11estfile.write(f"Laplace Noise at End, no Monte Carlo, Eps = {EPS}\n")
+l11estfile.write(f"Laplace Noise at End, Monte Carlo, Eps = {EPS}\n")
 l11estfile.write(f"Sum: {sum(lMaxKList)}\n\n")
 
 lPosKLDict = dict(zip(lPosKList, lPosCDList))
 lPosOrderedKLDict = OrderedDict(sorted(lPosKLDict.items()))
-l12estfile = open(f"em_l12est_kld_end_lap_noise_eps_{EPS}.txt", "w", encoding = 'utf-8')
+l12estfile = open(f"em_l12est_kld_end_lap_noise_eps_{EPS}_mc.txt", "w", encoding = 'utf-8')
 l12estfile.write("EMNIST: Unbiased Estimator Lambda Pos\n")
-l12estfile.write(f"Laplace Noise at End, no Monte Carlo, Eps = {EPS}\n")
+l12estfile.write(f"Laplace Noise at End, Monte Carlo, Eps = {EPS}\n")
 l12estfile.write(f"Sum: {sum(lPosKList)}\n\n")
 
 lNegKLDict = dict(zip(lNegKList, lNegCDList))
 lNegOrderedKLDict = OrderedDict(sorted(lNegKLDict.items()))
-l13estfile = open(f"em_l13est_kld_end_lap_noise_eps_{EPS}.txt", "w", encoding = 'utf-8')
+l13estfile = open(f"em_l13est_kld_end_lap_noise_eps_{EPS}_mc.txt", "w", encoding = 'utf-8')
 l13estfile.write("EMNIST: Unbiased Estimator Lambda Neg\n")
-l13estfile.write(f"Laplace Noise at End, no Monte Carlo, Eps = {EPS}\n")
+l13estfile.write(f"Laplace Noise at End, Monte Carlo, Eps = {EPS}\n")
 l13estfile.write(f"Sum: {sum(lNegKList)}\n\n")
 
 for i in orderedKLDict:
