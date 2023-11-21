@@ -286,7 +286,8 @@ for eps in epsset:
 
                     mid = 0.5*(high - low)
                     midSum = unbias_est(0, mid, ratio, lThreeKList, lThreeCDList, C, D)
-                    print(f"\nmidSum: {midSum}")
+
+                print(f"\nmidSum: {midSum}")
 
                 # FIND OPTIMAL LAMBDA FOR MIN PAIR
                 absKList = [abs(kl) for kl in KList]
@@ -314,7 +315,8 @@ for eps in epsset:
 
                     mid = 0.5*(high - low)
                     midMinKL = unbias_est(midMinIndex, mid, ratio, lMinKList, lMinCDList, C, D)
-                    print(f"\nmidMinKL: {midMinKL}")
+
+                print(f"\nmidMinKL: {midMinKL}")
 
                 # FIND OPTIMAL LAMBDA FOR MAX PAIR
                 maxIndex = KList.index(max(absKList))
@@ -341,7 +343,8 @@ for eps in epsset:
 
                     mid = 0.5*(high - low)
                     midMaxKL = unbias_est(midMaxIndex, mid, ratio, lMaxKList, lMaxCDList, C, D)
-                    print(f"\nmidMaxKL: {midMaxKL}")
+
+                print(f"\nmidMaxKL: {midMaxKL}")
 
     # CREATE ORDERED DICTIONARIES OF STORED KLD AND DIGITS
     KLDict = dict(zip(KList, CDList))
