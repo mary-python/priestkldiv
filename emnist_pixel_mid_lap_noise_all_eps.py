@@ -274,7 +274,7 @@ for eps in epsset:
                 # COMPUTE UNBIASED ESTIMATORS WITH LAMBDA 0,1 THEN BINARY SEARCH
                 midSum = unbias_est(0, mid, ratio, lTwoKList, lTwoCDList, C, D)
 
-                while abs(midSum) > 0.000001:
+                while abs(midSum) > 0.1:
 
                     lowSum = unbias_est(0, low, ratio, lZeroKList, lZeroCDList, C, D)
                     highSum = unbias_est(0, high, ratio, lOneKList, lOneCDList, C, D)
@@ -289,7 +289,8 @@ for eps in epsset:
                     print(f"\nmidSum: {midSum}")
 
                 # FIND OPTIMAL LAMBDA FOR MIN PAIR
-                minIndex = KList.index(min(abs(KList)))
+                absKList = [abs(kl) for kl in KList]
+                minIndex = KList.index(min(absKList))
                 minPair = CDList[minIndex]
         
                 midMinIndex = lTwoCDList.index(minPair)
@@ -299,7 +300,7 @@ for eps in epsset:
                 high = 1
                 mid = 0.5
 
-                while abs(midMinKL) > 0.000001:
+                while abs(midMinKL) > 0.1:
                 
                     lowMinIndex = lZeroCDList.index(minPair)
                     lowMinKL = lZeroKList[lowMinIndex]
@@ -316,7 +317,7 @@ for eps in epsset:
                     print(f"\nmidMinKL: {midMinKL}")
 
                 # FIND OPTIMAL LAMBDA FOR MAX PAIR
-                maxIndex = KList.index(max(abs(KList)))
+                maxIndex = KList.index(max(absKList))
                 maxPair = CDList[maxIndex]
         
                 midMaxIndex = lTwoCDList.index(maxPair)
@@ -326,7 +327,7 @@ for eps in epsset:
                 high = 1
                 mid = 0.5
 
-                while abs(midMaxKL) > 0.000001:
+                while abs(midMaxKL) > 0.1:
 
                     lowMaxIndex = lZeroCDList.index(maxPair)
                     lowMaxKL = lZeroKList[lowMaxIndex]
