@@ -274,7 +274,7 @@ for eps in epsset:
                 # COMPUTE UNBIASED ESTIMATORS WITH LAMBDA 0,1 THEN BINARY SEARCH
                 midSum = unbias_est(0, mid, ratio, lTwoKList, lTwoCDList, C, D)
 
-                while abs(midSum) > 0.1:
+                while abs(midSum) > 0.01:
 
                     lowSum = unbias_est(0, low, ratio, lZeroKList, lZeroCDList, C, D)
                     highSum = unbias_est(0, high, ratio, lOneKList, lOneCDList, C, D)
@@ -301,7 +301,7 @@ for eps in epsset:
                 high = 1
                 mid = 0.5
 
-                while abs(midMinKL) > 0.1:
+                while abs(midMinKL) > 0.01:
                 
                     lowMinIndex = lZeroCDList.index(minPair)
                     lowMinKL = lZeroKList[lowMinIndex]
