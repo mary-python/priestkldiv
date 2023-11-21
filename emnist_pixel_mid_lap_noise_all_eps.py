@@ -343,7 +343,8 @@ for eps in epsset:
 
                     mid = 0.5*(high - low)
                     midMaxKL = unbias_est(midMaxIndex, mid, ratio, lMaxKList, lMaxCDList, C, D)
-                    print(f"\nmidMaxKL: {midMaxKL}")
+
+                print(f"\nmidMaxKL: {midMaxKL}")
 
     # CREATE ORDERED DICTIONARIES OF STORED KLD AND DIGITS
     KLDict = dict(zip(KList, CDList))
