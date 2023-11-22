@@ -168,36 +168,6 @@ for D in range(0, 10):
         eTotalFreq[D] = sum(eFreqSet[D])
         eProbsSet[D, i] = float((eFreqSet[D, i] + ALPHA)/(T + (ALPHA*(eTotalFreq[D]))))
 
-# STORES FOR EXACT KLD
-KLDiv = np.zeros((10, 10, U))
-sumKLDiv = np.zeros((10, 10))
-KList = []
-CDList = []
-
-# STORES FOR ESTIMATED KLD
-eKLDiv = np.zeros((10, 10, E))
-eSumKLDiv = np.zeros((10, 10))
-eKList = []
-eCDList = []
-
-# STORES FOR RATIO BETWEEN EXACT AND ESTIMATED KLD
-rKList = []
-rCDList = []
-
-# STORES FOR UNBIASED ESTIMATE OF KLD
-lZeroKList = []
-lZeroCDList = []
-lOneKList = []
-lOneCDList = []
-lTwoKList = []
-lTwoCDList = []
-lThreeKList = []
-lThreeCDList = []
-lMinKList = []
-lMinCDList = []
-lMaxKList = []
-lMaxCDList = []
-
 # PARAMETERS FOR THE ADDITION OF LAPLACE AND GAUSSIAN NOISE
 DTA = 0.1
 A = 0
@@ -206,7 +176,38 @@ R = 10
 epsset = [0.001, 0.025, 0.05, 0.1, 0.2, 0.4, 0.8, 1, 1.5, 2, 3, 4]
 
 for eps in epsset:
+
     print(f"Computing KL divergence for epsilon = {eps}...")
+
+    # STORES FOR EXACT KLD
+    KLDiv = np.zeros((10, 10, U))
+    sumKLDiv = np.zeros((10, 10))
+    KList = []
+    CDList = []
+
+    # STORES FOR ESTIMATED KLD
+    eKLDiv = np.zeros((10, 10, E))
+    eSumKLDiv = np.zeros((10, 10))
+    eKList = []
+    eCDList = []
+
+    # STORES FOR RATIO BETWEEN EXACT AND ESTIMATED KLD
+    rKList = []
+    rCDList = []
+
+    # STORES FOR UNBIASED ESTIMATE OF KLD
+    lZeroKList = []
+    lZeroCDList = []
+    lOneKList = []
+    lOneCDList = []
+    lTwoKList = []
+    lTwoCDList = []
+    lThreeKList = []
+    lThreeCDList = []
+    lMinKList = []
+    lMinCDList = []
+    lMaxKList = []
+    lMaxCDList = []
 
     # OPTION 1A: QUERYING ENTIRE DISTRIBUTION (B: MONTE CARLO SAMPLING)
     b1 = log(2) / eps
@@ -223,7 +224,7 @@ for eps in epsset:
             lklist.append(lest)
             lcdlist.append((c, d))
     
-        if idx == 0:
+        if idx == -1:
             ret = sum(lklist)
         else:
             ret = lklist[idx]
@@ -274,18 +275,21 @@ for eps in epsset:
                 # COMPUTE UNBIASED ESTIMATORS WITH LAMBDA 0,1 THEN BINARY SEARCH
                 midSum = unbias_est(0, mid, ratio, lTwoKList, lTwoCDList, C, D)
 
-                while abs(midSum) > 0.01:
+                # TOLERANCE BETWEEN BINARY SEARCH LIMITS ALWAYS GETS SMALL ENOUGH
+                while abs(high - low) > 0.00000001:
 
                     lowSum = unbias_est(0, low, ratio, lZeroKList, lZeroCDList, C, D)
                     highSum = unbias_est(0, high, ratio, lOneKList, lOneCDList, C, D)
 
+                    # REDUCE / INCREASE BINARY SEARCH LIMIT DEPENDING ON ABSOLUTE VALUE
                     if abs(lowSum) < abs(highSum):
                         high = mid
                     else:
                         low = mid
 
-                    mid = 0.5*(high - low)
-                    midSum = unbias_est(0, mid, ratio, lThreeKList, lThreeCDList, C, D)
+                    # SET NEW MIDPOINT
+                    mid = 0.5*abs((high - low))
+                    midSum = unbias_est(-1, mid, ratio, lThreeKList, lThreeCDList, C, D)
 
                 print(f"\nmidSum: {midSum}")
 
@@ -301,7 +305,7 @@ for eps in epsset:
                 high = 1
                 mid = 0.5
 
-                while abs(midMinKL) > 0.01:
+                while abs(high - low) > 0.00000001:
                 
                     lowMinIndex = lZeroCDList.index(minPair)
                     lowMinKL = lZeroKList[lowMinIndex]
@@ -313,7 +317,7 @@ for eps in epsset:
                     else:
                         low = mid
 
-                    mid = 0.5*(high - low)
+                    mid = 0.5*abs((high - low))
                     midMinKL = unbias_est(midMinIndex, mid, ratio, lMinKList, lMinCDList, C, D)
 
                 print(f"\nmidMinKL: {midMinKL}")
@@ -329,7 +333,7 @@ for eps in epsset:
                 high = 1
                 mid = 0.5
 
-                while abs(midMaxKL) > 0.1:
+                while abs(high - low) > 0.00000001:
 
                     lowMaxIndex = lZeroCDList.index(maxPair)
                     lowMaxKL = lZeroKList[lowMaxIndex]
@@ -341,7 +345,7 @@ for eps in epsset:
                     else:
                         low = mid
 
-                    mid = 0.5*(high - low)
+                    mid = 0.5*(abs(high - low))
                     midMaxKL = unbias_est(midMaxIndex, mid, ratio, lMaxKList, lMaxCDList, C, D)
 
                 print(f"\nmidMaxKL: {midMaxKL}")
