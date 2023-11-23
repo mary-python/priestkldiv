@@ -204,10 +204,8 @@ for eps in epsset:
     lTwoCDList = []
     lThreeKList = []
     lThreeCDList = []
-    lMinKList = []
-    lMinCDList = []
-    lMaxKList = []
-    lMaxCDList = []
+    lMinKL = []
+    lMaxKL = []
 
     # OPTION 1A: QUERYING ENTIRE DISTRIBUTION (B: MONTE CARLO SAMPLING)
     b1 = log(2) / eps
@@ -216,20 +214,31 @@ for eps in epsset:
     # OPTION 2A: ADD LAPLACE NOISE (B: GAUSSIAN NOISE)
     noiseL = tfp.distributions.Laplace(loc = A, scale = b1)
 
-    def unbias_est(idx, lda, rat, lklist, lcdlist, c, d):
-        """Compute unbiased estimator using computed ratio."""
-        lest = ((lda * (rat - 1)) - log(rat)) / T
+    def unbias_est(lda, rklist, lklist, lcdlist):
+        """Compute sum of unbiased estimators corresponding to all pairs."""
+        for rat in rklist:
 
-        if lest != 0.0:
-            lklist.append(lest)
-            lcdlist.append((c, d))
+            count = 0
+            lest = ((lda * (rat - 1)) - log(rat)) / T
+
+            if lest != 0.0:
+                lklist.append(lest)
+
+                c = count // 10
+                d = count % 10
+
+                lcdlist.append((c, d))
+                count = count + 1
+
+        return sum(lklist)
+
+    def min_max(idx, lda, rklist, lkl):
+        """Compute unbiased estimator corresponding to min or max pair."""
+        
+        lest = ((lda * (rklist[idx] - 1)) - log(rklist[idx])) / T
+        lkl = lest
     
-        if idx == -1:
-            ret = sum(lklist)
-        else:
-            ret = lklist[idx]
-    
-        return ret
+        return lkl[idx]
 
     # FOR EACH COMPARISON DIGIT COMPUTE KLD FOR ALL DIGITS
     for C in range(0, 10):
@@ -268,87 +277,91 @@ for eps in epsset:
                 rKList.append(ratio)
                 rCDList.append((C, D))
 
-                low = 0
-                high = 1
-                mid = 0.5
+                # WAIT UNTIL FINAL DIGIT PAIR TO ANALYSE EXACT KLD LIST
+                if C == 9 and D == 9:
 
-                # COMPUTE UNBIASED ESTIMATORS WITH LAMBDA 0,1 THEN BINARY SEARCH
-                midSum = unbias_est(0, mid, ratio, lTwoKList, lTwoCDList, C, D)
+                    low = 0
+                    high = 1
+                    mid = 0.5
 
-                # TOLERANCE BETWEEN BINARY SEARCH LIMITS ALWAYS GETS SMALL ENOUGH
-                while abs(high - low) > 0.00000001:
+                    # COMPUTE UNBIASED ESTIMATORS WITH LAMBDA 0.5 THEN BINARY SEARCH
+                    midSum = unbias_est(-1, mid, rKList, lTwoKList, lTwoCDList)
 
-                    lowSum = unbias_est(0, low, ratio, lZeroKList, lZeroCDList, C, D)
-                    highSum = unbias_est(0, high, ratio, lOneKList, lOneCDList, C, D)
+                    # TOLERANCE BETWEEN BINARY SEARCH LIMITS ALWAYS GETS SMALL ENOUGH
+                    while abs(high - low) > 0.00000001:
 
-                    # REDUCE / INCREASE BINARY SEARCH LIMIT DEPENDING ON ABSOLUTE VALUE
-                    if abs(lowSum) < abs(highSum):
-                        high = mid
-                    else:
-                        low = mid
+                        lowSum = unbias_est(-1, low, rKList, lZeroKList, lZeroCDList)
+                        highSum = unbias_est(-1, high, rKList, lOneKList, lOneCDList)
 
-                    # SET NEW MIDPOINT
-                    mid = 0.5*abs((high - low))
-                    midSum = unbias_est(-1, mid, ratio, lThreeKList, lThreeCDList, C, D)
+                        # REDUCE / INCREASE BINARY SEARCH LIMIT DEPENDING ON ABSOLUTE VALUE
+                        if abs(lowSum) < abs(highSum):
+                            high = mid
+                        else:
+                            low = mid
 
-                print(f"\nmidSum: {midSum}")
+                        # SET NEW MIDPOINT
+                        mid = 0.5*abs((high - low))
+                        midSum = unbias_est(-1, mid, rKList, lThreeKList, lThreeCDList)
 
-                # FIND OPTIMAL LAMBDA FOR MIN PAIR
-                absKList = [abs(kl) for kl in KList]
-                minIndex = KList.index(min(absKList))
-                minPair = CDList[minIndex]
+                    print(f"\nmidSum: {midSum}")
+
+                    # EXTRACT MIN PAIR THEN ESTIMATE CORRESPONDING TO LAMBDA 0.5
+                    absKList = [abs(kl) for kl in KList]
+                    minIndex = KList.index(min(absKList))
+                    minPair = CDList[minIndex]
         
-                midMinIndex = lTwoCDList.index(minPair)
-                midMinKL = lTwoKList[midMinIndex]
+                    midMinIndex = lTwoCDList.index(minPair)
+                    midMinKL = lTwoKList[midMinIndex]
 
-                low = 0
-                high = 1
-                mid = 0.5
+                    low = 0
+                    high = 1
+                    mid = 0.5
 
-                while abs(high - low) > 0.00000001:
+                    # FIND OPTIMAL LAMBDA FOR MIN PAIR
+                    while abs(high - low) > 0.00000001:
                 
-                    lowMinIndex = lZeroCDList.index(minPair)
-                    lowMinKL = lZeroKList[lowMinIndex]
-                    highMinIndex = lOneCDList.index(minPair)
-                    highMinKL = lOneKList[highMinIndex]
+                        lowMinIndex = lZeroCDList.index(minPair)
+                        lowMinKL = lZeroKList[lowMinIndex]
+                        highMinIndex = lOneCDList.index(minPair)
+                        highMinKL = lOneKList[highMinIndex]
 
-                    if abs(lowMinKL) < abs(highMinKL):
-                        high = mid
-                    else:
-                        low = mid
+                        if abs(lowMinKL) < abs(highMinKL):
+                            high = mid
+                        else:
+                            low = mid
 
-                    mid = 0.5*abs((high - low))
-                    midMinKL = unbias_est(midMinIndex, mid, ratio, lMinKList, lMinCDList, C, D)
+                        mid = 0.5*abs((high - low))
+                        midMinKL = min_max(midMinIndex, mid, rKList, lMinKL)
 
-                print(f"\nmidMinKL: {midMinKL}")
+                    print(f"\nmidMinKL: {midMinKL}")
 
-                # FIND OPTIMAL LAMBDA FOR MAX PAIR
-                maxIndex = KList.index(max(absKList))
-                maxPair = CDList[maxIndex]
+                    # FIND OPTIMAL LAMBDA FOR MAX PAIR
+                    maxIndex = KList.index(max(absKList))
+                    maxPair = CDList[maxIndex]
         
-                midMaxIndex = lTwoCDList.index(maxPair)
-                midMaxKL = lTwoKList[midMaxIndex]
+                    midMaxIndex = lTwoCDList.index(maxPair)
+                    midMaxKL = lTwoKList[midMaxIndex]
 
-                low = 0
-                high = 1
-                mid = 0.5
+                    low = 0
+                    high = 1
+                    mid = 0.5
 
-                while abs(high - low) > 0.00000001:
+                    while abs(high - low) > 0.00000001:
 
-                    lowMaxIndex = lZeroCDList.index(maxPair)
-                    lowMaxKL = lZeroKList[lowMaxIndex]
-                    highMaxIndex = lOneCDList.index(maxPair)
-                    highMaxKL = lOneKList[highMaxIndex]
+                        lowMaxIndex = lZeroCDList.index(maxPair)
+                        lowMaxKL = lZeroKList[lowMaxIndex]
+                        highMaxIndex = lOneCDList.index(maxPair)
+                        highMaxKL = lOneKList[highMaxIndex]
                 
-                    if abs(lowMaxKL) < abs(highMaxKL):
-                        high = mid
-                    else:
-                        low = mid
+                        if abs(lowMaxKL) < abs(highMaxKL):
+                            high = mid
+                        else:
+                            low = mid
 
-                    mid = 0.5*(abs(high - low))
-                    midMaxKL = unbias_est(midMaxIndex, mid, ratio, lMaxKList, lMaxCDList, C, D)
+                        mid = 0.5*(abs(high - low))
+                        midMaxKL = min_max(midMaxIndex, mid, rKList, lMaxKL)
 
-                print(f"\nmidMaxKL: {midMaxKL}")
+                    print(f"\nmidMaxKL: {midMaxKL}")
 
     # CREATE ORDERED DICTIONARIES OF STORED KLD AND DIGITS
     KLDict = dict(zip(KList, CDList))
@@ -427,15 +440,11 @@ for eps in epsset:
     l3estfile.write(f"Laplace Noise in Middle, no Monte Carlo, Eps = {eps}\n")
     l3estfile.write(f"Optimal Lambda: {midSum}\n\n")
 
-    lMinKLDict = dict(zip(lMinKList, lMinCDList))
-    lMinOrderedKLDict = OrderedDict(sorted(lMinKLDict.items()))
     l4estfile = open(f"em_kld_mid_lap_noise_eps_{eps}_l4est.txt", "w", encoding = 'utf-8')
     l4estfile.write("EMNIST: Unbiased Estimator Optimal Lambda Min Pair (7, 1)\n")
     l4estfile.write(f"Laplace Noise in Middle, no Monte Carlo, Eps = {eps}\n")
     l4estfile.write(f"Optimal Lambda: {midMinKL}\n\n")
 
-    lMaxKLDict = dict(zip(lMaxKList, lMaxCDList))
-    lMaxOrderedKLDict = OrderedDict(sorted(lMaxKLDict.items()))
     l5estfile = open(f"em_kld_mid_lap_noise_eps_{eps}_l5est.txt", "w", encoding = 'utf-8')
     l5estfile.write("EMNIST: Unbiased Estimator Optimal Lambda Max Pair (6, 9)\n")
     l5estfile.write(f"Laplace Noise in Middle, no Monte Carlo, Eps = {eps}\n")
@@ -462,11 +471,8 @@ for eps in epsset:
     for o in lThreeOrderedKLDict:
         l3estfile.write(f"{o} : {lThreeOrderedKLDict[o]}\n")
 
-    for v in lMinOrderedKLDict:
-        l4estfile.write(f"{v} : {lMinOrderedKLDict[v]}\n")
-
-    for w in lMaxOrderedKLDict:
-        l5estfile.write(f"{w} : {lMaxOrderedKLDict[w]}\n")
+    l4estfile.write(f"{lMinKL} : {minPair}\n")
+    l5estfile.write(f"{lMaxKL} : {maxPair}\n")
 
     # SHOW ALL RANDOM IMAGES AT THE SAME TIME
     fig, ax = plt.subplots(2, 5, sharex = True, sharey = True)
