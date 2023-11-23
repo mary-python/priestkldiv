@@ -281,13 +281,13 @@ for eps in epsset:
                     mid = 0.5
 
                     # COMPUTE UNBIASED ESTIMATORS WITH LAMBDA 0.5 THEN BINARY SEARCH
-                    midSum = unbias_est(-1, mid, rKList, lTwoKList, lTwoCDList)
+                    midSum = unbias_est(mid, rKList, lTwoKList, lTwoCDList)
 
                     # TOLERANCE BETWEEN BINARY SEARCH LIMITS ALWAYS GETS SMALL ENOUGH
                     while abs(high - low) > 0.00000001:
 
-                        lowSum = unbias_est(-1, low, rKList, lZeroKList, lZeroCDList)
-                        highSum = unbias_est(-1, high, rKList, lOneKList, lOneCDList)
+                        lowSum = unbias_est(low, rKList, lZeroKList, lZeroCDList)
+                        highSum = unbias_est(high, rKList, lOneKList, lOneCDList)
 
                         # REDUCE / INCREASE BINARY SEARCH LIMIT DEPENDING ON ABSOLUTE VALUE
                         if abs(lowSum) < abs(highSum):
@@ -297,7 +297,7 @@ for eps in epsset:
 
                         # SET NEW MIDPOINT
                         mid = 0.5*abs((high - low))
-                        midSum = unbias_est(-1, mid, rKList, lThreeKList, lThreeCDList)
+                        midSum = unbias_est(mid, rKList, lThreeKList, lThreeCDList)
 
                     print(f"\nmidSum: {midSum}")
                     sumLambda = mid
