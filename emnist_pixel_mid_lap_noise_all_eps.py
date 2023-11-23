@@ -204,8 +204,6 @@ for eps in epsset:
     lTwoCDList = []
     lThreeKList = []
     lThreeCDList = []
-    lMinKL = []
-    lMaxKL = []
 
     # OPTION 1A: QUERYING ENTIRE DISTRIBUTION (B: MONTE CARLO SAMPLING)
     b1 = log(2) / eps
@@ -232,13 +230,11 @@ for eps in epsset:
 
         return sum(lklist)
 
-    def min_max(idx, lda, rklist, lkl):
+    def min_max(idx, lda, rklist):
         """Compute unbiased estimator corresponding to min or max pair."""
         
         lest = ((lda * (rklist[idx] - 1)) - log(rklist[idx])) / T
-        lkl = lest
-    
-        return lkl[idx]
+        return lest
 
     # FOR EACH COMPARISON DIGIT COMPUTE KLD FOR ALL DIGITS
     for C in range(0, 10):
@@ -304,6 +300,8 @@ for eps in epsset:
                         midSum = unbias_est(-1, mid, rKList, lThreeKList, lThreeCDList)
 
                     print(f"\nmidSum: {midSum}")
+                    sumLambda = mid
+                    print(f"\nsumLambda: {sumLambda}")
 
                     # EXTRACT MIN PAIR THEN ESTIMATE CORRESPONDING TO LAMBDA 0.5
                     absKList = [abs(kl) for kl in KList]
@@ -331,9 +329,11 @@ for eps in epsset:
                             low = mid
 
                         mid = 0.5*abs((high - low))
-                        midMinKL = min_max(midMinIndex, mid, rKList, lMinKL)
+                        midMinKL = min_max(midMinIndex, mid, rKList)
 
                     print(f"\nmidMinKL: {midMinKL}")
+                    minLambda = mid
+                    print(f"\nminLambda: {minLambda}")
 
                     # FIND OPTIMAL LAMBDA FOR MAX PAIR
                     maxIndex = KList.index(max(absKList))
@@ -359,9 +359,11 @@ for eps in epsset:
                             low = mid
 
                         mid = 0.5*(abs(high - low))
-                        midMaxKL = min_max(midMaxIndex, mid, rKList, lMaxKL)
+                        midMaxKL = min_max(midMaxIndex, mid, rKList)
 
                     print(f"\nmidMaxKL: {midMaxKL}")
+                    maxLambda = mid
+                    print(f"\nmaxLambda: {maxLambda}")
 
     # CREATE ORDERED DICTIONARIES OF STORED KLD AND DIGITS
     KLDict = dict(zip(KList, CDList))
@@ -438,17 +440,17 @@ for eps in epsset:
     l3estfile = open(f"em_kld_mid_lap_noise_eps_{eps}_l3est.txt", "w", encoding = 'utf-8')
     l3estfile.write("EMNIST: Unbiased Estimator Optimal Lambda for Sum\n")
     l3estfile.write(f"Laplace Noise in Middle, no Monte Carlo, Eps = {eps}\n")
-    l3estfile.write(f"Optimal Lambda: {midSum}\n\n")
+    l3estfile.write(f"Optimal Lambda {sumLambda} for Sum {midSum}\n\n")
 
     l4estfile = open(f"em_kld_mid_lap_noise_eps_{eps}_l4est.txt", "w", encoding = 'utf-8')
     l4estfile.write("EMNIST: Unbiased Estimator Optimal Lambda Min Pair (7, 1)\n")
     l4estfile.write(f"Laplace Noise in Middle, no Monte Carlo, Eps = {eps}\n")
-    l4estfile.write(f"Optimal Lambda: {midMinKL}\n\n")
+    l4estfile.write(f"Optimal Lambda {minLambda} for Estimate {midMinKL}\n\n")
 
     l5estfile = open(f"em_kld_mid_lap_noise_eps_{eps}_l5est.txt", "w", encoding = 'utf-8')
     l5estfile.write("EMNIST: Unbiased Estimator Optimal Lambda Max Pair (6, 9)\n")
     l5estfile.write(f"Laplace Noise in Middle, no Monte Carlo, Eps = {eps}\n")
-    l5estfile.write(f"Optimal Lambda: {midMaxKL}\n\n")
+    l5estfile.write(f"Optimal Lambda {maxLambda} for Estimate {midMaxKL}\n\n")
 
     for i in orderedKLDict:
         datafile.write(f"{i} : {orderedKLDict[i]}\n")
@@ -470,9 +472,6 @@ for eps in epsset:
 
     for o in lThreeOrderedKLDict:
         l3estfile.write(f"{o} : {lThreeOrderedKLDict[o]}\n")
-
-    l4estfile.write(f"{lMinKL} : {minPair}\n")
-    l5estfile.write(f"{lMaxKL} : {maxPair}\n")
 
     # SHOW ALL RANDOM IMAGES AT THE SAME TIME
     fig, ax = plt.subplots(2, 5, sharex = True, sharey = True)
