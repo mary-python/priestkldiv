@@ -177,7 +177,7 @@ epsset = [0.001, 0.025, 0.05, 0.1, 0.2, 0.4, 0.8, 1, 1.5, 2, 3, 4]
 
 for eps in epsset:
 
-    print(f"Computing KL divergence for epsilon = {eps}...")
+    print(f"\nComputing KL divergence for epsilon = {eps}...")
 
     # STORES FOR EXACT KLD
     KLDiv = np.zeros((10, 10, U))
@@ -214,9 +214,9 @@ for eps in epsset:
 
     def unbias_est(lda, rklist, lklist, lcdlist):
         """Compute sum of unbiased estimators corresponding to all pairs."""
-        for rat in rklist:
+        count = 1
 
-            count = 0
+        for rat in rklist:
             lest = ((lda * (rat - 1)) - log(rat)) / T
 
             if lest != 0.0:
@@ -226,7 +226,11 @@ for eps in epsset:
                 d = count % 10
 
                 lcdlist.append((c, d))
-                count = count + 1
+
+                if c == d + 1:
+                    count = count + 2
+                else:
+                    count = count + 1
 
         return sum(lklist)
 
@@ -239,6 +243,7 @@ for eps in epsset:
     # FOR EACH COMPARISON DIGIT COMPUTE KLD FOR ALL DIGITS
     for C in range(0, 10):
         for D in range(0, 10):
+
             for i in range(0, U):
                 KLDiv[C, D, i] = uProbsSet[D, i] * (np.log((uProbsSet[D, i]) / (uProbsSet[C, i])))
 
@@ -252,7 +257,6 @@ for eps in epsset:
             
                 # COMPUTE AVERAGE OF R POSSIBLE NOISE TERMS
                 avNoiseL = totalNoiseL / R
-
                 eKLDiv[C, D, j] = eKLDiv[C, D, j] + avNoiseL
 
             # ELIMINATE ALL ZERO VALUES WHEN DIGITS ARE IDENTICAL
@@ -273,8 +277,8 @@ for eps in epsset:
                 rKList.append(ratio)
                 rCDList.append((C, D))
 
-                # WAIT UNTIL FINAL DIGIT PAIR TO ANALYSE EXACT KLD LIST
-                if C == 9 and D == 9:
+                # WAIT UNTIL FINAL DIGIT PAIR (8, 9) TO ANALYSE EXACT KLD LIST
+                if C == 9 and D == 8:
 
                     low = 0
                     high = 1
@@ -301,13 +305,23 @@ for eps in epsset:
 
                     print(f"\nmidSum: {midSum}")
                     sumLambda = mid
-                    print(f"\nsumLambda: {sumLambda}")
+                    print(f"sumLambda: {sumLambda}")
 
-                    # EXTRACT MIN PAIR THEN ESTIMATE CORRESPONDING TO LAMBDA 0.5
+                    # EXTRACT MIN PAIR BY ABSOLUTE VALUE OF EXACT KL DIVERGENCE
                     absKList = [abs(kl) for kl in KList]
-                    minIndex = KList.index(min(absKList))
+                    minKList = sorted(absKList)
+                    minAbs = minKList[0]
+                    minIndex = KList.index(minAbs)
                     minPair = CDList[minIndex]
-        
+                    MIN_COUNT = 1
+
+                    # IF MIN PAIR IS NOT IN LAMBDA 0.5 LIST THEN GET NEXT SMALLEST
+                    while minPair not in lTwoCDList:        
+                        minAbs = minKList[MIN_COUNT]
+                        minIndex = KList.index(minAbs)
+                        minPair = CDList[minIndex]
+                        MIN_COUNT = MIN_COUNT + 1
+
                     midMinIndex = lTwoCDList.index(minPair)
                     midMinKL = lTwoKList[midMinIndex]
 
@@ -333,12 +347,22 @@ for eps in epsset:
 
                     print(f"\nmidMinKL: {midMinKL}")
                     minLambda = mid
-                    print(f"\nminLambda: {minLambda}")
+                    print(f"minLambda: {minLambda}")
 
-                    # FIND OPTIMAL LAMBDA FOR MAX PAIR
-                    maxIndex = KList.index(max(absKList))
+                    # EXTRACT MAX PAIR BY REVERSING EXACT KL DIVERGENCE LIST
+                    maxKList = sorted(absKList, reverse = True)
+                    maxAbs = maxKList[0]
+                    maxIndex = KList.index(maxAbs)
                     maxPair = CDList[maxIndex]
-        
+                    MAX_COUNT = 1
+
+                    # IF MAX PAIR IS NOT IN LAMBDA 0.5 LIST THEN GET NEXT LARGEST
+                    while maxPair not in lTwoCDList:        
+                        maxAbs = maxKList[MAX_COUNT]
+                        maxIndex = KList.index(maxAbs)
+                        maxPair = CDList[maxIndex]
+                        MAX_COUNT = MAX_COUNT + 1
+
                     midMaxIndex = lTwoCDList.index(maxPair)
                     midMaxKL = lTwoKList[midMaxIndex]
 
@@ -346,6 +370,7 @@ for eps in epsset:
                     high = 1
                     mid = 0.5
 
+                    # FIND OPTIMAL LAMBDA FOR MAX PAIR
                     while abs(high - low) > 0.00000001:
 
                         lowMaxIndex = lZeroCDList.index(maxPair)
@@ -359,11 +384,11 @@ for eps in epsset:
                             low = mid
 
                         mid = 0.5*(abs(high - low))
-                        midMaxKL = min_max(midMaxIndex, mid, rKList)
+                        maxLambda = min_max(midMaxIndex, mid, rKList)
 
                     print(f"\nmidMaxKL: {midMaxKL}")
                     maxLambda = mid
-                    print(f"\nmaxLambda: {maxLambda}")
+                    print(f"maxLambda: {maxLambda}")
 
     # CREATE ORDERED DICTIONARIES OF STORED KLD AND DIGITS
     KLDict = dict(zip(KList, CDList))
