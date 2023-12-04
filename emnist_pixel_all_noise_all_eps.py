@@ -224,7 +224,7 @@ for trial in range(5):
     for eps in epsset:
         for rep in range(R):
 
-            print(f"Trial {trial + 1}: epsilon = {eps} repeat {rep + 1}...")
+            print(f"Trial {trial + 1}: epsilon = {eps}, repeat = {rep + 1}...")
 
             # STORES FOR EXACT KLD
             KLDiv = np.zeros((10, 10, U))
@@ -568,7 +568,7 @@ for trial in range(5):
         statsfile.write(f"Bottom 10% exact KLD -> bottom true dist ranking: {round(aPercBottom[trial, INDEX_COUNT], 1)}%\n\n")
         
         statsfile.write(f"Top 10% exact KLD -> top half sum ranking: {round(bPercTop[trial, INDEX_COUNT], 1)}%\n")
-        statsfile.write(f"Bottom 10% exact KLD -> bottom half sum ranking: {round(bPercBottom, 1)}%\n\n")
+        statsfile.write(f"Bottom 10% exact KLD -> bottom half sum ranking: {round(bPercBottom[trial, INDEX_COUNT], 1)}%\n\n")
 
         statsfile.write(f"Top 10% exact KLD -> top half min pair ranking: {round(cPercTop[trial, INDEX_COUNT], 1)}%\n")
         statsfile.write(f"Bottom 10% exact KLD -> bottom half min pair ranking: {round(cPercBottom[trial, INDEX_COUNT], 1)}%\n\n")
