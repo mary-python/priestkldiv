@@ -1,8 +1,9 @@
 """Modules provide various time-related functions, generate pseudo-random numbers,
 compute the natural logarithm of a number, remember the order in which items are added,
-have cool visual feedback of the current throughput, create static, animated, and
-interactive visualisations, provide functionality to automatically download and cache the
-EMNIST dataset, work with arrays, and carry out fast numerical computations in Python."""
+have cool visual feedback of the current throughput, create static, animated,
+and interactive visualisations, compute the mean of a list quickly and accurately,
+provide functionality to automatically download and cache the EMNIST dataset,
+work with arrays, and carry out fast numerical computations in Python."""
 import time
 import random
 from math import log
@@ -10,6 +11,7 @@ from collections import OrderedDict
 from alive_progress import alive_bar
 import matplotlib.pyplot as plt
 from emnist import extract_training_samples, extract_test_samples
+from statistics import fmean
 import numpy as np
 import tensorflow as tf
 import tensorflow_probability as tfp
@@ -173,565 +175,577 @@ DTA = 0.1
 A = 0
 R = 10
 
-# STORES FOR SUM, MIN/MAX KLD AND LAMBDA
-minSum = np.zeros((8, 12))
-minPairEst = np.zeros((8, 12))
-maxPairEst = np.zeros((8, 12))
-sumLambda = np.zeros((8, 12))
-minPairLambda = np.zeros((8, 12))
-maxPairLambda = np.zeros((8, 12))
-
-# STORES FOR RANKING PRESERVATION ANALYSIS
-rPercTopKLD = np.zeros((8, 12))
-rPercBottomKLD = np.zeros((8, 12))
-sumPercTopKLD = np.zeros((8, 12))
-sumPercBottomKLD = np.zeros((8, 12))
-minPercTopKLD = np.zeros((8, 12))
-minPercBottomKLD = np.zeros((8, 12))
-maxPercTopKLD = np.zeros((8, 12))
-maxPercBottomKLD = np.zeros((8, 12))
-
+# LISTS OF THE EPS VALUES AND TRIALS THAT WILL BE RUN
 epsset = [0.001, 0.025, 0.05, 0.1, 0.2, 0.4, 0.8, 1, 1.5, 2, 3, 4]
 trialset = ["mid_lap", "mid_lap_mc", "mid_gauss", "mid_gauss_mc", "end_lap", "end_lap_mc", "end_gauss", "end_gauss_mc"]
+ES = len(epsset)
+TS = len(trialset)
+
+# STORES FOR SUM, MIN/MAX KLD AND LAMBDA
+minSum = np.zeros((TS, ES, R))
+minPairEst = np.zeros((TS, ES, R))
+maxPairEst = np.zeros((TS, ES, R))
+sumLambda = np.zeros((TS, ES, R))
+minPairLambda = np.zeros((TS, ES, R))
+maxPairLambda = np.zeros((TS, ES, R))
+
+aSum = np.zeros((TS, ES))
+aPairEst = np.zeros((TS, ES))
+bPairEst = np.zeros((TS, ES))
+aLambda = np.zeros((TS, ES))
+aPairLambda = np.zeros((TS, ES))
+bPairLambda = np.zeros((TS, ES))
+
+# STORES FOR RANKING PRESERVATION ANALYSIS
+tPercTop = np.zeros((TS, ES, R))
+tPercBottom = np.zeros((TS, ES, R))
+sumPercTop = np.zeros((TS, ES, R))
+sumPercBottom = np.zeros((TS, ES, R))
+minPercTop = np.zeros((TS, ES, R))
+minPercBottom = np.zeros((TS, ES, R))
+maxPercTop = np.zeros((TS, ES, R))
+maxPercBottom = np.zeros((TS, ES, R))
+
+aPercTop = np.zeros((TS, ES))
+aPercBottom = np.zeros((TS, ES))
+bPercTop = np.zeros((TS, ES))
+bPercBottom = np.zeros((TS, ES))
+cPercTop = np.zeros((TS, ES))
+cPercBottom = np.zeros((TS, ES))
+dPercTop = np.zeros((TS, ES))
+dPercBottom = np.zeros((TS, ES))
 
 # for trial in range(8):
-for trial in range(4):
+for trial in range(5):
 
     print(f"\nTrial {trial + 1}: {trialset[trial]}")
     INDEX_COUNT = 0
 
     for eps in epsset:
+        for rep in range(R):
 
-        print(f"Trial {trial + 1}: epsilon = {eps}...")
+            print(f"Trial {trial + 1}: epsilon = {eps} repeat {rep + 1}...")
 
-        # STORES FOR EXACT KLD
-        KLDiv = np.zeros((10, 10, U))
-        sumKLDiv = np.zeros((10, 10))
-        KList = []
-        CDList = []
+            # STORES FOR EXACT KLD
+            KLDiv = np.zeros((10, 10, U))
+            KList = []
+            CDList = []
 
-        # STORES FOR ESTIMATED KLD
-        eKLDiv = np.zeros((10, 10, E))
-        eSumKLDiv = np.zeros((10, 10))
-        eKList = []
-        eCDList = []
+            # STORES FOR ESTIMATED KLD
+            eKLDiv = np.zeros((10, 10, E, R))
+            eKList = []
 
-        # STORES FOR RATIO BETWEEN EXACT AND ESTIMATED KLD
-        rKList = []
-        rCDList = []
+            # STORES FOR RATIO BETWEEN KLDS AND TRUE DISTRIBUTION
+            rKList = []
+            rCDList = []
+            tKList = []
 
-        # STORES FOR UNBIASED ESTIMATE OF KLD
-        zeroKList = []
-        zeroCDList = []
-        oneKList = []
-        oneCDList = []
-        halfKList = []
-        halfCDList = []
+            # STORES FOR UNBIASED ESTIMATE OF KLD
+            zeroKList = []
+            zeroCDList = []
+            oneKList = []
+            oneCDList = []
+            halfKList = []
+            halfCDList = []
 
-        # OPTION 1A: QUERYING ENTIRE DISTRIBUTION
-        if trial % 2 == 0:
-            b1 = log(2) / eps
+            # OPTION 1A: QUERYING ENTIRE DISTRIBUTION
+            if trial % 2 == 0:
+                b1 = log(2) / eps
 
-        # OPTION 1B: MONTE CARLO SAMPLING
-        else:
-            b1 = (1 + log(2)) / eps
+            # OPTION 1B: MONTE CARLO SAMPLING
+            else:
+                b1 = (1 + log(2)) / eps
 
-        b2 = (2*((log(1.25))/DTA)*b1) / eps
+            b2 = (2*((log(1.25))/DTA)*b1) / eps
 
-        # OPTION 2A: ADD LAPLACE NOISE
-        if trial % 4 == 0 or trial % 4 == 1:
-            noiseLG = tfp.distributions.Laplace(loc = A, scale = b1)
+            # OPTION 2A: ADD LAPLACE NOISE
+            if trial % 4 == 0 or trial % 4 == 1:
+                noiseLG = tfp.distributions.Laplace(loc = A, scale = b1)
         
-        # OPTION 2B: ADD GAUSSIAN NOISE
-        else:
-            noiseLG = tfp.distributions.Normal(loc = A, scale = b2)
+            # OPTION 2B: ADD GAUSSIAN NOISE
+            else:
+                noiseLG = tfp.distributions.Normal(loc = A, scale = b2)
 
-        def unbias_est(lda, rklist, lklist, lcdlist, tnl):
-            """Compute sum of unbiased estimators corresponding to all pairs."""
-            count = 1
+            def unbias_est(lda, rklist, tklist, lklist, lcdlist):
+                """Compute sum of unbiased estimators corresponding to all pairs."""
+                count = 1
 
-            for rat in rklist:
-                lest = ((lda * (rat - 1)) - log(rat)) / T
-
-                # OPTION 3B: ADD NOISE AT END
-                if trial >= 4:
-                    for k in range(0, R):
-                        tnl = tnl + (noiseLG.sample(sample_shape = (1,)).numpy()[0])
-       
-                    # COMPUTE AVERAGE OF R POSSIBLE NOISE TERMS
-                    lest = lest + (tnl / R)
-
-                if lest != 0.0:
-                    lklist.append(lest)
-
-                    c = count // 10
-                    d = count % 10
-
-                    lcdlist.append((c, d))
-
-                    if c == d + 1:
-                        count = count + 2
+                for row in range(0, len(rklist)):
+                    lest = ((lda * (rklist[row] - 1)) - log(rklist[row])) / T
+          
+                    # OPTION 3B: ADD NOISE AT END
+                    if trial >= 4:
+                        err = noiseLG.sample(sample_shape = (1,)).numpy()[0]
                     else:
-                        count = count + 1
+                        err = 0.0
 
-            return sum(lklist)
+                    # ADD NOISE TO UNBIASED ESTIMATOR THEN COMPARE TO TRUE DISTRIBUTION
+                    err = abs(err + lest - tklist[row])
+
+                    if err != 0.0:
+                        lklist.append(err)
+
+                        c = count // 10
+                        d = count % 10
+
+                        lcdlist.append((c, d))
+
+                        if c == d + 1:
+                            count = count + 2
+                        else:
+                            count = count + 1
+
+                return sum(lklist)
     
-        def min_max(lda, rklist, lklist, lcdlist, mp, tnl):
-            """Compute unbiased estimator corresponding to min or max pair."""
-            count = 1
+            def min_max(lda, rklist, tklist, lklist, lcdlist, mp):
+                """Compute unbiased estimator corresponding to min or max pair."""
+                count = 1
 
-            for rat in rklist:
-                lest = ((lda * (rat - 1)) - log(rat)) / T
+                for row in range(0, len(rklist)):
+                    lest = ((lda * (rklist[row] - 1)) - log(rklist[row])) / T
 
-                # OPTION 3B: ADD NOISE AT END
-                if trial >= 4:
-                    for k in range(0, R):
-                        tnl = tnl + (noiseLG.sample(sample_shape = (1,)).numpy()[0])
-       
-                    # COMPUTE AVERAGE OF R POSSIBLE NOISE TERMS
-                    lest = lest + (tnl / R)
-
-                if lest != 0.0:
-                    lklist.append(lest)
-
-                    c = count // 10
-                    d = count % 10
-
-                    lcdlist.append((c, d))
-
-                    if c == d + 1:
-                        count = count + 2
+                    # OPTION 3B: ADD NOISE AT END
+                    if trial >= 4:
+                        err = noiseLG.sample(sample_shape = (1,)).numpy()[0]
                     else:
-                        count = count + 1
+                        err = 0.0
 
-            lmi = lcdlist.index(mp)
-            return lklist[lmi]
+                    # ADD NOISE TO UNBIASED ESTIMATOR THEN COMPARE TO TRUE DISTRIBUTION
+                    err = abs(err + lest - tklist[row])
 
-        # FOR EACH COMPARISON DIGIT COMPUTE KLD FOR ALL DIGITS
-        for C in range(0, 10):
-            for D in range(0, 10):
+                    if err != 0.0:
+                        lklist.append(err)
 
-                for i in range(0, U):
-                    KLDiv[C, D, i] = uProbsSet[D, i] * (np.log((uProbsSet[D, i]) / (uProbsSet[C, i])))
+                        c = count // 10
+                        d = count % 10
 
-                for j in range(0, E):
-                    eKLDiv[C, D, j] = eProbsSet[D, j] * (np.log((eProbsSet[D, j]) / (eProbsSet[C, j])))
+                        lcdlist.append((c, d))
 
-                    # OPTION 3A: ADD NOISE IN MIDDLE
-                    if trial < 4:
-                        totalNoiseLG = 0
+                        if c == d + 1:
+                            count = count + 2
+                        else:
+                            count = count + 1
 
-                        for k in range(0, R):
-                            totalNoiseLG = totalNoiseLG + (noiseLG.sample(sample_shape = (1,)))
-            
-                        # COMPUTE AVERAGE OF R POSSIBLE NOISE TERMS
-                        avNoiseLG = totalNoiseLG / R
-                        eKLDiv[C, D, j] = eKLDiv[C, D, j] + avNoiseLG
+                lmi = lcdlist.index(mp)
+                return lklist[lmi]
 
-                # ELIMINATE ALL ZERO VALUES WHEN DIGITS ARE IDENTICAL
-                if sum(KLDiv[C, D]) != 0.0:
-                    KList.append(sum(KLDiv[C, D]))
-                    CDList.append((C, D))
+            # FOR EACH COMPARISON DIGIT COMPUTE KLD FOR ALL DIGITS
+            for C in range(0, 10):
+                for D in range(0, 10):
 
-                # STILL NEED BELOW CONDITION TO AVOID ZERO ERROR IN RATIO
-                if sum(eKLDiv[C, D]) != 0.0:
-                    eKList.append(sum(eKLDiv[C, D]))
-                    eCDList.append((C, D))
+                    for i in range(0, U):
+                        KLDiv[C, D, i] = uProbsSet[D, i] * (np.log((uProbsSet[D, i]) / (uProbsSet[C, i])))
 
-                # COMPUTE RATIO BETWEEN EXACT AND ESTIMATED KLD
-                ratio = abs(sum(eKLDiv[C, D]) / sum(KLDiv[C, D]))
+                    for j in range(0, E):
+                        eKLDiv[C, D, j] = eProbsSet[D, j] * (np.log((eProbsSet[D, j]) / (eProbsSet[C, j])))
 
-                # ELIMINATE ALL DIVIDE BY ZERO ERRORS
-                if ratio != 0.0 and sum(KLDiv[C, D]) != 0.0:
-                    rKList.append(ratio)
-                    rCDList.append((C, D))
+                        # OPTION 3A: ADD NOISE IN MIDDLE
+                        if trial < 4:
+                            eKLDiv[C, D, j] = eKLDiv[C, D, j] + noiseLG.sample(sample_shape = (1,))
 
-                    # WAIT UNTIL FINAL DIGIT PAIR (8, 9) TO ANALYSE EXACT KLD LIST
-                    if C == 9 and D == 8:
+                    # ELIMINATE ALL ZERO VALUES WHEN DIGITS ARE IDENTICAL
+                    if sum(KLDiv[C, D]) != 0.0:
+                        KList.append(sum(KLDiv[C, D]))
+                        CDList.append((C, D))
 
-                        low = 0
-                        high = 1
-                        mid = 0.5
+                    # COMPUTE RATIO BETWEEN EXACT AND ESTIMATED KLD
+                    ratio = abs(sum(eKLDiv[C, D, j]) / sum(KLDiv[C, D]))
 
-                        # COMPUTE UNBIASED ESTIMATORS WITH LAMBDA 0, 1, 0.5 THEN BINARY SEARCH
-                        lowSum = unbias_est(low, rKList, zeroKList, zeroCDList, 0)
-                        highSum = unbias_est(high, rKList, oneKList, oneCDList, 0)
-                        minSum[trial, INDEX_COUNT] = unbias_est(mid, rKList, halfKList, halfCDList, 0)
+                    # COMPUTE TRUE DISTRIBUTION
+                    trueDist = abs(sum(eKLDiv[C, D, j]) * log(ratio))
 
-                        # TOLERANCE BETWEEN BINARY SEARCH LIMITS ALWAYS GETS SMALL ENOUGH
-                        while abs(high - low) > 0.00000001:
+                    # ELIMINATE ALL DIVIDE BY ZERO ERRORS
+                    if ratio != 0.0 and sum(KLDiv[C, D]) != 0.0:
+                        rKList.append(ratio)
+                        rCDList.append((C, D))
+                        tKList.append(trueDist)
 
-                            lowKList = []
-                            lowCDList = []
-                            highKList = []
-                            highCDList = []
-                            sumKList = []
-                            sumCDList = []
+                        # WAIT UNTIL FINAL DIGIT PAIR (9, 8) TO ANALYSE EXACT KLD LIST
+                        if C == 9 and D == 8:
 
-                            lowSum = unbias_est(low, rKList, lowKList, lowCDList, 0)
-                            highSum = unbias_est(high, rKList, highKList, highCDList, 0)
+                            low = 0
+                            high = 1
+                            mid = 0.5
 
-                            # REDUCE / INCREASE BINARY SEARCH LIMIT DEPENDING ON ABSOLUTE VALUE
-                            if abs(lowSum) < abs(highSum):
-                                high = mid
-                            else:
-                                low = mid
+                            # COMPUTE UNBIASED ESTIMATORS WITH LAMBDA 0, 1, 0.5 THEN BINARY SEARCH
+                            lowSum = unbias_est(low, rKList, tKList, zeroKList, zeroCDList)
+                            highSum = unbias_est(high, rKList, tKList, oneKList, oneCDList)
+                            minSum[trial, INDEX_COUNT, rep] = unbias_est(mid, rKList, tKList, halfKList, halfCDList)
 
-                            # SET NEW MIDPOINT
-                            mid = (0.5*abs((high - low))) + low
-                            minSum[trial, INDEX_COUNT] = unbias_est(mid, rKList, sumKList, sumCDList, 0)
+                            # TOLERANCE BETWEEN BINARY SEARCH LIMITS ALWAYS GETS SMALL ENOUGH
+                            while abs(high - low) > 0.00000001:
 
-                        sumLambda[trial, INDEX_COUNT] = mid
+                                lowKList = []
+                                lowCDList = []
+                                highKList = []
+                                highCDList = []
+                                sumKList = []
+                                sumCDList = []
 
-                        # EXTRACT MIN PAIR BY ABSOLUTE VALUE OF EXACT KL DIVERGENCE
-                        absKList = [abs(kl) for kl in KList]
-                        minKList = sorted(absKList)
-                        minAbs = minKList[0]
-                        minIndex = KList.index(minAbs)
-                        minPair = CDList[minIndex]
-                        MIN_COUNT = 1
+                                lowSum = unbias_est(low, rKList, tKList, lowKList, lowCDList)
+                                highSum = unbias_est(high, rKList, tKList, highKList, highCDList)
 
-                        # IF MIN PAIR IS NOT IN LAMBDA 0.5 LIST THEN GET NEXT SMALLEST
-                        while minPair not in halfCDList:        
-                            minAbs = minKList[MIN_COUNT]
+                                # REDUCE / INCREASE BINARY SEARCH LIMIT DEPENDING ON ABSOLUTE VALUE
+                                if abs(lowSum) < abs(highSum):
+                                    high = mid
+                                else:
+                                    low = mid
+
+                                # SET NEW MIDPOINT
+                                mid = (0.5*abs((high - low))) + low
+                                minSum[trial, INDEX_COUNT, rep] = unbias_est(mid, rKList, tKList, sumKList, sumCDList)
+
+                            sumLambda[trial, INDEX_COUNT, rep] = mid
+
+                            # EXTRACT MIN PAIR BY ABSOLUTE VALUE OF EXACT KL DIVERGENCE
+                            absKList = [abs(kl) for kl in KList]
+                            minKList = sorted(absKList)
+                            minAbs = minKList[0]
                             minIndex = KList.index(minAbs)
                             minPair = CDList[minIndex]
-                            MIN_COUNT = MIN_COUNT + 1
+                            MIN_COUNT = 1
 
-                        midMinIndex = halfCDList.index(minPair)
-                        minPairEst[trial, INDEX_COUNT] = halfKList[midMinIndex]
+                            # IF MIN PAIR IS NOT IN LAMBDA 0.5 LIST THEN GET NEXT SMALLEST
+                            while minPair not in rCDList:        
+                                minAbs = minKList[MIN_COUNT]
+                                minIndex = KList.index(minAbs)
+                                minPair = CDList[minIndex]
+                                MIN_COUNT = MIN_COUNT + 1
 
-                        low = 0
-                        high = 1
-                        mid = 0.5
+                            midMinIndex = halfCDList.index(minPair)
+                            minPairEst[trial, INDEX_COUNT, rep] = halfKList[midMinIndex]
 
-                        # FIND OPTIMAL LAMBDA FOR MIN PAIR
-                        while abs(high - low) > 0.00000001:
+                            low = 0
+                            high = 1
+                            mid = 0.5
 
-                            lowKList = []
-                            lowCDList = []
-                            highKList = []
-                            highCDList = []
-                            minKList = []
-                            minCDList = []
+                            # FIND OPTIMAL LAMBDA FOR MIN PAIR
+                            while abs(high - low) > 0.00000001:
 
-                            lowMinKL = min_max(low, rKList, lowKList, lowCDList, minPair, 0)
-                            highMinKL = min_max(high, rKList, highKList, highCDList, minPair, 0)
+                                lowKList = []
+                                lowCDList = []
+                                highKList = []
+                                highCDList = []
+                                minKList = []
+                                minCDList = []
 
-                            if abs(lowMinKL) < abs(highMinKL):
-                                high = mid
-                            else:
-                                low = mid
+                                lowMinKL = min_max(low, rKList, tKList, lowKList, lowCDList, minPair)
+                                highMinKL = min_max(high, rKList, tKList, highKList, highCDList, minPair)
 
-                            mid = (0.5*abs((high - low))) + low
-                            minPairEst[trial, INDEX_COUNT] = min_max(mid, rKList, minKList, minCDList, minPair, 0)
+                                if abs(lowMinKL) < abs(highMinKL):
+                                    high = mid
+                                else:
+                                    low = mid
 
-                        minPairLambda[trial, INDEX_COUNT] = mid
+                                mid = (0.5*abs((high - low))) + low
+                                minPairEst[trial, INDEX_COUNT, rep] = min_max(mid, rKList, tKList, minKList, minCDList, minPair)
 
-                        # EXTRACT MAX PAIR BY REVERSING EXACT KL DIVERGENCE LIST
-                        maxKList = sorted(absKList, reverse = True)
-                        maxAbs = maxKList[0]
-                        maxIndex = KList.index(maxAbs)
-                        maxPair = CDList[maxIndex]
-                        MAX_COUNT = 1
+                            minPairLambda[trial, INDEX_COUNT, rep] = mid
 
-                        # IF MAX PAIR IS NOT IN LAMBDA 0.5 LIST THEN GET NEXT LARGEST
-                        while maxPair not in halfCDList:        
-                            maxAbs = maxKList[MAX_COUNT]
+                            # EXTRACT MAX PAIR BY REVERSING EXACT KL DIVERGENCE LIST
+                            maxKList = sorted(absKList, reverse = True)
+                            maxAbs = maxKList[0]
                             maxIndex = KList.index(maxAbs)
                             maxPair = CDList[maxIndex]
-                            MAX_COUNT = MAX_COUNT + 1
+                            MAX_COUNT = 1
 
-                        midMaxIndex = halfCDList.index(maxPair)
-                        maxPairEst[trial, INDEX_COUNT] = halfKList[midMaxIndex]
+                            # IF MAX PAIR IS NOT IN LAMBDA 0.5 LIST THEN GET NEXT LARGEST
+                            while maxPair not in rCDList:        
+                                maxAbs = maxKList[MAX_COUNT]
+                                maxIndex = KList.index(maxAbs)
+                                maxPair = CDList[maxIndex]
+                                MAX_COUNT = MAX_COUNT + 1
 
-                        low = 0
-                        high = 1
-                        mid = 0.5
+                            midMaxIndex = halfCDList.index(maxPair)
+                            maxPairEst[trial, INDEX_COUNT, rep] = halfKList[midMaxIndex]
 
-                        # FIND OPTIMAL LAMBDA FOR MAX PAIR
-                        while abs(high - low) > 0.00000001:
+                            low = 0
+                            high = 1
+                            mid = 0.5
 
-                            lowKList = []
-                            lowCDList = []
-                            highKList = []
-                            highCDList = []
-                            maxKList = []
-                            maxCDList = []
+                            # FIND OPTIMAL LAMBDA FOR MAX PAIR
+                            while abs(high - low) > 0.00000001:
 
-                            lowMaxKL = min_max(low, rKList, lowKList, lowCDList, maxPair, 0)
-                            highMaxKL = min_max(high, rKList, highKList, highCDList, maxPair, 0)
+                                lowKList = []
+                                lowCDList = []
+                                highKList = []
+                                highCDList = []
+                                maxKList = []
+                                maxCDList = []
+
+                                lowMaxKL = min_max(low, rKList, tKList, lowKList, lowCDList, maxPair)
+                                highMaxKL = min_max(high, rKList, tKList, highKList, highCDList, maxPair)
                 
-                            if abs(lowMaxKL) < abs(highMaxKL):
-                                high = mid
-                            else:
-                                low = mid
+                                if abs(lowMaxKL) < abs(highMaxKL):
+                                    high = mid
+                                else:
+                                    low = mid
 
-                            mid = (0.5*(abs(high - low))) + low
-                            maxPairEst[trial, INDEX_COUNT] = min_max(mid, rKList, maxKList, maxCDList, maxPair, 0)
+                                mid = (0.5*(abs(high - low))) + low
+                                maxPairEst[trial, INDEX_COUNT, rep] = min_max(mid, rKList, tKList, maxKList, maxCDList, maxPair)
 
-                        maxPairLambda[trial, INDEX_COUNT] = mid
+                            maxPairLambda[trial, INDEX_COUNT, rep] = mid
 
-        def rank_pres(bin, okld, rokld):
-            """Do top/bottom 10% in exact KLD remain in top/bottom half of estimator?"""
-            rows = 90
-            num = 0
+            def rank_pres(bin, okld, tokld):
+                """Do top/bottom 10% in exact KLD remain in top/bottom half of estimator?"""
+                rows = 90
+                num = 0
 
-            if bin == 0: 
-                dict = list(okld.values())[0 : int(rows / 10)]
-                rdict = list(rokld.values())[0 : int(rows / 2)]
-            else:
-                dict = list(okld.values())[int(9*(rows / 10)) : rows]
-                rdict = list(rokld.values())[int(rows / 2) : rows]
+                if bin == 0: 
+                    dict = list(okld.values())[0 : int(rows / 10)]
+                    tdict = list(tokld.values())[0 : int(rows / 2)]
+                else:
+                    dict = list(okld.values())[int(9*(rows / 10)) : rows]
+                    tdict = list(tokld.values())[int(rows / 2) : rows]
 
-            for di in dict:
-                for dj in rdict:    
-                    if dj == di:
-                        num = num + 1
+                for di in dict:
+                    for dj in tdict:    
+                        if dj == di:
+                            num = num + 1
 
-            return 100*(num / int(rows/10))
+                return 100*(num / int(rows/10))
 
-        # CREATE ORDERED DICTIONARIES OF STORED KLD AND DIGITS
-        KLDict = dict(zip(KList, CDList))
-        orderedKLDict = OrderedDict(sorted(KLDict.items()))
-        datafile = open("emnist_exact_kld_in_order.txt", "w", encoding = 'utf-8')
-        datafile.write("EMNIST: Exact KL Divergence In Order\n")
-        datafile.write("Smaller corresponds to more similar digits\n\n")
+            # EXACT KL DIVERGENCE IS IDENTICAL FOR ALL TRIALS, EPS AND REPEATS
+            if trial == 0 and eps == 0.001 and rep == 0:
+                KLDict = dict(zip(KList, CDList))
+                orderedKLDict = OrderedDict(sorted(KLDict.items()))
+                orderfile = open("emnist_exact_kld_in_order.txt", "w", encoding = 'utf-8')
+                orderfile.write("EMNIST: Exact KL Divergence In Order\n")
+                orderfile.write("Smaller corresponds to more similar digits\n\n")
 
-        for i in orderedKLDict:
-            datafile.write(f"{i} : {orderedKLDict[i]}\n")
+            for i in orderedKLDict:
+                orderfile.write(f"{i} : {orderedKLDict[i]}\n")
 
-        eKLDict = dict(zip(eKList, eCDList))
-        eOrderedKLDict = OrderedDict(sorted(eKLDict.items()))
-        estfile = open(f"em_kld_{trialset[trial]}_noise_eps_{eps}_est.txt", "w", encoding = 'utf-8')
-        estfile.write("EMNIST: Estimated KL Divergence In Order\n")
-        estfile.write(f"Laplace Noise in Middle, no Monte Carlo, Eps = {eps}\n")
-        estfile.write("Smaller corresponds to more similar digits\n\n")
+            # COMPUTE RANKING PRESERVATION STATISTICS FOR EACH REPEAT
+            tKLDict = dict(zip(tKList, rCDList))
+            tOrderedKLDict = OrderedDict(sorted(tKLDict.items()))
+            tPercTop[trial, INDEX_COUNT, rep] = rank_pres(0, orderedKLDict, tOrderedKLDict)
+            tPercBottom[trial, INDEX_COUNT, rep] = rank_pres(1, orderedKLDict, tOrderedKLDict)
 
-        for j in eOrderedKLDict:
-            estfile.write(f"{j} : {eOrderedKLDict[j]}\n")
+            sumKLDict = dict(zip(sumKList, rCDList))
+            sumOrderedKLDict = OrderedDict(sorted(sumKLDict.items()))
+            sumPercTop[trial, INDEX_COUNT, rep] = rank_pres(0, orderedKLDict, sumOrderedKLDict)
+            sumPercBottom[trial, INDEX_COUNT, rep] = rank_pres(1, orderedKLDict, sumOrderedKLDict)
 
-        rKLDict = dict(zip(rKList, rCDList))
-        rOrderedKLDict = OrderedDict(sorted(rKLDict.items()))
-        ratiofile = open(f"em_kld_{trialset[trial]}_noise_eps_{eps}_ratio.txt", "w", encoding = 'utf-8')
-        ratiofile.write("EMNIST: Ratio Between Exact KL Divergence And Estimator\n")
-        ratiofile.write(f"Laplace Noise in Middle, no Monte Carlo, Eps = {eps}\n")
-        ratiofile.write("Closer to 1 corresponds to a better estimate\n\n")
+            minKLDict = dict(zip(minKList, rCDList))
+            minOrderedKLDict = OrderedDict(sorted(minKLDict.items()))
+            minPercTop[trial, INDEX_COUNT, rep] = rank_pres(0, orderedKLDict, minOrderedKLDict)
+            minPercBottom[trial, INDEX_COUNT, rep] = rank_pres(1, orderedKLDict, minOrderedKLDict)
 
-        rPercTopKLD[trial, INDEX_COUNT] = rank_pres(0, orderedKLDict, rOrderedKLDict)
-        rPercBottomKLD[trial, INDEX_COUNT] = rank_pres(1, orderedKLDict, rOrderedKLDict)
-        ratiofile.write(f"Top 10% exact KLD -> top half ratio ranking: {round(rPercTopKLD[trial, INDEX_COUNT], 1)}%\n")
-        ratiofile.write(f"Bottom 10% exact KLD -> bottom half ratio ranking: {round(rPercBottomKLD[trial, INDEX_COUNT], 1)}%\n\n")
+            maxKLDict = dict(zip(maxKList, CDList))
+            maxOrderedKLDict = OrderedDict(sorted(maxKLDict.items()))
+            maxPercTop[trial, INDEX_COUNT, rep] = rank_pres(0, orderedKLDict, maxOrderedKLDict)
+            maxPercBottom[trial, INDEX_COUNT, rep] = rank_pres(1, orderedKLDict, maxOrderedKLDict)
+        
+        # SUM UP REPEATS FOR ALL THE MAIN STATISTICS
+        aLambda[trial, INDEX_COUNT] = fmean(sumLambda[trial, INDEX_COUNT])
+        aSum[trial, INDEX_COUNT] = fmean(minSum[trial, INDEX_COUNT])
+        aPairLambda[trial, INDEX_COUNT] = fmean(minPairLambda[trial, INDEX_COUNT])
+        aPairEst[trial, INDEX_COUNT] = fmean(minPairEst[trial, INDEX_COUNT])
+        bPairLambda[trial, INDEX_COUNT] = fmean(maxPairLambda[trial, INDEX_COUNT])
+        bPairEst[trial, INDEX_COUNT] = fmean(maxPairEst[trial, INDEX_COUNT])
 
-        for k in rOrderedKLDict:
-            ratiofile.write(f"{k} : {rOrderedKLDict[k]}\n")
+        aPercTop[trial, INDEX_COUNT] = fmean(tPercTop[trial, INDEX_COUNT])
+        aPercBottom[trial, INDEX_COUNT] = fmean(tPercBottom[trial, INDEX_COUNT])
+        bPercTop[trial, INDEX_COUNT] = fmean(sumPercTop[trial, INDEX_COUNT])
+        bPercBottom[trial, INDEX_COUNT] = fmean(sumPercBottom[trial, INDEX_COUNT])
+        cPercTop[trial, INDEX_COUNT] = fmean(minPercTop[trial, INDEX_COUNT])
+        cPercBottom[trial, INDEX_COUNT] = fmean(minPercBottom[trial, INDEX_COUNT])
+        dPercTop[trial, INDEX_COUNT] = fmean(maxPercTop[trial, INDEX_COUNT])
+        dPercBottom[trial, INDEX_COUNT] = fmean(maxPercBottom[trial, INDEX_COUNT])
 
-        sumKLDict = dict(zip(sumKList, sumCDList))
-        sumOrderedKLDict = OrderedDict(sorted(sumKLDict.items()))
-        sumfile = open(f"em_kld_{trialset[trial]}_noise_eps_{eps}_l3est.txt", "w", encoding = 'utf-8')
-        sumfile.write("EMNIST: Unbiased Estimator Optimal Lambda for Sum\n")
-        sumfile.write(f"Laplace Noise in Middle, no Monte Carlo, Eps = {eps}\n")
-        sumfile.write(f"Optimal Lambda {sumLambda[trial, INDEX_COUNT]} for Sum {minSum[trial, INDEX_COUNT]}\n\n")
+        statsfile = open(f"emnist_{trialset[trial]}_noise_eps_{eps}.txt", "w", encoding = 'utf-8')
+        statsfile.write(f"EMNIST: Laplace Noise in Middle, no Monte Carlo, Eps = {eps}\n")
+        statsfile.write(f"Optimal Lambda {round(aLambda[trial, INDEX_COUNT], 4)} for Sum {round(aSum[trial, INDEX_COUNT], 4)}\n\n")
 
-        sumPercTopKLD[trial, INDEX_COUNT] = rank_pres(0, orderedKLDict, sumOrderedKLDict)
-        sumPercBottomKLD[trial, INDEX_COUNT] = rank_pres(1, orderedKLDict, sumOrderedKLDict)
-        sumfile.write(f"Top 10% exact KLD -> top half sum ranking: {round(sumPercTopKLD[trial, INDEX_COUNT], 1)}%\n")
-        sumfile.write(f"Bottom 10% exact KLD -> bottom half sum ranking: {round(sumPercBottomKLD[trial, INDEX_COUNT], 1)}%\n\n")
+        statsfile.write(f"Digit Pair with Min Exact KLD: {minPair}\n")
+        statsfile.write(f"Optimal Lambda {round(aPairLambda[trial, INDEX_COUNT], 4)} for Estimate {round(aPairEst[trial, INDEX_COUNT], 4)}\n\n")
 
-        minKLDict = dict(zip(minKList, minCDList))
-        minOrderedKLDict = OrderedDict(sorted(minKLDict.items()))
-        minfile = open(f"em_kld_{trialset[trial]}_noise_eps_{eps}_l4est.txt", "w", encoding = 'utf-8')
-        minfile.write("EMNIST: Unbiased Estimator Optimal Lambda Min Pair (7, 1)\n")
-        minfile.write(f"Laplace Noise in Middle, no Monte Carlo, Eps = {eps}\n")
-        minfile.write(f"Optimal Lambda {minPairLambda[trial, INDEX_COUNT]} for Estimate {minPairEst[trial, INDEX_COUNT]}\n\n")
+        statsfile.write(f"Digit Pair with Max Exact KLD: {maxPair}\n")
+        statsfile.write(f"Optimal Lambda {round(bPairLambda[trial, INDEX_COUNT], 4)} for Estimate {round(bPairEst[trial, INDEX_COUNT], 4)}\n\n")
 
-        minPercTopKLD[trial, INDEX_COUNT] = rank_pres(0, orderedKLDict, minOrderedKLDict)
-        minPercBottomKLD[trial, INDEX_COUNT] = rank_pres(1, orderedKLDict, minOrderedKLDict)
-        minfile.write(f"Top 10% exact KLD -> top half ratio ranking: {round(minPercTopKLD[trial, INDEX_COUNT], 1)}%\n")
-        minfile.write(f"Bottom 10% exact KLD -> bottom half ratio ranking: {round(minPercBottomKLD[trial, INDEX_COUNT], 1)}%\n\n")
+        statsfile.write(f"Top 10% exact KLD -> top half true dist ranking: {round(aPercTop[trial, INDEX_COUNT], 1)}%\n")
+        statsfile.write(f"Bottom 10% exact KLD -> bottom true dist ranking: {round(aPercBottom[trial, INDEX_COUNT], 1)}%\n\n")
+        
+        statsfile.write(f"Top 10% exact KLD -> top half sum ranking: {round(bPercTop[trial, INDEX_COUNT], 1)}%\n")
+        statsfile.write(f"Bottom 10% exact KLD -> bottom half sum ranking: {round(bPercBottom, 1)}%\n\n")
 
-        maxKLDict = dict(zip(maxKList, maxCDList))
-        maxOrderedKLDict = OrderedDict(sorted(maxKLDict.items()))
-        maxfile = open(f"em_kld_{trialset[trial]}_noise_eps_{eps}_l5est.txt", "w", encoding = 'utf-8')
-        maxfile.write("EMNIST: Unbiased Estimator Optimal Lambda Max Pair (6, 9)\n")
-        maxfile.write(f"Laplace Noise in Middle, no Monte Carlo, Eps = {eps}\n")
-        maxfile.write(f"Optimal Lambda {maxPairLambda[trial, INDEX_COUNT]} for Estimate {maxPairEst[trial, INDEX_COUNT]}\n\n")
+        statsfile.write(f"Top 10% exact KLD -> top half min pair ranking: {round(cPercTop[trial, INDEX_COUNT], 1)}%\n")
+        statsfile.write(f"Bottom 10% exact KLD -> bottom half min pair ranking: {round(cPercBottom[trial, INDEX_COUNT], 1)}%\n\n")
 
-        maxPercTopKLD[trial, INDEX_COUNT] = rank_pres(0, orderedKLDict, maxOrderedKLDict)
-        maxPercBottomKLD[trial, INDEX_COUNT] = rank_pres(1, orderedKLDict, maxOrderedKLDict)
-        maxfile.write(f"Top 10% exact KLD -> top half ratio ranking: {round(maxPercTopKLD[trial, INDEX_COUNT], 1)}%\n")
-        maxfile.write(f"Bottom 10% exact KLD -> bottom half ratio ranking: {round(maxPercBottomKLD[trial, INDEX_COUNT], 1)}%\n\n")
+        statsfile.write(f"Top 10% exact KLD -> top half max pair ranking: {round(dPercTop[trial, INDEX_COUNT], 1)}%\n")
+        statsfile.write(f"Bottom 10% exact KLD -> bottom half max pair ranking: {round(dPercBottom[trial, INDEX_COUNT], 1)}%\n\n")
 
         INDEX_COUNT = INDEX_COUNT + 1
 
 # PLOT LAMBDAS FOR EACH EPSILON
-plt.plot(epsset, sumLambda[0], color = 'tab:brown', label = 'mid lap')
-plt.plot(epsset, sumLambda[1], color = 'tab:purple', label = 'mid lap mc')
-plt.plot(epsset, sumLambda[2], color = 'tab:blue', label = 'mid gauss')
-plt.plot(epsset, sumLambda[3], color = 'tab:cyan', label = 'mid gauss mc')
-# plt.plot(epsset, sumLambda[4], color = 'tab:olive', label = 'end lap')
-# plt.plot(epsset, sumLambda[5], color = 'tab:green', label = 'end lap mc')
-# plt.plot(epsset, sumLambda[6], color = 'tab:red', label = 'end gauss')
-# plt.plot(epsset, sumLambda[7], color = 'tab:pink', label = 'end gauss mc')
+plt.plot(epsset, aLambda[0], color = 'tab:brown', label = 'mid lap')
+plt.plot(epsset, aLambda[1], color = 'tab:purple', label = 'mid lap mc')
+plt.plot(epsset, aLambda[2], color = 'tab:blue', label = 'mid gauss')
+plt.plot(epsset, aLambda[3], color = 'tab:cyan', label = 'mid gauss mc')
+plt.plot(epsset, aLambda[4], color = 'tab:olive', label = 'end lap')
+# plt.plot(epsset, aLambda[5], color = 'tab:green', label = 'end lap mc')
+# plt.plot(epsset, aLambda[6], color = 'tab:red', label = 'end gauss')
+# plt.plot(epsset, aLambda[7], color = 'tab:pink', label = 'end gauss mc')
 plt.legend(loc = 'best')
 plt.xlabel("Value of epsilon")
-plt.ylabel("Lambda to minimise sum of unbiased estimators")
-plt.title("How epsilon affects lambda (EMNIST)")
+plt.ylabel("Lambda to minimise error of unbiased estimator")
+plt.title("How epsilon affects lambda (sum)")
 plt.savefig("Emnist_mid_lambda_sum.png")
 plt.clf()
 
-plt.plot(epsset, minPairLambda[0], color = 'tab:brown', label = 'mid lap: min')
-plt.plot(epsset, maxPairLambda[0], color = 'tab:brown', label = 'mid lap: max')
-plt.plot(epsset, minPairLambda[1], color = 'tab:purple', label = 'mid lap mc: min')
-plt.plot(epsset, maxPairLambda[1], color = 'tab:purple', label = 'mid lap mc: max')
-plt.plot(epsset, minPairLambda[2], color = 'tab:blue', label = 'mid gauss: min')
-plt.plot(epsset, maxPairLambda[2], color = 'tab:blue', label = 'mid gauss: max')
-plt.plot(epsset, minPairLambda[3], color = 'tab:cyan', label = 'mid gauss mc: min')
-plt.plot(epsset, maxPairLambda[3], color = 'tab:cyan', label = 'mid gauss mc: max')
-# plt.plot(epsset, minPairLambda[4], color = 'tab:olive', label = 'end lap: min')
-# plt.plot(epsset, maxPairLambda[4], color = 'tab:olive', label = 'end lap: max')
-# plt.plot(epsset, minPairLambda[5], color = 'tab:green', label = 'end lap mc: min')
-# plt.plot(epsset, maxPairLambda[5], color = 'tab:green', label = 'end lap mc: max')
-# plt.plot(epsset, minPairLambda[6], color = 'tab:red', label = 'end gauss: min')
-# plt.plot(epsset, maxPairLambda[6], color = 'tab:red', label = 'end gauss: max')
-# plt.plot(epsset, minPairLambda[7], color = 'tab:pink', label = 'end gauss mc: min')
-# plt.plot(epsset, maxPairLambda[7], color = 'tab:pink', label = 'end gauss mc: max')
+plt.plot(epsset, aPairLambda[0], color = 'tab:brown', label = 'mid lap: min')
+plt.plot(epsset, bPairLambda[0], color = 'tab:brown', label = 'mid lap: max')
+plt.plot(epsset, aPairLambda[1], color = 'tab:purple', label = 'mid lap mc: min')
+plt.plot(epsset, bPairLambda[1], color = 'tab:purple', label = 'mid lap mc: max')
+plt.plot(epsset, aPairLambda[2], color = 'tab:blue', label = 'mid gauss: min')
+plt.plot(epsset, bPairLambda[2], color = 'tab:blue', label = 'mid gauss: max')
+plt.plot(epsset, aPairLambda[3], color = 'tab:cyan', label = 'mid gauss mc: min')
+plt.plot(epsset, bPairLambda[3], color = 'tab:cyan', label = 'mid gauss mc: max')
+plt.plot(epsset, aPairLambda[4], color = 'tab:olive', label = 'end lap: min')
+plt.plot(epsset, bPairLambda[4], color = 'tab:olive', label = 'end lap: max')
+# plt.plot(epsset, aPairLambda[5], color = 'tab:green', label = 'end lap mc: min')
+# plt.plot(epsset, bPairLambda[5], color = 'tab:green', label = 'end lap mc: max')
+# plt.plot(epsset, aPairLambda[6], color = 'tab:red', label = 'end gauss: min')
+# plt.plot(epsset, bPairLambda[6], color = 'tab:red', label = 'end gauss: max')
+# plt.plot(epsset, aPairLambda[7], color = 'tab:pink', label = 'end gauss mc: min')
+# plt.plot(epsset, bPairLambda[7], color = 'tab:pink', label = 'end gauss mc: max')
 plt.legend(loc = 'best')
 plt.xlabel("Value of epsilon")
-plt.ylabel("Lambda to minimise unbiased estimator corresponding to min / max pair")
-plt.title("How epsilon affects lambda (EMNIST)")
+plt.ylabel("Lambda to minimise error of unbiased estimator")
+plt.title("How epsilon affects lambda (min/max pair)")
 plt.savefig("Emnist_mid_lambda_min_max.png")
 plt.clf()
 
 # PLOT SUM / ESTIMATES FOR EACH EPSILON
-plt.plot(epsset, minSum[0], color = 'tab:brown', label = 'mid lap')
-plt.plot(epsset, minSum[1], color = 'tab:purple', label = 'mid lap mc')
-plt.plot(epsset, minSum[2], color = 'tab:blue', label = 'mid gauss')
-plt.plot(epsset, minSum[3], color = 'tab:cyan', label = 'mid gauss mc')
-# plt.plot(epsset, minSum[4], color = 'tab:olive', label = 'end lap')
-# plt.plot(epsset, minSum[5], color = 'tab:green', label = 'end lap mc')
-# plt.plot(epsset, minSum[6], color = 'tab:red', label = 'end gauss')
-# plt.plot(epsset, minSum[7], color = 'tab:pink', label = 'end gauss mc')
+plt.plot(epsset, aSum[0], color = 'tab:brown', label = 'mid lap')
+plt.plot(epsset, aSum[1], color = 'tab:purple', label = 'mid lap mc')
+plt.plot(epsset, aSum[2], color = 'tab:blue', label = 'mid gauss')
+plt.plot(epsset, aSum[3], color = 'tab:cyan', label = 'mid gauss mc')
+plt.plot(epsset, aSum[4], color = 'tab:olive', label = 'end lap')
+# plt.plot(epsset, aSum[5], color = 'tab:green', label = 'end lap mc')
+# plt.plot(epsset, aSum[6], color = 'tab:red', label = 'end gauss')
+# plt.plot(epsset, aSum[7], color = 'tab:pink', label = 'end gauss mc')
 plt.legend(loc = 'best')
 plt.xlabel("Value of epsilon")
-plt.ylabel("Sum of unbiased estimators")
-plt.title("How epsilon affects sum of unbiased estimators (EMNIST)")
+plt.ylabel("Error of unbiased estimator (sum)")
+plt.title("How epsilon affects error of unbiased estimator (sum)")
 plt.savefig("Emnist_mid_est_sum.png")
 plt.clf()
 
-plt.plot(epsset, minPairEst[0], color = 'tab:brown', label = 'mid lap: min')
-plt.plot(epsset, maxPairEst[0], color = 'tab:brown', label = 'mid lap: max')
-plt.plot(epsset, minPairEst[1], color = 'tab:purple', label = 'mid lap mc: min')
-plt.plot(epsset, maxPairEst[1], color = 'tab:purple', label = 'mid lap mc: max')
-plt.plot(epsset, minPairEst[2], color = 'tab:blue', label = 'mid gauss: min')
-plt.plot(epsset, maxPairEst[2], color = 'tab:blue', label = 'mid gauss: max')
-plt.plot(epsset, minPairEst[3], color = 'tab:cyan', label = 'mid gauss mc: min')
-plt.plot(epsset, maxPairEst[3], color = 'tab:cyan', label = 'mid gauss mc: max')
-# plt.plot(epsset, minPairEst[4], color = 'tab:olive', label = 'end lap: min')
-# plt.plot(epsset, maxPairEst[4], color = 'tab:olive', label = 'end lap: max')
-# plt.plot(epsset, minPairEst[5], color = 'tab:green', label = 'end lap mc: min')
-# plt.plot(epsset, maxPairEst[5], color = 'tab:green', label = 'end lap mc: max')
-# plt.plot(epsset, minPairEst[6], color = 'tab:red', label = 'end gauss: min')
-# plt.plot(epsset, maxPairEst[6], color = 'tab:red', label = 'end gauss: max')
-# plt.plot(epsset, minPairEst[7], color = 'tab:pink', label = 'end gauss mc: min')
-# plt.plot(epsset, maxPairEst[7], color = 'tab:pink', label = 'end gauss mc: max')
+plt.plot(epsset, aPairEst[0], color = 'tab:brown', label = 'mid lap: min')
+plt.plot(epsset, bPairEst[0], color = 'tab:brown', label = 'mid lap: max')
+plt.plot(epsset, aPairEst[1], color = 'tab:purple', label = 'mid lap mc: min')
+plt.plot(epsset, bPairEst[1], color = 'tab:purple', label = 'mid lap mc: max')
+plt.plot(epsset, aPairEst[2], color = 'tab:blue', label = 'mid gauss: min')
+plt.plot(epsset, bPairEst[2], color = 'tab:blue', label = 'mid gauss: max')
+plt.plot(epsset, aPairEst[3], color = 'tab:cyan', label = 'mid gauss mc: min')
+plt.plot(epsset, bPairEst[3], color = 'tab:cyan', label = 'mid gauss mc: max')
+plt.plot(epsset, aPairEst[4], color = 'tab:olive', label = 'end lap: min')
+plt.plot(epsset, bPairEst[4], color = 'tab:olive', label = 'end lap: max')
+# plt.plot(epsset, aPairEst[5], color = 'tab:green', label = 'end lap mc: min')
+# plt.plot(epsset, bPairEst[5], color = 'tab:green', label = 'end lap mc: max')
+# plt.plot(epsset, aPairEst[6], color = 'tab:red', label = 'end gauss: min')
+# plt.plot(epsset, bPairEst[6], color = 'tab:red', label = 'end gauss: max')
+# plt.plot(epsset, aPairEst[7], color = 'tab:pink', label = 'end gauss mc: min')
+# plt.plot(epsset, bPairEst[7], color = 'tab:pink', label = 'end gauss mc: max')
 plt.legend(loc = 'best')
 plt.xlabel("Value of epsilon")
-plt.ylabel("Unbiased estimator corresponding to min / max pair")
-plt.title("How epsilon affects unbiased estimator corresponding to min / max pair (EMNIST)")
+plt.ylabel("Error of unbiased estimator (min/max pair)")
+plt.title("How epsilon affects error of unbiased estimator (min/max pair)")
 plt.savefig("Emnist_mid_est_min_max.png")
 plt.clf()
 
 # PLOT RANKING PRESERVATIONS FOR EACH EPSILON
-plt.plot(epsset, rPercTopKLD[0], color = 'tab:brown', label = 'mid lap: top 10%')
-plt.plot(epsset, rPercBottomKLD[0], color = 'tab:brown', label = 'mid lap: bottom 10%')
-plt.plot(epsset, rPercTopKLD[1], color = 'tab:purple', label = 'mid lap mc: top 10%')
-plt.plot(epsset, rPercBottomKLD[1], color = 'tab:purple', label = 'mid lap mc: bottom 10%')
-plt.plot(epsset, rPercTopKLD[2], color = 'tab:blue', label = 'mid gauss: top 10%')
-plt.plot(epsset, rPercBottomKLD[2], color = 'tab:blue', label = 'mid gauss: bottom 10%')
-plt.plot(epsset, rPercTopKLD[3], color = 'tab:cyan', label = 'mid gauss mc: top 10%')
-plt.plot(epsset, rPercBottomKLD[3], color = 'tab:cyan', label = 'mid gauss mc: bottom 10%')
-# plt.plot(epsset, rPercTopKLD[4], color = 'tab:olive', label = 'end lap: top 10%')
-# plt.plot(epsset, rPercBottomKLD[4], color = 'tab:olive', label = 'end lap: bottom 10%')
-# plt.plot(epsset, rPercTopKLD[5], color = 'tab:green', label = 'end lap mc: top 10%')
-# plt.plot(epsset, rPercBottomKLD[5], color = 'tab:green', label = 'end lap mc: bottom 10%')
-# plt.plot(epsset, rPercTopKLD[6], color = 'tab:red', label = 'end gauss: top 10%')
-# plt.plot(epsset, rPercBottomKLD[6], color = 'tab:red', label = 'end gauss: bottom 10%')
-# plt.plot(epsset, rPercTopKLD[7], color = 'tab:pink', label = 'end gauss mc: top 10%')
-# plt.plot(epsset, rPercBottomKLD[7], color = 'tab:pink', label = 'end gauss mc: bottom 10%')
+plt.plot(epsset, aPercTop[0], color = 'tab:brown', label = 'mid lap: top 10%')
+plt.plot(epsset, aPercBottom[0], color = 'tab:brown', label = 'mid lap: bottom 10%')
+plt.plot(epsset, aPercTop[1], color = 'tab:purple', label = 'mid lap mc: top 10%')
+plt.plot(epsset, aPercBottom[1], color = 'tab:purple', label = 'mid lap mc: bottom 10%')
+plt.plot(epsset, aPercTop[2], color = 'tab:blue', label = 'mid gauss: top 10%')
+plt.plot(epsset, aPercBottom[2], color = 'tab:blue', label = 'mid gauss: bottom 10%')
+plt.plot(epsset, aPercTop[3], color = 'tab:cyan', label = 'mid gauss mc: top 10%')
+plt.plot(epsset, aPercBottom[3], color = 'tab:cyan', label = 'mid gauss mc: bottom 10%')
+plt.plot(epsset, aPercTop[4], color = 'tab:olive', label = 'end lap: top 10%')
+plt.plot(epsset, aPercBottom[4], color = 'tab:olive', label = 'end lap: bottom 10%')
+# plt.plot(epsset, aPercTop[5], color = 'tab:green', label = 'end lap mc: top 10%')
+# plt.plot(epsset, aPercBottom[5], color = 'tab:green', label = 'end lap mc: bottom 10%')
+# plt.plot(epsset, aPercTop[6], color = 'tab:red', label = 'end gauss: top 10%')
+# plt.plot(epsset, aPercBottom[6], color = 'tab:red', label = 'end gauss: bottom 10%')
+# plt.plot(epsset, aPercTop[7], color = 'tab:pink', label = 'end gauss mc: top 10%')
+# plt.plot(epsset, aPercBottom[7], color = 'tab:pink', label = 'end gauss mc: bottom 10%')
 plt.legend(loc = 'best')
 plt.xlabel("Value of epsilon")
 plt.ylabel(f"% staying in top/bottom half")
-plt.title("Ranking preservation for ratio between exact and estimated KLD")
+plt.title("Ranking preservation for true distribution")
 plt.savefig("Emnist_mid_perc_ratio.png")
 plt.clf()
 
-plt.plot(epsset, sumPercTopKLD[0], color = 'tab:brown', label = 'mid lap: top 10%')
-plt.plot(epsset, sumPercBottomKLD[0], color = 'tab:brown', label = 'mid lap: bottom 10%')
-plt.plot(epsset, sumPercTopKLD[1], color = 'tab:purple', label = 'mid lap mc: top 10%')
-plt.plot(epsset, sumPercBottomKLD[1], color = 'tab:purple', label = 'mid lap mc: bottom 10%')
-plt.plot(epsset, sumPercTopKLD[2], color = 'tab:blue', label = 'mid gauss: top 10%')
-plt.plot(epsset, sumPercBottomKLD[2], color = 'tab:blue', label = 'mid gauss: bottom 10%')
-plt.plot(epsset, sumPercTopKLD[3], color = 'tab:cyan', label = 'mid gauss mc: top 10%')
-plt.plot(epsset, sumPercBottomKLD[3], color = 'tab:cyan', label = 'mid gauss mc: bottom 10%')
-# plt.plot(epsset, sumPercTopKLD[4], color = 'tab:olive', label = 'end lap: top 10%')
-# plt.plot(epsset, sumPercBottomKLD[4], color = 'tab:olive', label = 'end lap: bottom 10%')
-# plt.plot(epsset, sumPercTopKLD[5], color = 'tab:green', label = 'end lap mc: top 10%')
-# plt.plot(epsset, sumPercBottomKLD[5], color = 'tab:green', label = 'end lap mc: bottom 10%')
-# plt.plot(epsset, sumPercTopKLD[6], color = 'tab:red', label = 'end gauss: top 10%')
-# plt.plot(epsset, sumPercBottomKLD[6], color = 'tab:red', label = 'end gauss: bottom 10%')
-# plt.plot(epsset, sumPercTopKLD[7], color = 'tab:pink', label = 'end gauss mc: top 10%')
-# plt.plot(epsset, sumPercBottomKLD[7], color = 'tab:pink', label = 'end gauss mc: bottom 10%')
+plt.plot(epsset, bPercTop[0], color = 'tab:brown', label = 'mid lap: top 10%')
+plt.plot(epsset, bPercBottom[0], color = 'tab:brown', label = 'mid lap: bottom 10%')
+plt.plot(epsset, bPercTop[1], color = 'tab:purple', label = 'mid lap mc: top 10%')
+plt.plot(epsset, bPercBottom[1], color = 'tab:purple', label = 'mid lap mc: bottom 10%')
+plt.plot(epsset, bPercTop[2], color = 'tab:blue', label = 'mid gauss: top 10%')
+plt.plot(epsset, bPercBottom[2], color = 'tab:blue', label = 'mid gauss: bottom 10%')
+plt.plot(epsset, bPercTop[3], color = 'tab:cyan', label = 'mid gauss mc: top 10%')
+plt.plot(epsset, bPercBottom[3], color = 'tab:cyan', label = 'mid gauss mc: bottom 10%')
+plt.plot(epsset, bPercTop[4], color = 'tab:olive', label = 'end lap: top 10%')
+plt.plot(epsset, bPercBottom[4], color = 'tab:olive', label = 'end lap: bottom 10%')
+# plt.plot(epsset, bPercTop[5], color = 'tab:green', label = 'end lap mc: top 10%')
+# plt.plot(epsset, bPercBottom[5], color = 'tab:green', label = 'end lap mc: bottom 10%')
+# plt.plot(epsset, bPercTop[6], color = 'tab:red', label = 'end gauss: top 10%')
+# plt.plot(epsset, bPercBottom[6], color = 'tab:red', label = 'end gauss: bottom 10%')
+# plt.plot(epsset, bPercTop[7], color = 'tab:pink', label = 'end gauss mc: top 10%')
+# plt.plot(epsset, bPercBottom[7], color = 'tab:pink', label = 'end gauss mc: bottom 10%')
 plt.legend(loc = 'best')
 plt.xlabel("Value of epsilon")
 plt.ylabel(f"% staying in top / bottom half")
-plt.title("Ranking preservation for sum of unbiased estimators (EMNIST)")
+plt.title("Ranking preservation for error of unbiased estimator (sum)")
 plt.savefig("Emnist_mid_perc_sum.png")
 plt.clf()
 
-plt.plot(epsset, minPercTopKLD[0], color = 'tab:brown', label = 'mid lap: top 10%')
-plt.plot(epsset, minPercBottomKLD[0], color = 'tab:brown', label = 'mid lap: bottom 10%')
-plt.plot(epsset, minPercTopKLD[1], color = 'tab:purple', label = 'mid lap mc: top 10%')
-plt.plot(epsset, minPercBottomKLD[1], color = 'tab:purple', label = 'mid lap mc: bottom 10%')
-plt.plot(epsset, minPercTopKLD[2], color = 'tab:blue', label = 'mid gauss: top 10%')
-plt.plot(epsset, minPercBottomKLD[2], color = 'tab:blue', label = 'mid gauss: bottom 10%')
-plt.plot(epsset, minPercTopKLD[3], color = 'tab:cyan', label = 'mid gauss mc: top 10%')
-plt.plot(epsset, minPercBottomKLD[3], color = 'tab:cyan', label = 'mid gauss mc: bottom 10%')
-# plt.plot(epsset, minPercTopKLD[4], color = 'tab:olive', label = 'end lap: top 10%')
-# plt.plot(epsset, minPercBottomKLD[4], color = 'tab:olive', label = 'end lap: bottom 10%')
-# plt.plot(epsset, minPercTopKLD[5], color = 'tab:green', label = 'end lap mc: top 10%')
-# plt.plot(epsset, minPercBottomKLD[5], color = 'tab:green', label = 'end lap mc: bottom 10%')
-# plt.plot(epsset, minPercTopKLD[6], color = 'tab:red', label = 'end gauss: top 10%')
-# plt.plot(epsset, minPercBottomKLD[6], color = 'tab:red', label = 'end gauss: bottom 10%')
-# plt.plot(epsset, minPercTopKLD[7], color = 'tab:pink', label = 'end gauss mc: top 10%')
-# plt.plot(epsset, minPercBottomKLD[7], color = 'tab:pink', label = 'end gauss mc: bottom 10%')
+plt.plot(epsset, cPercTop[0], color = 'tab:brown', label = 'mid lap: top 10%')
+plt.plot(epsset, cPercBottom[0], color = 'tab:brown', label = 'mid lap: bottom 10%')
+plt.plot(epsset, cPercTop[1], color = 'tab:purple', label = 'mid lap mc: top 10%')
+plt.plot(epsset, cPercBottom[1], color = 'tab:purple', label = 'mid lap mc: bottom 10%')
+plt.plot(epsset, cPercTop[2], color = 'tab:blue', label = 'mid gauss: top 10%')
+plt.plot(epsset, cPercBottom[2], color = 'tab:blue', label = 'mid gauss: bottom 10%')
+plt.plot(epsset, cPercTop[3], color = 'tab:cyan', label = 'mid gauss mc: top 10%')
+plt.plot(epsset, cPercBottom[3], color = 'tab:cyan', label = 'mid gauss mc: bottom 10%')
+plt.plot(epsset, cPercTop[4], color = 'tab:olive', label = 'end lap: top 10%')
+plt.plot(epsset, cPercBottom[4], color = 'tab:olive', label = 'end lap: bottom 10%')
+# plt.plot(epsset, cPercTop[5], color = 'tab:green', label = 'end lap mc: top 10%')
+# plt.plot(epsset, cPercBottom[5], color = 'tab:green', label = 'end lap mc: bottom 10%')
+# plt.plot(epsset, cPercTop[6], color = 'tab:red', label = 'end gauss: top 10%')
+# plt.plot(epsset, cPercBottom[6], color = 'tab:red', label = 'end gauss: bottom 10%')
+# plt.plot(epsset, cPercTop[7], color = 'tab:pink', label = 'end gauss mc: top 10%')
+# plt.plot(epsset, cPercBottom[7], color = 'tab:pink', label = 'end gauss mc: bottom 10%')
 plt.legend(loc = 'best')
 plt.xlabel("Value of epsilon")
 plt.ylabel(f"% staying in top / bottom half")
-plt.title("Ranking preservation for unbiased estimator corresponding to min pair (EMNIST)")
+plt.title("Ranking preservation for error of unbiased estimator (min pair)")
 plt.savefig("Emnist_mid_perc_min.png")
 plt.clf()
 
-plt.plot(epsset, maxPercTopKLD[0], color = 'tab:brown', label = 'mid lap: top 10%')
-plt.plot(epsset, maxPercBottomKLD[0], color = 'tab:brown', label = 'mid lap: bottom 10%')
-plt.plot(epsset, maxPercTopKLD[1], color = 'tab:purple', label = 'mid lap mc: top 10%')
-plt.plot(epsset, maxPercBottomKLD[1], color = 'tab:purple', label = 'mid lap mc: bottom 10%')
-plt.plot(epsset, maxPercTopKLD[2], color = 'tab:blue', label = 'mid gauss: top 10%')
-plt.plot(epsset, maxPercBottomKLD[2], color = 'tab:blue', label = 'mid gauss: bottom 10%')
-plt.plot(epsset, maxPercTopKLD[3], color = 'tab:cyan', label = 'mid gauss mc: top 10%')
-plt.plot(epsset, maxPercBottomKLD[3], color = 'tab:cyan', label = 'mid gauss mc: bottom 10%')
-# plt.plot(epsset, maxPercTopKLD[4], color = 'tab:olive', label = 'end lap: top 10%')
-# plt.plot(epsset, maxPercBottomKLD[4], color = 'tab:olive', label = 'end lap: bottom 10%')
-# plt.plot(epsset, maxPercTopKLD[5], color = 'tab:green', label = 'end lap mc: top 10%')
-# plt.plot(epsset, maxPercBottomKLD[5], color = 'tab:green', label = 'end lap mc: bottom 10%')
-# plt.plot(epsset, maxPercTopKLD[6], color = 'tab:red', label = 'end gauss: top 10%')
-# plt.plot(epsset, maxPercBottomKLD[6], color = 'tab:red', label = 'end gauss: bottom 10%')
-# plt.plot(epsset, maxPercTopKLD[7], color = 'tab:pink', label = 'end gauss mc: top 10%')
-# plt.plot(epsset, maxPercBottomKLD[7], color = 'tab:pink', label = 'end gauss mc: bottom 10%')
+plt.plot(epsset, dPercTop[0], color = 'tab:brown', label = 'mid lap: top 10%')
+plt.plot(epsset, dPercBottom[0], color = 'tab:brown', label = 'mid lap: bottom 10%')
+plt.plot(epsset, dPercTop[1], color = 'tab:purple', label = 'mid lap mc: top 10%')
+plt.plot(epsset, dPercBottom[1], color = 'tab:purple', label = 'mid lap mc: bottom 10%')
+plt.plot(epsset, dPercTop[2], color = 'tab:blue', label = 'mid gauss: top 10%')
+plt.plot(epsset, dPercBottom[2], color = 'tab:blue', label = 'mid gauss: bottom 10%')
+plt.plot(epsset, dPercTop[3], color = 'tab:cyan', label = 'mid gauss mc: top 10%')
+plt.plot(epsset, dPercBottom[3], color = 'tab:cyan', label = 'mid gauss mc: bottom 10%')
+plt.plot(epsset, dPercTop[4], color = 'tab:olive', label = 'end lap: top 10%')
+plt.plot(epsset, dPercBottom[4], color = 'tab:olive', label = 'end lap: bottom 10%')
+# plt.plot(epsset, dPercTop[5], color = 'tab:green', label = 'end lap mc: top 10%')
+# plt.plot(epsset, dPercBottom[5], color = 'tab:green', label = 'end lap mc: bottom 10%')
+# plt.plot(epsset, dPercTop[6], color = 'tab:red', label = 'end gauss: top 10%')
+# plt.plot(epsset, dPercBottom[6], color = 'tab:red', label = 'end gauss: bottom 10%')
+# plt.plot(epsset, dPercTop[7], color = 'tab:pink', label = 'end gauss mc: top 10%')
+# plt.plot(epsset, dPercBottom[7], color = 'tab:pink', label = 'end gauss mc: bottom 10%')
 plt.legend(loc = 'best')
 plt.xlabel("Value of epsilon")
 plt.ylabel(f"% staying in top / bottom half")
-plt.title("Ranking preservation for unbiased estimator corresponding to max pair (EMNIST)")
+plt.title("Ranking preservation for error of unbiased estimator (max pair)")
 plt.savefig("Emnist_mid_perc_max.png")
 
 # COMPUTE TOTAL RUNTIME IN MINUTES AND SECONDS
