@@ -351,13 +351,13 @@ for trial in range(5):
                     # COMPUTE RATIO BETWEEN EXACT AND ESTIMATED KLD
                     ratio = abs(sum(eKLDiv[C, D, j]) / sum(KLDiv[C, D]))
 
-                    # COMPUTE TRUE DISTRIBUTION
-                    trueDist = abs(sum(eKLDiv[C, D, j]) * log(ratio))
-
                     # ELIMINATE ALL DIVIDE BY ZERO ERRORS
                     if ratio != 0.0 and sum(KLDiv[C, D]) != 0.0:
                         rKList.append(ratio)
                         rCDList.append((C, D))
+
+                        # COMPUTE TRUE DISTRIBUTION
+                        trueDist = abs(sum(eKLDiv[C, D, j]) * log(ratio))
                         tKList.append(trueDist)
 
                         # WAIT UNTIL FINAL DIGIT PAIR (9, 8) TO ANALYSE EXACT KLD LIST
