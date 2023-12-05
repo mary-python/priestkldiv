@@ -513,8 +513,8 @@ for trial in range(4):
                 orderfile.write("EMNIST: Exact KL Divergence In Order\n")
                 orderfile.write("Smaller corresponds to more similar digits\n\n")
 
-            for i in orderedKLDict:
-                orderfile.write(f"{i} : {orderedKLDict[i]}\n")
+                for i in orderedKLDict:
+                    orderfile.write(f"{i} : {orderedKLDict[i]}\n")
 
             # COMPUTE RANKING PRESERVATION STATISTICS FOR EACH REPEAT
             tKLDict = dict(zip(tKList, tCDList))
