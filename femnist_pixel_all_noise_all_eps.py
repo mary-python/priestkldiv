@@ -1,17 +1,13 @@
-"""Modules provide various time-related functions, generate pseudo-random numbers,
-compute the natural logarithm of a number, remember the order in which items are added,
-have cool visual feedback of the current throughput, create static, animated,
-and interactive visualisations, provide functionality to automatically download
-and cache the EMNIST dataset, compute the mean of a list quickly and accurately,
-work with arrays, and carry out fast numerical computations in Python."""
+"""Modules provide various time-related functions, compute the natural logarithm of a number, 
+remember the order in which items are added, create static, animated, and interactive visualisations,
+compute the mean of a list quickly and accurately, provide both a high- and low-level interface to
+the HDF5 library, work with arrays, and carry out fast numerical computations in Python."""
 import time
-import random
 from math import log
 from collections import OrderedDict
-from alive_progress import alive_bar
 import matplotlib.pyplot as plt
-from emnist import extract_training_samples, extract_test_samples
 from statistics import fmean
+import h5py
 import numpy as np
 import tensorflow as tf
 import tensorflow_probability as tfp
@@ -19,169 +15,231 @@ np.set_printoptions(suppress = True)
 np.seterr(divide = 'ignore', invalid = 'ignore')
 tf.random.set_seed(638)
 
-# INITIALISING START TIME AND SEED FOR RANDOM SAMPLING
+# initialising start time and seed for random sampling
 startTime = time.perf_counter()
 print("\nStarting...")
-random.seed(3249583)
 np.random.seed(107642)
 
-# LOAD TRAINING AND TEST SAMPLES FOR 'DIGITS' SUBSET
-images1, labels1 = extract_training_samples('digits')
-images2, labels2 = extract_test_samples('digits')
+# from HDF5-FEMNIST by Xiao-Chenguang
+# https://github.com/Xiao-Chenguang/HDF5-FEMNIST
+# enables easy access and fast loading to the FEMNIST dataset from LEAF with the help of HDF5
 
-# COMBINE TRAINING AND TEST SAMPLES INTO ONE NP ARRAY
-images = np.concatenate((images1, images2))
-labels = np.concatenate((labels1, labels2))
-print("Loading training and test samples...")
+# fetch HDF5 file from current directory
+PATH = './data/write_all.hdf5'
+file = h5py.File(PATH, 'r')
 
-# NUMPY ARRAYS TO STORE LABELS ASSOCIATED WITH WHICH DIGIT
-digitSet = np.zeros((10, 28000), dtype = int)
-digitIndexSet = np.zeros((10, 28000), dtype = int)
+# create list storing images and labels of each writer
+writers = sorted(file.keys())
+numWriters = len(writers)
+numSampledWriters = int(numWriters / 20)
 
-# KEEP TRACK OF HOW MANY OF EACH DIGIT (AND TOTAL) ARE PROCESSED
-digitCount = np.zeros(10, dtype = int)
+# randomly sample 5% of writers without replacement
+sampledWriters = np.random.choice(numWriters, numSampledWriters, replace = False)
+totalDigits = np.zeros(10, dtype = int)
+
+# add up how many times each digit is featured
+print("Preprocessing images...")
+for i in sampledWriters:
+    tempDataset = file[writers[i]]
+
+    for pic in range(len(tempDataset['labels'])):
+
+        for count in range(10):
+            if tempDataset['labels'][pic] == count:
+                totalDigits[count] = totalDigits[count] + 1
+
+# create image store of appropriate dimensions for each digit
+zeroSet = np.ones((totalDigits[0], 4, 4), dtype = int)
+oneSet = np.ones((totalDigits[1], 4, 4), dtype = int)
+twoSet = np.ones((totalDigits[2], 4, 4), dtype = int)
+threeSet = np.ones((totalDigits[3], 4, 4), dtype = int)
+fourSet = np.ones((totalDigits[4], 4, 4), dtype = int)
+fiveSet = np.ones((totalDigits[5], 4, 4), dtype = int)
+sixSet = np.ones((totalDigits[6], 4, 4), dtype = int)
+sevenSet = np.ones((totalDigits[7], 4, 4), dtype = int)
+eightSet = np.ones((totalDigits[8], 4, 4), dtype = int)
+nineSet = np.ones((totalDigits[9], 4, 4), dtype = int)
+
+# to store condensed image and frequency of each digit
+smallPic = np.ones((4, 4), dtype = int)
+digCount = np.zeros(10, dtype = int)
+
+def add_digit(dset):
+    """Method to add digit to set corresponding to label."""
+    dset[digCount[label]] = smallPic
+
+for i in sampledWriters:
+
+    tempDataset = file[writers[i]]
+    PIC_COUNT = 0
+
+    for pic in tempDataset['images']:
+
+        # partition each image into 16 7x7 subimages
+        for a in range(4):
+            for b in range(4):
+                subImage = pic[7*a : 7*(a + 1), 7*b : 7*(b + 1)]
+
+                # save rounded mean of each subimage into corresponding cell of smallpic
+                meanSubImage = np.mean(subImage)
+                if meanSubImage == 255:
+                    smallPic[a, b] = 1
+                else:
+                    smallPic[a, b] = 0
+
+        label = tempDataset['labels'][PIC_COUNT]
+
+        # split images according to label
+        if label == 0:
+            add_digit(zeroSet)
+        elif label == 1:
+            add_digit(oneSet)
+        elif label == 2:
+            add_digit(twoSet)
+        elif label == 3:
+            add_digit(threeSet)
+        elif label == 4:
+            add_digit(fourSet)
+        elif label == 5:
+            add_digit(fiveSet)
+        elif label == 6:
+            add_digit(sixSet)
+        elif label == 7:
+            add_digit(sevenSet)
+        elif label == 8:
+            add_digit(eightSet)
+        elif label == 9:
+            add_digit(nineSet)
+
+        digCount[label] = digCount[label] + 1
+        PIC_COUNT = PIC_COUNT + 1
+
+# store frequency of unique images corresponding to each digit
+sizeUSet = np.zeros(11)
+
+def unique_images(dg, dset):
+    """Method to return unique images of set corresponding to digit."""
+    uset = np.unique(dset, axis = 0)
+    sizeUSet[dg] = len(uset)
+    return uset
+
+uZeroSet = unique_images(0, zeroSet)
+uOneSet = unique_images(1, oneSet)
+uTwoSet = unique_images(2, twoSet)
+uThreeSet = unique_images(3, threeSet)
+uFourSet = unique_images(4, fourSet)
+uFiveSet = unique_images(5, fiveSet)
+uSixSet = unique_images(6, sixSet)
+uSevenSet = unique_images(7, sevenSet)
+uEightSet = unique_images(8, eightSet)
+uNineSet = unique_images(9, nineSet)
+
+# store frequency of unique images in total
+uTotalSet = np.ones((1124, 4, 4), dtype = int)
 TOTAL_COUNT = 0
 
-def add_digit(dg, im, imset, ixset, count, tc):
-    """Method adds digit to set, index to index set and increments count."""
-    imset[dg, count[dg]] = im
-    ixset[dg, count[dg]] = tc
-    count[dg] = count[dg] + 1
+def total_set(uset, tset, tcount):
+    """Method to add each of the unique images for each digit."""
+    for im in uset:
+        tset[tcount] = im
+        tcount = tcount + 1
+    return tcount
 
-# SPLIT NUMBERS 0-9
-for digit in labels:
+TOTAL_COUNT = total_set(uZeroSet, uTotalSet, TOTAL_COUNT)
+TOTAL_COUNT = total_set(uOneSet, uTotalSet, TOTAL_COUNT)
+TOTAL_COUNT = total_set(uTwoSet, uTotalSet, TOTAL_COUNT)
+TOTAL_COUNT = total_set(uThreeSet, uTotalSet, TOTAL_COUNT)
+TOTAL_COUNT = total_set(uFourSet, uTotalSet, TOTAL_COUNT)
+TOTAL_COUNT = total_set(uFiveSet, uTotalSet, TOTAL_COUNT)
+TOTAL_COUNT = total_set(uSixSet, uTotalSet, TOTAL_COUNT)
+TOTAL_COUNT = total_set(uSevenSet, uTotalSet, TOTAL_COUNT)
+TOTAL_COUNT = total_set(uEightSet, uTotalSet, TOTAL_COUNT)
+TOTAL_COUNT = total_set(uNineSet, uTotalSet, TOTAL_COUNT)
 
-    # CALL FUNCTION DEFINED ABOVE
-    add_digit(digit, digit, digitSet, digitIndexSet, digitCount, TOTAL_COUNT)
-    TOTAL_COUNT = TOTAL_COUNT + 1
+uTotalSet = unique_images(10, uTotalSet)
 
-print("Splitting numbers 0-9...")
+# domain for each digit distribution is number of unique images
+U = 338
 
-# SIMILAR ARRAYS TO STORE CONDENSED IMAGES ASSOCIATED WITH EACH DIGIT
-smallPic = np.zeros((4, 4))
-digitImSet = np.zeros((10, 28000, 4, 4))
-digitImIxSet = np.zeros((10, 28000), dtype = int)
-
-# KEEP TRACK OF HOW MANY OF EACH IMAGE (AND TOTAL) ARE PROCESSED
-digitImCount = np.zeros(10, dtype = int)
-IMAGE_COUNT = 0
-
-print("\nPreprocessing images...")
-
-with alive_bar(len(images)) as bar:
-    for pic in images:
-
-        # PARTITION EACH IMAGE INTO 16 7x7 SUBIMAGES
-        for i in range(4):
-            for j in range(4):
-                subImage = pic[7*i : 7*(i + 1), 7*j : 7*(j + 1)]
-
-                # SAVE ROUNDED MEAN OF EACH SUBIMAGE INTO CORRESPONDING CELL OF SMALLPIC
-                meanSubImage = np.mean(subImage)
-                if meanSubImage >= 128:
-                    smallPic[i, j] = 1
-                else:
-                    smallPic[i, j] = 0
-
-        # SPLIT IMAGES BY ASSOCIATION WITH PARTICULAR LABEL
-        for digit in range(0, 10):
-            if IMAGE_COUNT in digitIndexSet[digit]:
-                add_digit(digit, smallPic, digitImSet, digitImIxSet, digitImCount, IMAGE_COUNT)
-                break
-
-        IMAGE_COUNT = IMAGE_COUNT + 1
-        bar()
-
-# NUMBER OF REPEATS COVERS APPROX 5% OF IMAGES
-T = 1400
-
-# STORE T IMAGES CORRESPONDING TO EACH DIGIT
-sampleImSet = np.zeros((10, T, 4, 4))
-sampleImList = np.zeros((14000, 4, 4))
-sizeUniqueImSet = np.zeros(10)
-OVERALL_COUNT = 0
-
-print("\nFinding unique images...")
-
-for D in range(0, 10):
-
-    # RANDOMLY SAMPLE T INDICES FROM EACH DIGIT SET
-    randomIndices = random.sample(range(0, 28000), T)
-    SAMPLE_COUNT = 0
-
-    for index in randomIndices:
-
-        # EXTRACT EACH IMAGE CORRESPONDING TO EACH OF THE T INDICES AND SAVE IN NEW STRUCTURE
-        randomImage = digitImSet[D, index]
-        sampleImSet[D, SAMPLE_COUNT] = randomImage
-        sampleImList[OVERALL_COUNT] = randomImage
-        SAMPLE_COUNT = SAMPLE_COUNT + 1
-        OVERALL_COUNT = OVERALL_COUNT + 1
-
-    # FIND COUNTS OF ALL UNIQUE IMAGES IN SAMPLE IMAGE SET
-    uniqueImSet = np.unique(sampleImSet[D], axis = 0)
-    sizeUniqueImSet[D] = len(uniqueImSet)
-
-# FIND COUNTS OF UNIQUE IMAGES IN SAMPLE IMAGE LIST
-uniqueImList = np.unique(sampleImList, axis = 0)
-sizeUniqueImList = len(uniqueImList)
-
-# DOMAIN FOR EACH DIGIT DISTRIBUTION IS NUMBER OF UNIQUE IMAGES
-U = 207
-
-# FIND AND STORE FREQUENCIES OF UNIQUE IMAGES FOR EACH DIGIT
-uImageSet = np.zeros((10, U, 4, 4))
+# find and store frequencies of unique images for each digit
+uImageSet = np.ones((10, U, 4, 4))
 uFreqSet = np.zeros((10, U))
 uProbsSet = np.zeros((10, U))
+T1 = 11*numSampledWriters # change this term so probabilities add up to 1
 
 print("Creating probability distributions...")
 
-# SMOOTHING PARAMETER: 0.1 AND 1 ARE TOO LARGE
+# smoothing parameter: 0.1 and 1 are too large
 ALPHA = 0.01
+
+def smoothed_prob(dset, dig, im, ucount):
+    """Method to compute frequencies of unique images and return smoothed probabilities."""
+    where = np.where(np.all(im == dset, axis = (1, 2)))
+    freq = len(where[0])
+    uImageSet[dig, ucount] = im
+    uFreqSet[dig, ucount] = int(freq)
+    uProbsSet[dig, ucount] = float((freq + ALPHA)/(T1 + (ALPHA*(digCount[dig]))))
 
 for D in range(0, 10):
     UNIQUE_COUNT = 0
 
-    # STORE IMAGE AND SMOOTHED PROBABILITY AS WELL AS FREQUENCY
-    for image in uniqueImList:
-        where = np.where(np.all(image == sampleImSet[D], axis = (1, 2)))
-        freq = len(where[0])
-        uImageSet[D, UNIQUE_COUNT] = image
-        uFreqSet[D, UNIQUE_COUNT] = int(freq)
-        uProbsSet[D, UNIQUE_COUNT] = float((freq + ALPHA)/(T + (ALPHA*(sizeUniqueImSet[D]))))
+    # store image and smoothed probability as well as frequency
+    for image in uTotalSet:
+        if D == 0:
+            smoothed_prob(zeroSet, 0, image, UNIQUE_COUNT)
+        elif D == 1:
+            smoothed_prob(oneSet, 1, image, UNIQUE_COUNT)
+        elif D == 2:
+            smoothed_prob(twoSet, 2, image, UNIQUE_COUNT)
+        elif D == 3:
+            smoothed_prob(threeSet, 3, image, UNIQUE_COUNT)
+        elif D == 4:
+            smoothed_prob(fourSet, 4, image, UNIQUE_COUNT)
+        elif D == 5:
+            smoothed_prob(fiveSet, 5, image, UNIQUE_COUNT)
+        elif D == 6:
+            smoothed_prob(sixSet, 6, image, UNIQUE_COUNT)
+        elif D == 7:
+            smoothed_prob(sevenSet, 7, image, UNIQUE_COUNT)
+        elif D == 8:
+            smoothed_prob(eightSet, 8, image, UNIQUE_COUNT)
+        elif D == 9:
+            smoothed_prob(nineSet, 9, image, UNIQUE_COUNT)
+
         UNIQUE_COUNT = UNIQUE_COUNT + 1
 
-# FOR K3 ESTIMATOR (SCHULMAN) TAKE A SMALL SAMPLE OF UNIQUE IMAGES
-E = 10
+# for k3 estimator (Schulman) take a small sample of unique images
+E = 17
 
-# STORE IMAGES, FREQUENCIES AND PROBABILITIES FOR THIS SUBSET
+# store images, frequencies and probabilities for this subset
 eImageSet = np.ones((10, E, 4, 4))
 eFreqSet = np.zeros((10, E))
 eProbsSet = np.zeros((10, E))
 eTotalFreq = np.zeros(10)
 
 uSampledSet = np.random.choice(U, E, replace = False)
+T2 = (11/3)*numSampledWriters*(E/U) # change this term so probabilities add up to 1
 
-# BORROW DATA FROM CORRESPONDING INDICES OF MAIN IMAGE AND FREQUENCY SETS
+# borrow data from corresponding indices of main image and frequency sets
 for D in range(0, 10):
     for i in range(E):
         eImageSet[D, i] = uImageSet[D, uSampledSet[i]]
         eFreqSet[D, i] = uFreqSet[D, uSampledSet[i]]
         eTotalFreq[D] = sum(eFreqSet[D])
-        eProbsSet[D, i] = float((eFreqSet[D, i] + ALPHA)/(T + (ALPHA*(eTotalFreq[D]))))
+        eProbsSet[D, i] = float((eFreqSet[D, i] + ALPHA)/(T2 + (ALPHA*(eTotalFreq[D]))))
 
-# PARAMETERS FOR THE ADDITION OF LAPLACE AND GAUSSIAN NOISE
+# parameters for the addition of Laplace and Gaussian noise
 DTA = 0.1
 A = 0
 R = 10
 
-# LISTS OF THE VALUES OF EPSILON AND TRIALS THAT WILL BE RUN
+# lists of the values of epsilon and trials that will be run
 epsset = [0.001, 0.025, 0.05, 0.1, 0.2, 0.4, 0.8, 1, 1.5, 2, 3, 4]
 trialset = ["mid_lap", "mid_lap_mc", "mid_gauss", "mid_gauss_mc", "end_lap", "end_lap_mc", "end_gauss", "end_gauss_mc"]
 ES = len(epsset)
 TS = len(trialset)
 
-# STORES FOR SUM, MIN/MAX KLD AND LAMBDA
+# stores for sum, min/max KLD and lambda
 minSum = np.zeros((TS, ES, R))
 minPairEst = np.zeros((TS, ES, R))
 maxPairEst = np.zeros((TS, ES, R))
@@ -196,7 +254,7 @@ aLambda = np.zeros((TS, ES))
 aPairLambda = np.zeros((TS, ES))
 bPairLambda = np.zeros((TS, ES))
 
-# STORES FOR RANKING PRESERVATION ANALYSIS
+# stores for ranking preservation analysis
 tPercTop = np.zeros((TS, ES, R))
 tPercBottom = np.zeros((TS, ES, R))
 sumPercTop = np.zeros((TS, ES, R))
@@ -226,21 +284,21 @@ for trial in range(4):
 
             print(f"Trial {trial + 1}: epsilon = {eps}, repeat = {rep + 1}...")
 
-            # STORES FOR EXACT KLD
+            # stores for exact KLD
             KLDiv = np.zeros((10, 10, U))
             KList = []
             CDList = []
 
-            # STORES FOR ESTIMATED KLD
+            # stores for estimated KLD
             eKLDiv = np.zeros((10, 10, E, R))
             eKList = []
 
-            # STORES FOR RATIO BETWEEN KLDS AND TRUE DISTRIBUTION
+            # stores for ratio between KLDs and true distribution
             rKList = []
             rCDList = []
             tKList = []
 
-            # STORES FOR UNBIASED ESTIMATE OF KLD
+            # stores for unbiased estimate of KLD
             zeroKList = []
             zeroCDList = []
             oneKList = []
@@ -248,21 +306,21 @@ for trial in range(4):
             halfKList = []
             halfCDList = []
 
-            # OPTION 1A: QUERYING ENTIRE DISTRIBUTION
+            # option 1a: querying entire distribution
             if trial % 2 == 0:
                 b1 = log(2) / eps
 
-            # OPTION 1B: MONTE CARLO SAMPLING
+            # option 1b: Monte Carlo sampling
             else:
                 b1 = (1 + log(2)) / eps
 
             b2 = (2*((log(1.25))/DTA)*b1) / eps
 
-            # OPTION 2A: ADD LAPLACE NOISE
+            # option 2a: add Laplace noise
             if trial % 4 == 0 or trial % 4 == 1:
                 noiseLG = tfp.distributions.Laplace(loc = A, scale = b1)
         
-            # OPTION 2B: ADD GAUSSIAN NOISE
+            # option 2b: add Gaussian noise
             else:
                 noiseLG = tfp.distributions.Normal(loc = A, scale = b2)
 
@@ -271,15 +329,15 @@ for trial in range(4):
                 count = 1
 
                 for row in range(0, len(rklist)):
-                    lest = ((lda * (rklist[row] - 1)) - log(rklist[row])) / T
+                    lest = ((lda * (rklist[row] - 1)) - log(rklist[row])) / T1
           
-                    # OPTION 3B: ADD NOISE AT END
+                    # option 3b: add noise at end
                     if trial >= 4:
                         err = noiseLG.sample(sample_shape = (1,)).numpy()[0]
                     else:
                         err = 0.0
 
-                    # ADD NOISE TO UNBIASED ESTIMATOR THEN COMPARE TO TRUE DISTRIBUTION
+                    # add noise to unbiased estimator then compare to true distribution
                     err = abs(err + lest - tklist[row])
 
                     if err != 0.0:
@@ -302,15 +360,15 @@ for trial in range(4):
                 count = 1
 
                 for row in range(0, len(rklist)):
-                    lest = ((lda * (rklist[row] - 1)) - log(rklist[row])) / T
+                    lest = ((lda * (rklist[row] - 1)) - log(rklist[row])) / T1
 
-                    # OPTION 3B: ADD NOISE AT END
+                    # option 3b: add noise at end
                     if trial >= 4:
                         err = noiseLG.sample(sample_shape = (1,)).numpy()[0]
                     else:
                         err = 0.0
 
-                    # ADD NOISE TO UNBIASED ESTIMATOR THEN COMPARE TO TRUE DISTRIBUTION
+                    # add noise to unbiased estimator then compare to true distribution
                     err = abs(err + lest - tklist[row])
 
                     if err != 0.0:
@@ -329,7 +387,7 @@ for trial in range(4):
                 lmi = lcdlist.index(mp)
                 return lklist[lmi]
 
-            # FOR EACH COMPARISON DIGIT COMPUTE KLD FOR ALL DIGITS
+            # for each comparison digit compute KLD for all digits
             for C in range(0, 10):
                 for D in range(0, 10):
 
@@ -339,40 +397,40 @@ for trial in range(4):
                     for j in range(0, E):
                         eKLDiv[C, D, j] = eProbsSet[D, j] * (np.log((eProbsSet[D, j]) / (eProbsSet[C, j])))
 
-                        # OPTION 3A: ADD NOISE IN MIDDLE
+                        # option 3a: add noise in middle
                         if trial < 4:
                             eKLDiv[C, D, j] = eKLDiv[C, D, j] + noiseLG.sample(sample_shape = (1,))
 
-                    # ELIMINATE ALL ZERO VALUES WHEN DIGITS ARE IDENTICAL
+                    # eliminate all zero values when digits are identical
                     if sum(KLDiv[C, D]) != 0.0:
                         KList.append(sum(KLDiv[C, D]))
                         CDList.append((C, D))
 
-                    # COMPUTE RATIO BETWEEN EXACT AND ESTIMATED KLD
+                    # compute ratio between exact and estimated KLD
                     ratio = abs(sum(eKLDiv[C, D, j]) / sum(KLDiv[C, D]))
 
-                    # ELIMINATE ALL DIVIDE BY ZERO ERRORS
+                    # eliminate all divide by zero errors
                     if ratio != 0.0 and sum(KLDiv[C, D]) != 0.0:
                         rKList.append(ratio)
                         rCDList.append((C, D))
 
-                        # COMPUTE TRUE DISTRIBUTION
+                        # compute true distribution
                         trueDist = abs(sum(eKLDiv[C, D, j]) * log(ratio))
                         tKList.append(trueDist)
 
-                        # WAIT UNTIL FINAL DIGIT PAIR (9, 8) TO ANALYSE EXACT KLD LIST
+                        # wait until final digit pair (9, 8) to analyse exact KLD list
                         if C == 9 and D == 8:
 
                             low = 0
                             high = 1
                             mid = 0.5
 
-                            # COMPUTE UNBIASED ESTIMATORS WITH LAMBDA 0, 1, 0.5 THEN BINARY SEARCH
+                            # compute unbiased estimators with lambda 0, 1, 0.5 then binary search
                             lowSum = unbias_est(low, rKList, tKList, zeroKList, zeroCDList)
                             highSum = unbias_est(high, rKList, tKList, oneKList, oneCDList)
                             minSum[trial, INDEX_COUNT, rep] = unbias_est(mid, rKList, tKList, halfKList, halfCDList)
 
-                            # TOLERANCE BETWEEN BINARY SEARCH LIMITS ALWAYS GETS SMALL ENOUGH
+                            # tolerance between binary search limits always gets small enough
                             while abs(high - low) > 0.00000001:
 
                                 lowKList = []
@@ -385,19 +443,19 @@ for trial in range(4):
                                 lowSum = unbias_est(low, rKList, tKList, lowKList, lowCDList)
                                 highSum = unbias_est(high, rKList, tKList, highKList, highCDList)
 
-                                # REDUCE / INCREASE BINARY SEARCH LIMIT DEPENDING ON ABSOLUTE VALUE
+                                # reduce / increase binary search limit depending on absolute value
                                 if abs(lowSum) < abs(highSum):
                                     high = mid
                                 else:
                                     low = mid
 
-                                # SET NEW MIDPOINT
+                                # set new midpoint
                                 mid = (0.5*abs((high - low))) + low
                                 minSum[trial, INDEX_COUNT, rep] = unbias_est(mid, rKList, tKList, sumKList, sumCDList)
 
                             sumLambda[trial, INDEX_COUNT, rep] = mid
 
-                            # EXTRACT MIN PAIR BY ABSOLUTE VALUE OF EXACT KLD
+                            # extract min pair by absolute value of exact KLD
                             absKList = [abs(kl) for kl in KList]
                             minKList = sorted(absKList)
                             minAbs = minKList[0]
@@ -405,7 +463,7 @@ for trial in range(4):
                             minPair = CDList[minIndex]
                             MIN_COUNT = 1
 
-                            # IF MIN PAIR IS NOT IN LAMBDA 0.5 LIST THEN GET NEXT SMALLEST
+                            # if max pair is not in lambda 0.5 list then get next smallest
                             while minPair not in rCDList:        
                                 minAbs = minKList[MIN_COUNT]
                                 minIndex = KList.index(minAbs)
@@ -419,7 +477,7 @@ for trial in range(4):
                             high = 1
                             mid = 0.5
 
-                            # FIND OPTIMAL LAMBDA FOR MIN PAIR
+                            # find optimal lambda for min pair
                             while abs(high - low) > 0.00000001:
 
                                 lowKList = []
@@ -442,14 +500,14 @@ for trial in range(4):
 
                             minPairLambda[trial, INDEX_COUNT, rep] = mid
 
-                            # EXTRACT MAX PAIR BY REVERSING EXACT KLD LIST
+                            # extract max pair by reversing exact KLD list
                             maxKList = sorted(absKList, reverse = True)
                             maxAbs = maxKList[0]
                             maxIndex = KList.index(maxAbs)
                             maxPair = CDList[maxIndex]
                             MAX_COUNT = 1
 
-                            # IF MAX PAIR IS NOT IN LAMBDA 0.5 LIST THEN GET NEXT LARGEST
+                            # if max pair is not in lambda 0.5 list then get next largest
                             while maxPair not in rCDList:        
                                 maxAbs = maxKList[MAX_COUNT]
                                 maxIndex = KList.index(maxAbs)
@@ -463,7 +521,7 @@ for trial in range(4):
                             high = 1
                             mid = 0.5
 
-                            # FIND OPTIMAL LAMBDA FOR MAX PAIR
+                            # find optimal lambda for max pair
                             while abs(high - low) > 0.00000001:
 
                                 lowKList = []
@@ -505,18 +563,18 @@ for trial in range(4):
 
                 return 100*(num / int(rows/10))
 
-            # EXACT KLD IS IDENTICAL FOR ALL TRIALS, EPSILONS AND REPEATS
+            # exact KLD is identical for all trials, epsilons and repeats
             if trial == 0 and eps == 0.001 and rep == 0:
                 KLDict = dict(zip(KList, CDList))
                 orderedKLDict = OrderedDict(sorted(KLDict.items()))
-                orderfile = open("emnist_exact_kld_in_order.txt", "w", encoding = 'utf-8')
-                orderfile.write("EMNIST: Exact KL Divergence In Order\n")
+                orderfile = open("femnist_exact_kld_in_order.txt", "w", encoding = 'utf-8')
+                orderfile.write("FEMNIST: Exact KL Divergence In Order\n")
                 orderfile.write("Smaller corresponds to more similar digits\n\n")
 
             for i in orderedKLDict:
                 orderfile.write(f"{i} : {orderedKLDict[i]}\n")
 
-            # COMPUTE RANKING PRESERVATION STATISTICS FOR EACH REPEAT
+            # compute ranking preservation statistics for each repeat
             tKLDict = dict(zip(tKList, rCDList))
             tOrderedKLDict = OrderedDict(sorted(tKLDict.items()))
             tPercTop[trial, INDEX_COUNT, rep] = rank_pres(0, orderedKLDict, tOrderedKLDict)
@@ -537,7 +595,7 @@ for trial in range(4):
             maxPercTop[trial, INDEX_COUNT, rep] = rank_pres(0, orderedKLDict, maxOrderedKLDict)
             maxPercBottom[trial, INDEX_COUNT, rep] = rank_pres(1, orderedKLDict, maxOrderedKLDict)
         
-        # SUM UP REPEATS FOR ALL THE MAIN STATISTICS
+        # sum up repeats for all the main statistics
         aLambda[trial, INDEX_COUNT] = fmean(sumLambda[trial, INDEX_COUNT])
         aSum[trial, INDEX_COUNT] = fmean(minSum[trial, INDEX_COUNT])
         aPairLambda[trial, INDEX_COUNT] = fmean(minPairLambda[trial, INDEX_COUNT])
@@ -554,8 +612,8 @@ for trial in range(4):
         dPercTop[trial, INDEX_COUNT] = fmean(maxPercTop[trial, INDEX_COUNT])
         dPercBottom[trial, INDEX_COUNT] = fmean(maxPercBottom[trial, INDEX_COUNT])
 
-        statsfile = open(f"emnist_{trialset[trial]}_noise_eps_{eps}.txt", "w", encoding = 'utf-8')
-        statsfile.write(f"EMNIST: Laplace Noise in Middle, no Monte Carlo, Eps = {eps}\n")
+        statsfile = open(f"femnist_{trialset[trial]}_noise_eps_{eps}.txt", "w", encoding = 'utf-8')
+        statsfile.write(f"FEMNIST: Laplace Noise in Middle, no Monte Carlo, Eps = {eps}\n")
         statsfile.write(f"Optimal Lambda {round(aLambda[trial, INDEX_COUNT], 4)} for Sum {round(aSum[trial, INDEX_COUNT], 4)}\n\n")
 
         statsfile.write(f"Digit Pair with Min Exact KLD: {minPair}\n")
@@ -578,7 +636,7 @@ for trial in range(4):
 
         INDEX_COUNT = INDEX_COUNT + 1
 
-# PLOT LAMBDAS FOR EACH EPSILON
+# plot lambdas for each epsilon
 plt.errorbar(epsset, aLambda[0], yerr = np.std(aLambda[0], axis = 0), color = 'tab:brown', marker = 'o', label = 'mid lap')
 plt.errorbar(epsset, aLambda[1], yerr = np.std(aLambda[1], axis = 0), color = 'tab:purple', marker = 'x', label = 'mid lap mc')
 plt.errorbar(epsset, aLambda[2], yerr = np.std(aLambda[2], axis = 0), color = 'tab:blue', marker = 'o', label = 'mid gauss')
@@ -591,7 +649,7 @@ plt.legend(loc = 'best')
 plt.xlabel("Value of epsilon")
 plt.ylabel("Lambda to minimise error of unbiased estimator")
 plt.title("How epsilon affects lambda (sum)")
-plt.savefig("Emnist_mid_lambda_sum.png")
+plt.savefig("Femnist_mid_lambda_sum.png")
 plt.clf()
 
 plt.errorbar(epsset, aPairLambda[0], yerr = np.std(aPairLambda[0], axis = 0), color = 'tab:brown', marker = 'o', label = 'mid lap: min')
@@ -614,10 +672,10 @@ plt.legend(loc = 'best')
 plt.xlabel("Value of epsilon")
 plt.ylabel("Lambda to minimise error of unbiased estimator")
 plt.title("How epsilon affects lambda (min/max pair)")
-plt.savefig("Emnist_mid_lambda_min_max.png")
+plt.savefig("Femnist_mid_lambda_min_max.png")
 plt.clf()
 
-# PLOT SUM / ESTIMATES FOR EACH EPSILON
+# plot sum / estimates for each epsilon
 plt.errorbar(epsset, aSum[0], yerr = np.std(aSum[0], axis = 0), color = 'tab:brown', marker = 'o', label = 'mid lap')
 plt.errorbar(epsset, aSum[1], yerr = np.std(aSum[1], axis = 0), color = 'tab:purple', marker = 'x', label = 'mid lap mc')
 plt.errorbar(epsset, aSum[2], yerr = np.std(aSum[2], axis = 0), color = 'tab:blue', marker = 'o', label = 'mid gauss')
@@ -630,7 +688,7 @@ plt.legend(loc = 'best')
 plt.xlabel("Value of epsilon")
 plt.ylabel("Error of unbiased estimator (sum)")
 plt.title("How epsilon affects error of unbiased estimator (sum)")
-plt.savefig("Emnist_mid_est_sum.png")
+plt.savefig("Femnist_mid_est_sum.png")
 plt.clf()
 
 plt.errorbar(epsset, aPairEst[0], yerr = np.std(aPairEst[0], axis = 0), color = 'tab:brown', marker = 'o', label = 'mid lap: min')
@@ -653,10 +711,10 @@ plt.legend(loc = 'best')
 plt.xlabel("Value of epsilon")
 plt.ylabel("Error of unbiased estimator (min/max pair)")
 plt.title("How epsilon affects error of unbiased estimator (min/max pair)")
-plt.savefig("Emnist_mid_est_min_max.png")
+plt.savefig("Femnist_mid_est_min_max.png")
 plt.clf()
 
-# PLOT RANKING PRESERVATIONS FOR EACH EPSILON
+# plot ranking preservations for each epsilon
 plt.errorbar(epsset, aPercTop[0], yerr = np.std(aPercTop[0], axis = 0), color = 'tab:brown', marker = 'o', label = 'mid lap: top 10%')
 plt.errorbar(epsset, aPercBottom[0], yerr = np.std(aPercBottom[0], axis = 0), color = 'tab:brown', marker = 'x', label = 'mid lap: bottom 10%')
 plt.errorbar(epsset, aPercTop[1], yerr = np.std(aPercTop[1], axis = 0), color = 'tab:purple', marker = 'o', label = 'mid lap mc: top 10%')
@@ -677,7 +735,7 @@ plt.legend(loc = 'best')
 plt.xlabel("Value of epsilon")
 plt.ylabel(f"% staying in top/bottom half")
 plt.title("Ranking preservation for true distribution")
-plt.savefig("Emnist_mid_perc_ratio.png")
+plt.savefig("Femnist_mid_perc_ratio.png")
 plt.clf()
 
 plt.errorbar(epsset, bPercTop[0], yerr = np.std(bPercTop[0], axis = 0), color = 'tab:brown', marker = 'o', label = 'mid lap: top 10%')
@@ -700,7 +758,7 @@ plt.legend(loc = 'best')
 plt.xlabel("Value of epsilon")
 plt.ylabel(f"% staying in top / bottom half")
 plt.title("Ranking preservation for error of unbiased estimator (sum)")
-plt.savefig("Emnist_mid_perc_sum.png")
+plt.savefig("Femnist_mid_perc_sum.png")
 plt.clf()
 
 plt.errorbar(epsset, cPercTop[0], yerr = np.std(cPercTop[0], axis = 0), color = 'tab:brown', marker = 'o', label = 'mid lap: top 10%')
@@ -723,7 +781,7 @@ plt.legend(loc = 'best')
 plt.xlabel("Value of epsilon")
 plt.ylabel(f"% staying in top / bottom half")
 plt.title("Ranking preservation for error of unbiased estimator (min pair)")
-plt.savefig("Emnist_mid_perc_min.png")
+plt.savefig("Femnist_mid_perc_min.png")
 plt.clf()
 
 plt.errorbar(epsset, dPercTop[0], yerr = np.std(dPercTop[0], axis = 0), color = 'tab:brown', marker = 'o', label = 'mid lap: top 10%')
@@ -746,9 +804,9 @@ plt.legend(loc = 'best')
 plt.xlabel("Value of epsilon")
 plt.ylabel(f"% staying in top / bottom half")
 plt.title("Ranking preservation for error of unbiased estimator (max pair)")
-plt.savefig("Emnist_mid_perc_max.png")
+plt.savefig("Femnist_mid_perc_max.png")
 
-# COMPUTE TOTAL RUNTIME IN MINUTES AND SECONDS
+# compute total runtime in minutes and seconds
 totalTime = time.perf_counter() - startTime
 
 if (totalTime // 60) == 1:
