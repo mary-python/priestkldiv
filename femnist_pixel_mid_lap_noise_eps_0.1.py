@@ -607,7 +607,7 @@ plt.show()
 plt.pause(0.001)
 input("\nPress [enter] to continue.")
 
-# COMPUTE TOTAL RUNTIME IN MINUTES AND SECONDS
+# compute total runtime in minutes and seconds
 totalTime = time.perf_counter() - startTime
 
 if (totalTime // 60) == 1:

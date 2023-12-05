@@ -237,8 +237,8 @@ for trial in range(4):
 
             # STORES FOR RATIO BETWEEN KLDS AND TRUE DISTRIBUTION
             rKList = []
-            rCDList = []
             tKList = []
+            tCDList = []
 
             # STORES FOR UNBIASED ESTIMATE OF KLD
             zeroKList = []
@@ -354,11 +354,11 @@ for trial in range(4):
                     # ELIMINATE ALL DIVIDE BY ZERO ERRORS
                     if ratio != 0.0 and sum(KLDiv[C, D]) != 0.0:
                         rKList.append(ratio)
-                        rCDList.append((C, D))
 
                         # COMPUTE TRUE DISTRIBUTION
                         trueDist = abs(sum(eKLDiv[C, D, j]) * log(ratio))
                         tKList.append(trueDist)
+                        tCDList.append((C, D))
 
                         # WAIT UNTIL FINAL DIGIT PAIR (9, 8) TO ANALYSE EXACT KLD LIST
                         if C == 9 and D == 8:
@@ -406,7 +406,7 @@ for trial in range(4):
                             MIN_COUNT = 1
 
                             # IF MIN PAIR IS NOT IN LAMBDA 0.5 LIST THEN GET NEXT SMALLEST
-                            while minPair not in rCDList:        
+                            while minPair not in halfCDList:        
                                 minAbs = minKList[MIN_COUNT]
                                 minIndex = KList.index(minAbs)
                                 minPair = CDList[minIndex]
@@ -450,7 +450,7 @@ for trial in range(4):
                             MAX_COUNT = 1
 
                             # IF MAX PAIR IS NOT IN LAMBDA 0.5 LIST THEN GET NEXT LARGEST
-                            while maxPair not in rCDList:        
+                            while maxPair not in halfCDList:        
                                 maxAbs = maxKList[MAX_COUNT]
                                 maxIndex = KList.index(maxAbs)
                                 maxPair = CDList[maxIndex]
@@ -517,22 +517,22 @@ for trial in range(4):
                 orderfile.write(f"{i} : {orderedKLDict[i]}\n")
 
             # COMPUTE RANKING PRESERVATION STATISTICS FOR EACH REPEAT
-            tKLDict = dict(zip(tKList, rCDList))
+            tKLDict = dict(zip(tKList, tCDList))
             tOrderedKLDict = OrderedDict(sorted(tKLDict.items()))
             tPercTop[trial, INDEX_COUNT, rep] = rank_pres(0, orderedKLDict, tOrderedKLDict)
             tPercBottom[trial, INDEX_COUNT, rep] = rank_pres(1, orderedKLDict, tOrderedKLDict)
 
-            sumKLDict = dict(zip(sumKList, rCDList))
+            sumKLDict = dict(zip(sumKList, sumCDList))
             sumOrderedKLDict = OrderedDict(sorted(sumKLDict.items()))
             sumPercTop[trial, INDEX_COUNT, rep] = rank_pres(0, orderedKLDict, sumOrderedKLDict)
             sumPercBottom[trial, INDEX_COUNT, rep] = rank_pres(1, orderedKLDict, sumOrderedKLDict)
 
-            minKLDict = dict(zip(minKList, rCDList))
+            minKLDict = dict(zip(minKList, minCDList))
             minOrderedKLDict = OrderedDict(sorted(minKLDict.items()))
             minPercTop[trial, INDEX_COUNT, rep] = rank_pres(0, orderedKLDict, minOrderedKLDict)
             minPercBottom[trial, INDEX_COUNT, rep] = rank_pres(1, orderedKLDict, minOrderedKLDict)
 
-            maxKLDict = dict(zip(maxKList, CDList))
+            maxKLDict = dict(zip(maxKList, maxCDList))
             maxOrderedKLDict = OrderedDict(sorted(maxKLDict.items()))
             maxPercTop[trial, INDEX_COUNT, rep] = rank_pres(0, orderedKLDict, maxOrderedKLDict)
             maxPercBottom[trial, INDEX_COUNT, rep] = rank_pres(1, orderedKLDict, maxOrderedKLDict)
