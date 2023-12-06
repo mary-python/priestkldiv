@@ -505,10 +505,11 @@ for trial in range(4):
 
                 return 100*(num / int(rows/10))
 
+            KLDict = dict(zip(KList, CDList))
+            orderedKLDict = OrderedDict(sorted(KLDict.items()))
+            
             # EXACT KLD IS IDENTICAL FOR ALL TRIALS, EPSILONS AND REPEATS
             if trial == 0 and eps == 0.001 and rep == 0:
-                KLDict = dict(zip(KList, CDList))
-                orderedKLDict = OrderedDict(sorted(KLDict.items()))
                 orderfile = open("emnist_exact_kld_in_order.txt", "w", encoding = 'utf-8')
                 orderfile.write("EMNIST: Exact KL Divergence In Order\n")
                 orderfile.write("Smaller corresponds to more similar digits\n\n")

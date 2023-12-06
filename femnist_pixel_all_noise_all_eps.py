@@ -563,10 +563,11 @@ for trial in range(5, 6):
 
                 return 100*(num / int(rows/10))
 
+            KLDict = dict(zip(KList, CDList))
+            orderedKLDict = OrderedDict(sorted(KLDict.items()))
+
             # exact KLD is identical for all trials, epsilons and repeats
             if trial == 0 and eps == 0.001 and rep == 0:
-                KLDict = dict(zip(KList, CDList))
-                orderedKLDict = OrderedDict(sorted(KLDict.items()))
                 orderfile = open("femnist_exact_kld_in_order.txt", "w", encoding = 'utf-8')
                 orderfile.write("FEMNIST: Exact KL Divergence In Order\n")
                 orderfile.write("Smaller corresponds to more similar digits\n\n")
