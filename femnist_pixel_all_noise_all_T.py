@@ -165,7 +165,7 @@ for T in Tset:
     uTotalSet = unique_images(10, uTotalSet)
 
     # domain for each digit distribution is number of unique images
-    U = 338
+    U = len(uTotalSet)
 
     # find and store frequencies of unique images for each digit
     uImageSet = np.ones((10, U, 4, 4))

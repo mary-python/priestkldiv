@@ -128,10 +128,9 @@ for T in Tset:
 
     # FIND COUNTS OF UNIQUE IMAGES IN SAMPLE IMAGE LIST
     uniqueImList = np.unique(sampleImList, axis = 0)
-    sizeUniqueImList = len(uniqueImList)
 
     # DOMAIN FOR EACH DIGIT DISTRIBUTION IS NUMBER OF UNIQUE IMAGES
-    U = 207
+    U = len(uniqueImList)
 
     # FIND AND STORE FREQUENCIES OF UNIQUE IMAGES FOR EACH DIGIT
     uImageSet = np.zeros((10, U, 4, 4))
