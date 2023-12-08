@@ -101,7 +101,7 @@ for T in Tset:
 
     # STORE T IMAGES CORRESPONDING TO EACH DIGIT
     sampleImSet = np.zeros((10, T, 4, 4))
-    sampleImList = np.zeros((14000, 4, 4))
+    sampleImList = np.zeros((10*T, 4, 4))
     sizeUniqueImSet = np.zeros(10)
     OVERALL_COUNT = 0
 

@@ -141,7 +141,8 @@ for T in Tset:
     uNineSet = unique_images(9, nineSet)
 
     # store frequency of unique images in total
-    uTotalSet = np.ones((1124, 4, 4), dtype = int)
+    uTotalFreq = sum(sizeUSet)
+    uTotalSet = np.ones((uTotalFreq, 4, 4), dtype = int)
     TOTAL_COUNT = 0
 
     def total_set(uset, tset, tcount):

@@ -31,10 +31,10 @@ file = h5py.File(PATH, 'r')
 # create list storing images and labels of each writer
 writers = sorted(file.keys())
 numWriters = len(writers)
-numSampledWriters = int(numWriters / 20)
+T = int(numWriters / 20)
 
 # randomly sample 5% of writers without replacement
-sampledWriters = np.random.choice(numWriters, numSampledWriters, replace = False)
+sampledWriters = np.random.choice(numWriters, T, replace = False)
 totalDigits = np.zeros(10, dtype = int)
 
 # add up how many times each digit is featured
@@ -135,7 +135,8 @@ uEightSet = unique_images(8, eightSet)
 uNineSet = unique_images(9, nineSet)
 
 # store frequency of unique images in total
-uTotalSet = np.ones((1124, 4, 4), dtype = int)
+uTotalFreq = sum(sizeUSet)
+uTotalSet = np.ones((uTotalFreq, 4, 4), dtype = int)
 TOTAL_COUNT = 0
 
 def total_set(uset, tset, tcount):
@@ -159,13 +160,13 @@ TOTAL_COUNT = total_set(uNineSet, uTotalSet, TOTAL_COUNT)
 uTotalSet = unique_images(10, uTotalSet)
 
 # domain for each digit distribution is number of unique images
-U = 338
+U = len(uTotalSet)
 
 # find and store frequencies of unique images for each digit
 uImageSet = np.ones((10, U, 4, 4))
 uFreqSet = np.zeros((10, U))
 uProbsSet = np.zeros((10, U))
-T1 = 11*numSampledWriters # change this term so probabilities add up to 1
+T1 = 11*T # change this term so probabilities add up to 1
 
 print("Creating probability distributions...")
 
@@ -218,7 +219,7 @@ eProbsSet = np.zeros((10, E))
 eTotalFreq = np.zeros(10)
 
 uSampledSet = np.random.choice(U, E, replace = False)
-T2 = (11/3)*numSampledWriters*(E/U) # change this term so probabilities add up to 1
+T2 = (11/3)*T*(E/U) # change this term so probabilities add up to 1
 
 # borrow data from corresponding indices of main image and frequency sets
 for D in range(0, 10):
