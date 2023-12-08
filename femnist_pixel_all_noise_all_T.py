@@ -246,41 +246,41 @@ for T in Tset:
     TS = len(trialset)
 
     # stores for sum, min/max KLD and lambda
-    minSum = np.zeros((ES, TS, R))
-    minPairEst = np.zeros((ES, TS, R))
-    maxPairEst = np.zeros((ES, TS, R))
-    sumLambda = np.zeros((ES, TS, R))
-    minPairLambda = np.zeros((ES, TS, R))
-    maxPairLambda = np.zeros((ES, TS, R))
+    minSum = np.zeros((TS, ES, R))
+    minPairEst = np.zeros((TS, ES, R))
+    maxPairEst = np.zeros((TS, ES, R))
+    sumLambda = np.zeros((TS, ES, R))
+    minPairLambda = np.zeros((TS, ES, R))
+    maxPairLambda = np.zeros((TS, ES, R))
 
-    aSum = np.zeros((ES, TS))
-    aPairEst = np.zeros((ES, TS))
-    bPairEst = np.zeros((ES, TS))
-    aLambda = np.zeros((ES, TS))
-    aPairLambda = np.zeros((ES, TS))
-    bPairLambda = np.zeros((ES, TS))
+    aSum = np.zeros((TS, ES))
+    aPairEst = np.zeros((TS, ES))
+    bPairEst = np.zeros((TS, ES))
+    aLambda = np.zeros((TS, ES))
+    aPairLambda = np.zeros((TS, ES))
+    bPairLambda = np.zeros((TS, ES))
 
     # stores for ranking preservation analysis
-    tPercSmall = np.zeros((ES, TS, R))
-    tPercLarge = np.zeros((ES, TS, R))
-    sumPercSmall = np.zeros((ES, TS, R))
-    sumPercLarge = np.zeros((ES, TS, R))
-    minPercSmall = np.zeros((ES, TS, R))
-    minPercLarge = np.zeros((ES, TS, R))
-    maxPercSmall = np.zeros((ES, TS, R))
-    maxPercLarge = np.zeros((ES, TS, R))
+    tPercSmall = np.zeros((TS, ES, R))
+    tPercLarge = np.zeros((TS, ES, R))
+    sumPercSmall = np.zeros((TS, ES, R))
+    sumPercLarge = np.zeros((TS, ES, R))
+    minPercSmall = np.zeros((TS, ES, R))
+    minPercLarge = np.zeros((TS, ES, R))
+    maxPercSmall = np.zeros((TS, ES, R))
+    maxPercLarge = np.zeros((TS, ES, R))
 
-    aPercSmall = np.zeros((ES, TS))
-    aPercLarge = np.zeros((ES, TS))
-    bPercSmall = np.zeros((ES, TS))
-    bPercLarge = np.zeros((ES, TS))
-    cPercSmall = np.zeros((ES, TS))
-    cPercLarge = np.zeros((ES, TS))
-    dPercSmall = np.zeros((ES, TS))
-    dPercLarge = np.zeros((ES, TS))
+    aPercSmall = np.zeros((TS, ES))
+    aPercLarge = np.zeros((TS, ES))
+    bPercSmall = np.zeros((TS, ES))
+    bPercLarge = np.zeros((TS, ES))
+    cPercSmall = np.zeros((TS, ES))
+    cPercLarge = np.zeros((TS, ES))
+    dPercSmall = np.zeros((TS, ES))
+    dPercLarge = np.zeros((TS, ES))
 
     # for trial in range(8):
-    for trial in range(5, 6):
+    for trial in range(4):
         print(f"\nTrial {trial + 1}: {trialset[trial]}")
 
         for rep in range(R):
@@ -430,7 +430,7 @@ for T in Tset:
                             # compute unbiased estimators with lambda 0, 1, 0.5 then binary search
                             lowSum = unbias_est(low, rKList, tKList, zeroKList, zeroCDList)
                             highSum = unbias_est(high, rKList, tKList, oneKList, oneCDList)
-                            minSum[INDEX_COUNT, trial, rep] = unbias_est(mid, rKList, tKList, halfKList, halfCDList)
+                            minSum[trial, INDEX_COUNT, rep] = unbias_est(mid, rKList, tKList, halfKList, halfCDList)
 
                             # tolerance between binary search limits always gets small enough
                             while abs(high - low) > 0.00000001:
@@ -453,9 +453,9 @@ for T in Tset:
 
                                 # set new midpoint
                                 mid = (0.5*abs((high - low))) + low
-                                minSum[INDEX_COUNT, trial, rep] = unbias_est(mid, rKList, tKList, sumKList, sumCDList)
+                                minSum[trial, INDEX_COUNT, rep] = unbias_est(mid, rKList, tKList, sumKList, sumCDList)
 
-                            sumLambda[INDEX_COUNT, trial, rep] = mid
+                            sumLambda[trial, INDEX_COUNT, rep] = mid
 
                             # extract min pair by absolute value of exact KLD
                             absKList = [abs(kl) for kl in KList]
@@ -473,7 +473,7 @@ for T in Tset:
                                 MIN_COUNT = MIN_COUNT + 1
 
                             midMinIndex = halfCDList.index(minPair)
-                            minPairEst[INDEX_COUNT, trial, rep] = halfKList[midMinIndex]
+                            minPairEst[trial, INDEX_COUNT, rep] = halfKList[midMinIndex]
 
                             low = 0
                             high = 1
@@ -498,9 +498,9 @@ for T in Tset:
                                     low = mid
 
                                 mid = (0.5*abs((high - low))) + low
-                                minPairEst[INDEX_COUNT, trial, rep] = min_max(mid, rKList, tKList, minKList, minCDList, minPair)
+                                minPairEst[trial, INDEX_COUNT, rep] = min_max(mid, rKList, tKList, minKList, minCDList, minPair)
 
-                            minPairLambda[INDEX_COUNT, trial, rep] = mid
+                            minPairLambda[trial, INDEX_COUNT, rep] = mid
 
                             # extract max pair by reversing exact KLD list
                             maxKList = sorted(absKList, reverse = True)
@@ -517,7 +517,7 @@ for T in Tset:
                                 MAX_COUNT = MAX_COUNT + 1
 
                             midMaxIndex = halfCDList.index(maxPair)
-                            maxPairEst[INDEX_COUNT, trial, rep] = halfKList[midMaxIndex]
+                            maxPairEst[trial, INDEX_COUNT, rep] = halfKList[midMaxIndex]
 
                             low = 0
                             high = 1
@@ -542,9 +542,9 @@ for T in Tset:
                                     low = mid
 
                                 mid = (0.5*(abs(high - low))) + low
-                                maxPairEst[INDEX_COUNT, trial, rep] = min_max(mid, rKList, tKList, maxKList, maxCDList, maxPair)
+                                maxPairEst[trial, INDEX_COUNT, rep] = min_max(mid, rKList, tKList, maxKList, maxCDList, maxPair)
 
-                            maxPairLambda[INDEX_COUNT, trial, rep] = mid
+                            maxPairLambda[trial, INDEX_COUNT, rep] = mid
 
             def rank_pres(bin, okld, tokld):
                 """Do smallest/largest 10% in exact KLD remain in smaller/larger half of estimator?"""
@@ -580,62 +580,62 @@ for T in Tset:
             # compute ranking preservation statistics for each repeat
             tKLDict = dict(zip(tKList, tCDList))
             tOrderedKLDict = OrderedDict(sorted(tKLDict.items()))
-            tPercSmall[INDEX_COUNT, trial, rep] = rank_pres(0, orderedKLDict, tOrderedKLDict)
-            tPercLarge[INDEX_COUNT, trial, rep] = rank_pres(1, orderedKLDict, tOrderedKLDict)
+            tPercSmall[trial, INDEX_COUNT, rep] = rank_pres(0, orderedKLDict, tOrderedKLDict)
+            tPercLarge[trial, INDEX_COUNT, rep] = rank_pres(1, orderedKLDict, tOrderedKLDict)
 
             sumKLDict = dict(zip(sumKList, sumCDList))
             sumOrderedKLDict = OrderedDict(sorted(sumKLDict.items()))
-            sumPercSmall[INDEX_COUNT, trial, rep] = rank_pres(0, orderedKLDict, sumOrderedKLDict)
-            sumPercLarge[INDEX_COUNT, trial, rep] = rank_pres(1, orderedKLDict, sumOrderedKLDict)
+            sumPercSmall[trial, INDEX_COUNT, rep] = rank_pres(0, orderedKLDict, sumOrderedKLDict)
+            sumPercLarge[trial, INDEX_COUNT, rep] = rank_pres(1, orderedKLDict, sumOrderedKLDict)
 
             minKLDict = dict(zip(minKList, minCDList))
             minOrderedKLDict = OrderedDict(sorted(minKLDict.items()))
-            minPercSmall[INDEX_COUNT, trial, rep] = rank_pres(0, orderedKLDict, minOrderedKLDict)
-            minPercLarge[INDEX_COUNT, trial, rep] = rank_pres(1, orderedKLDict, minOrderedKLDict)
+            minPercSmall[trial, INDEX_COUNT, rep] = rank_pres(0, orderedKLDict, minOrderedKLDict)
+            minPercLarge[trial, INDEX_COUNT, rep] = rank_pres(1, orderedKLDict, minOrderedKLDict)
 
             maxKLDict = dict(zip(maxKList, maxCDList))
             maxOrderedKLDict = OrderedDict(sorted(maxKLDict.items()))
-            maxPercSmall[INDEX_COUNT, trial, rep] = rank_pres(0, orderedKLDict, maxOrderedKLDict)
-            maxPercLarge[INDEX_COUNT, trial, rep] = rank_pres(1, orderedKLDict, maxOrderedKLDict)
+            maxPercSmall[trial, INDEX_COUNT, rep] = rank_pres(0, orderedKLDict, maxOrderedKLDict)
+            maxPercLarge[trial, INDEX_COUNT, rep] = rank_pres(1, orderedKLDict, maxOrderedKLDict)
         
         # sum up repeats for all the main statistics
-        aLambda[INDEX_COUNT, trial] = fmean(sumLambda[INDEX_COUNT, trial])
-        aSum[INDEX_COUNT, trial] = fmean(minSum[INDEX_COUNT, trial])
-        aPairLambda[INDEX_COUNT, trial] = fmean(minPairLambda[INDEX_COUNT, trial])
-        aPairEst[INDEX_COUNT, trial] = fmean(minPairEst[INDEX_COUNT, trial])
-        bPairLambda[INDEX_COUNT, trial] = fmean(maxPairLambda[INDEX_COUNT, trial])
-        bPairEst[INDEX_COUNT, trial] = fmean(maxPairEst[INDEX_COUNT, trial])
+        aLambda[trial, INDEX_COUNT] = fmean(sumLambda[trial, INDEX_COUNT])
+        aSum[trial, INDEX_COUNT] = fmean(minSum[trial, INDEX_COUNT])
+        aPairLambda[trial, INDEX_COUNT] = fmean(minPairLambda[trial, INDEX_COUNT])
+        aPairEst[trial, INDEX_COUNT] = fmean(minPairEst[trial, INDEX_COUNT])
+        bPairLambda[trial, INDEX_COUNT] = fmean(maxPairLambda[trial, INDEX_COUNT])
+        bPairEst[trial, INDEX_COUNT] = fmean(maxPairEst[trial, INDEX_COUNT])
 
-        aPercSmall[INDEX_COUNT, trial] = fmean(tPercSmall[INDEX_COUNT, trial])
-        aPercLarge[INDEX_COUNT, trial] = fmean(tPercLarge[INDEX_COUNT, trial])
-        bPercSmall[INDEX_COUNT, trial] = fmean(sumPercSmall[INDEX_COUNT, trial])
-        bPercLarge[INDEX_COUNT, trial] = fmean(sumPercLarge[INDEX_COUNT, trial])
-        cPercSmall[INDEX_COUNT, trial] = fmean(minPercSmall[INDEX_COUNT, trial])
-        cPercLarge[INDEX_COUNT, trial] = fmean(minPercLarge[INDEX_COUNT, trial])
-        dPercSmall[INDEX_COUNT, trial] = fmean(maxPercSmall[INDEX_COUNT, trial])
-        dPercLarge[INDEX_COUNT, trial] = fmean(maxPercLarge[INDEX_COUNT, trial])
+        aPercSmall[trial, INDEX_COUNT] = fmean(tPercSmall[trial, INDEX_COUNT])
+        aPercLarge[trial, INDEX_COUNT] = fmean(tPercLarge[trial, INDEX_COUNT])
+        bPercSmall[trial, INDEX_COUNT] = fmean(sumPercSmall[trial, INDEX_COUNT])
+        bPercLarge[trial, INDEX_COUNT] = fmean(sumPercLarge[trial, INDEX_COUNT])
+        cPercSmall[trial, INDEX_COUNT] = fmean(minPercSmall[trial, INDEX_COUNT])
+        cPercLarge[trial, INDEX_COUNT] = fmean(minPercLarge[trial, INDEX_COUNT])
+        dPercSmall[trial, INDEX_COUNT] = fmean(maxPercSmall[trial, INDEX_COUNT])
+        dPercLarge[trial, INDEX_COUNT] = fmean(maxPercLarge[trial, INDEX_COUNT])
 
         statsfile = open(f"femnist_{trialset[trial]}_noise_t_{T}.txt", "w", encoding = 'utf-8')
         statsfile.write(f"FEMNIST: Laplace Noise in Middle, no Monte Carlo, T = {T}\n")
-        statsfile.write(f"Optimal Lambda {round(aLambda[INDEX_COUNT, trial], 4)} for Sum {round(aSum[INDEX_COUNT, trial], 4)}\n\n")
+        statsfile.write(f"Optimal Lambda {round(aLambda[trial, INDEX_COUNT], 4)} for Sum {round(aSum[trial, INDEX_COUNT], 4)}\n\n")
 
         statsfile.write(f"Digit Pair with Min Exact KLD: {minPair}\n")
-        statsfile.write(f"Optimal Lambda {round(aPairLambda[INDEX_COUNT, trial], 4)} for Estimate {round(aPairEst[INDEX_COUNT, trial], 4)}\n\n")
+        statsfile.write(f"Optimal Lambda {round(aPairLambda[trial, INDEX_COUNT], 4)} for Estimate {round(aPairEst[trial, INDEX_COUNT], 4)}\n\n")
 
         statsfile.write(f"Digit Pair with Max Exact KLD: {maxPair}\n")
-        statsfile.write(f"Optimal Lambda {round(bPairLambda[INDEX_COUNT, trial], 4)} for Estimate {round(bPairEst[INDEX_COUNT, trial], 4)}\n\n")
+        statsfile.write(f"Optimal Lambda {round(bPairLambda[trial, INDEX_COUNT], 4)} for Estimate {round(bPairEst[trial, INDEX_COUNT], 4)}\n\n")
 
-        statsfile.write(f"Smallest 10% exact KLD -> smaller half true dist ranking: {round(aPercSmall[INDEX_COUNT, trial], 1)}%\n")
-        statsfile.write(f"Largest 10% exact KLD -> larger half true dist ranking: {round(aPercLarge[INDEX_COUNT, trial], 1)}%\n\n")
+        statsfile.write(f"Smallest 10% exact KLD -> smaller half true dist ranking: {round(aPercSmall[trial, INDEX_COUNT], 1)}%\n")
+        statsfile.write(f"Largest 10% exact KLD -> larger half true dist ranking: {round(aPercLarge[trial, INDEX_COUNT], 1)}%\n\n")
         
-        statsfile.write(f"Smallest 10% exact KLD -> smaller half sum ranking: {round(bPercSmall[INDEX_COUNT, trial], 1)}%\n")
-        statsfile.write(f"Largest 10% exact KLD -> larger half sum ranking: {round(bPercLarge[INDEX_COUNT, trial], 1)}%\n\n")
+        statsfile.write(f"Smallest 10% exact KLD -> smaller half sum ranking: {round(bPercSmall[trial, INDEX_COUNT], 1)}%\n")
+        statsfile.write(f"Largest 10% exact KLD -> larger half sum ranking: {round(bPercLarge[trial, INDEX_COUNT], 1)}%\n\n")
 
-        statsfile.write(f"Smallest 10% exact KLD -> smaller half min pair ranking: {round(cPercSmall[INDEX_COUNT, trial], 1)}%\n")
-        statsfile.write(f"Largest 10% exact KLD -> larger half min pair ranking: {round(cPercLarge[INDEX_COUNT, trial], 1)}%\n\n")
+        statsfile.write(f"Smallest 10% exact KLD -> smaller half min pair ranking: {round(cPercSmall[trial, INDEX_COUNT], 1)}%\n")
+        statsfile.write(f"Largest 10% exact KLD -> larger half min pair ranking: {round(cPercLarge[trial, INDEX_COUNT], 1)}%\n\n")
 
-        statsfile.write(f"Smallest 10% exact KLD -> smaller half max pair ranking: {round(dPercSmall[INDEX_COUNT, trial], 1)}%\n")
-        statsfile.write(f"Largest 10% exact KLD -> larger half max pair ranking: {round(dPercLarge[INDEX_COUNT, trial], 1)}%\n\n")
+        statsfile.write(f"Smallest 10% exact KLD -> smaller half max pair ranking: {round(dPercSmall[trial, INDEX_COUNT], 1)}%\n")
+        statsfile.write(f"Largest 10% exact KLD -> larger half max pair ranking: {round(dPercLarge[trial, INDEX_COUNT], 1)}%\n\n")
 
     INDEX_COUNT = INDEX_COUNT + 1
 

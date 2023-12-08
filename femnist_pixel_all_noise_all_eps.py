@@ -275,7 +275,7 @@ dPercSmall = np.zeros((TS, ES))
 dPercLarge = np.zeros((TS, ES))
 
 # for trial in range(8):
-for trial in range(5, 6):
+for trial in range(4):
 
     print(f"\nTrial {trial + 1}: {trialset[trial]}")
     INDEX_COUNT = 0
