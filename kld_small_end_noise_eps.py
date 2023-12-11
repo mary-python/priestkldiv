@@ -136,7 +136,7 @@ plot4 = plt.plot(epsset, oKLDmeanN, label = "Gaussian (ordered)")
 
 plt.title("Effect of epsilon on noisy estimate of KLD")
 plt.xlabel("Value of epsilon")
-plt.ylabel("Difference in KLD")
+plt.ylabel("Difference between noisy estimate and true KLD")
 plt.yscale("log")
 plt.legend(loc = "best")
 
