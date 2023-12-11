@@ -135,7 +135,7 @@ uEightSet = unique_images(8, eightSet)
 uNineSet = unique_images(9, nineSet)
 
 # store frequency of unique images in total
-uTotalFreq = sum(sizeUSet)
+uTotalFreq = int(sum(sizeUSet))
 uTotalSet = np.ones((uTotalFreq, 4, 4), dtype = int)
 TOTAL_COUNT = 0
 
