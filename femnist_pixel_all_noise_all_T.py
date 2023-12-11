@@ -44,7 +44,7 @@ for T in Tset:
     totalDigits = np.zeros(10, dtype = int)
 
     # add up how many times each digit is featured
-    print("Preprocessing images...")
+    print("\nPreprocessing images...")
     for i in sampledWriters:
         tempDataset = file[writers[i]]
 
@@ -141,7 +141,7 @@ for T in Tset:
     uNineSet = unique_images(9, nineSet)
 
     # store frequency of unique images in total
-    uTotalFreq = sum(sizeUSet)
+    uTotalFreq = int(sum(sizeUSet))
     uTotalSet = np.ones((uTotalFreq, 4, 4), dtype = int)
     TOTAL_COUNT = 0
 
