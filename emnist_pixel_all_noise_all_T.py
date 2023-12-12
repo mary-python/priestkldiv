@@ -1,7 +1,8 @@
 """Modules provide various time-related functions, generate pseudo-random numbers,
 compute the natural logarithm of a number, remember the order in which items are added,
 have cool visual feedback of the current throughput, create static, animated,
-and interactive visualisations, provide functionality to automatically download
+and interactive visualisations with or without breaks in the axes for showing data
+across a discontinuous range, provide functionality to automatically download
 and cache the EMNIST dataset, compute the mean of a list quickly and accurately,
 work with arrays, and carry out fast numerical computations in Python."""
 import time

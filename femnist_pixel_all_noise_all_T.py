@@ -1,11 +1,13 @@
 """Modules provide various time-related functions, compute the natural logarithm of a number, 
-remember the order in which items are added, create static, animated, and interactive visualisations,
+remember the order in which items are added, create static, animated, and interactive
+visualisations with or without breaks in the axes for showing data across a discontinuous range,
 compute the mean of a list quickly and accurately, provide both a high- and low-level interface to
 the HDF5 library, work with arrays, and carry out fast numerical computations in Python."""
 import time
 from math import log
 from collections import OrderedDict
 import matplotlib.pyplot as plt
+from brokenaxes import brokenaxes
 from statistics import fmean
 import h5py
 import numpy as np
@@ -679,45 +681,47 @@ plt.savefig("Femnist_t_mid_lambda_min_max.png")
 plt.clf()
 
 # plot sum / estimates for each T
-plt.errorbar(Tset, aSum[0], yerr = np.std(aSum[0], axis = 0), color = 'tab:brown', marker = 'o', label = 'mid lap')
-plt.errorbar(Tset, aSum[1], yerr = np.std(aSum[1], axis = 0), color = 'tab:purple', marker = 'x', label = 'mid lap mc')
-plt.errorbar(Tset, aSum[2], yerr = np.std(aSum[2], axis = 0), color = 'tab:blue', marker = 'o', label = 'mid gauss')
-plt.errorbar(Tset, aSum[3], yerr = np.std(aSum[3], axis = 0), color = 'tab:cyan', marker = 'x', label = 'mid gauss mc')
-# plt.errorbar(Tset, aSum[4], yerr = np.std(aSum[4], axis = 0), color = 'tab:olive', marker = 'o', label = 'end lap')
-# plt.errorbar(Tset, aSum[5], yerr = np.std(aSum[5], axis = 0), color = 'tab:green', marker = 'x', label = 'end lap mc')
-# plt.errorbar(Tset, aSum[6], yerr = np.std(aSum[6], axis = 0), color = 'tab:red', marker = 'o', label = 'end gauss')
-# plt.errorbar(Tset, aSum[7], yerr = np.std(aSum[7], axis = 0), color = 'tab:pink', marker = 'x', label = 'end gauss mc')
-plt.legend(loc = 'best')
-plt.yscale('log')
-plt.xlabel("Value of T")
-plt.ylabel("Error of unbiased estimator (sum)")
-plt.title("How T affects error of unbiased estimator (sum)")
-plt.savefig("Femnist_t_mid_est_sum.png")
-plt.clf()
+fig = plt.figure()
+bax = brokenaxes(ylims = ((-1, 10), (10000, 1000000)), yscale = 'log')
+bax.plot(Tset, aSum[0], color = 'tab:brown', marker = 'o', label = 'mid lap')
+bax.plot(Tset, aSum[1], color = 'tab:purple', marker = 'x', label = 'mid lap mc')
+bax.plot(Tset, aSum[2], color = 'tab:blue', marker = 'o', label = 'mid gauss')
+bax.plot(Tset, aSum[3], color = 'tab:cyan', marker = 'x', label = 'mid gauss mc')
+# bax.plot(Tset, aSum[4], color = 'tab:olive', marker = 'o', label = 'end lap')
+# bax.plot(Tset, aSum[5], color = 'tab:green', marker = 'x', label = 'end lap mc')
+# bax.plot(Tset, aSum[6], color = 'tab:red', marker = 'o', label = 'end gauss')
+# bax.plot(Tset, aSum[7], color = 'tab:pink', marker = 'x', label = 'end gauss mc')
+bax.legend(loc = 'best')
+bax.set_xlabel("Value of T")
+bax.set_ylabel("Error of unbiased estimator (sum)")
+bax.set_title("How T affects error of unbiased estimator (sum)")
+fig.savefig("Emnist_t_mid_est_sum.png")
+fig.clf()
 
-plt.errorbar(Tset, aPairEst[0], yerr = np.std(aPairEst[0], axis = 0), color = 'tab:brown', marker = 'o', label = 'mid lap: min')
-plt.errorbar(Tset, bPairEst[0], yerr = np.std(aPairEst[0], axis = 0), color = 'tab:brown', marker = 'x', label = 'mid lap: max')
-plt.errorbar(Tset, aPairEst[1], yerr = np.std(aPairEst[1], axis = 0), color = 'tab:purple', marker = 'o', label = 'mid lap mc: min')
-plt.errorbar(Tset, bPairEst[1], yerr = np.std(aPairEst[1], axis = 0), color = 'tab:purple', marker = 'x', label = 'mid lap mc: max')
-plt.errorbar(Tset, aPairEst[2], yerr = np.std(aPairEst[2], axis = 0), color = 'tab:blue', marker = 'o', label = 'mid gauss: min')
-plt.errorbar(Tset, bPairEst[2], yerr = np.std(aPairEst[2], axis = 0), color = 'tab:blue', marker = 'x', label = 'mid gauss: max')
-plt.errorbar(Tset, aPairEst[3], yerr = np.std(aPairEst[3], axis = 0), color = 'tab:cyan', marker = 'o', label = 'mid gauss mc: min')
-plt.errorbar(Tset, bPairEst[3], yerr = np.std(aPairEst[3], axis = 0), color = 'tab:cyan', marker = 'x', label = 'mid gauss mc: max')
-# plt.errorbar(Tset, aPairEst[4], yerr = np.std(aPairEst[4], axis = 0), color = 'tab:olive', marker = 'o', label = 'end lap: min')
-# plt.errorbar(Tset, bPairEst[4], yerr = np.std(aPairEst[4], axis = 0), color = 'tab:olive', marker = 'x', label = 'end lap: max')
-# plt.errorbar(Tset, aPairEst[5], yerr = np.std(aPairEst[5], axis = 0), color = 'tab:green', marker = 'o', label = 'end lap mc: min')
-# plt.errorbar(Tset, bPairEst[5], yerr = np.std(aPairEst[5], axis = 0), color = 'tab:green', marker = 'x', label = 'end lap mc: max')
-# plt.errorbar(Tset, aPairEst[6], yerr = np.std(aPairEst[6], axis = 0), color = 'tab:red', marker = 'o', label = 'end gauss: min')
-# plt.errorbar(Tset, bPairEst[6], yerr = np.std(aPairEst[6], axis = 0), color = 'tab:red', marker = 'x', label = 'end gauss: max')
-# plt.errorbar(Tset, aPairEst[7], yerr = np.std(aPairEst[7], axis = 0), color = 'tab:pink', marker = 'o', label = 'end gauss mc: min')
-# plt.errorbar(Tset, bPairEst[7], yerr = np.std(aPairEst[7], axis = 0), color = 'tab:pink', marker = 'x', label = 'end gauss mc: max')
-plt.legend(loc = 'best')
-plt.yscale('log')
-plt.xlabel("Value of T")
-plt.ylabel("Error of unbiased estimator (min/max pair)")
-plt.title("How T affects error of unbiased estimator (min/max pair)")
-plt.savefig("Femnist_t_mid_est_min_max.png")
-plt.clf()
+fig = plt.figure()
+bax = brokenaxes(ylims = ((-1, 10), (100, 10000)), yscale = 'log')
+bax.plot(Tset, aPairEst[0], color = 'tab:brown', marker = 'o', label = 'mid lap: min')
+bax.plot(Tset, bPairEst[0], color = 'tab:brown', marker = 'x', label = 'mid lap: max')
+bax.plot(Tset, aPairEst[1], color = 'tab:purple', marker = 'o', label = 'mid lap mc: min')
+bax.plot(Tset, bPairEst[1], color = 'tab:purple', marker = 'x', label = 'mid lap mc: max')
+bax.plot(Tset, aPairEst[2], color = 'tab:blue', marker = 'o', label = 'mid gauss: min')
+bax.plot(Tset, bPairEst[2], color = 'tab:blue', marker = 'x', label = 'mid gauss: max')
+bax.plot(Tset, color = 'tab:cyan', marker = 'o', label = 'mid gauss mc: min')
+bax.plot(Tset, color = 'tab:cyan', marker = 'x', label = 'mid gauss mc: max')
+# bax.plot(Tset, aPairEst[4], color = 'tab:olive', marker = 'o', label = 'end lap: min')
+# bax.plot(Tset, bPairEst[4], color = 'tab:olive', marker = 'x', label = 'end lap: max')
+# bax.plot(Tset, aPairEst[5], color = 'tab:green', marker = 'o', label = 'end lap mc: min')
+# bax.plot(Tset, bPairEst[5], color = 'tab:green', marker = 'x', label = 'end lap mc: max')
+# bax.plot(Tset, aPairEst[6], color = 'tab:red', marker = 'o', label = 'end gauss: min')
+# bax.plot(Tset, bPairEst[6], color = 'tab:red', marker = 'x', label = 'end gauss: max')
+# bax.plot(Tset, aPairEst[7], color = 'tab:pink', marker = 'o', label = 'end gauss mc: min')
+# bax.plot(Tset, bPairEst[7], color = 'tab:pink', marker = 'x', label = 'end gauss mc: max')
+bax.legend(loc = 'best')
+bax.set_xlabel("Value of T")
+bax.set_ylabel("Error of unbiased estimator (min/max pair)")
+bax.set_title("How T affects error of unbiased estimator (min/max pair)")
+fig.savefig("Emnist_t_mid_est_min_max.png")
+fig.clf()
 
 # plot ranking preservations for each T
 plt.errorbar(Tset, aPercSmall[0], yerr = np.std(aPercSmall[0], axis = 0), color = 'tab:brown', marker = 'o', label = 'mid lap: smallest 10%')
