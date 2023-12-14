@@ -695,7 +695,7 @@ bax.legend(loc = 'best')
 bax.set_xlabel("Value of T")
 bax.set_ylabel("Error of unbiased estimator (sum)")
 bax.set_title("How T affects error of unbiased estimator (sum)")
-bax.fig.savefig("Emnist_t_mid_est_sum.png")
+bax.fig.savefig("Femnist_t_mid_est_sum.png")
 bax.fig.clf()
 
 fig = plt.figure()
@@ -720,7 +720,7 @@ bax.legend(loc = 'best')
 bax.set_xlabel("Value of T")
 bax.set_ylabel("Error of unbiased estimator (min/max pair)")
 bax.set_title("How T affects error of unbiased estimator (min/max pair)")
-bax.fig.savefig("Emnist_t_mid_est_min_max.png")
+bax.fig.savefig("Femnist_t_mid_est_min_max.png")
 bax.fig.clf()
 
 # plot ranking preservations for each T
