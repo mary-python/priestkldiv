@@ -620,7 +620,7 @@ plt.clf()
 
 # PLOT SUM / ESTIMATES FOR EACH T
 fig = plt.figure()
-bax = brokenaxes(ylims = ((-1, 50), (5000, 2000000)), yscale = 'symlog')
+bax = brokenaxes(ylims = ((0, 50), (2000, 2000000)), yscale = 'symlog')
 bax.plot(Tset, aSum[0], color = 'tab:brown', marker = 'o', label = 'mid lap')
 bax.plot(Tset, aSum[1], color = 'tab:purple', marker = 'x', label = 'mid lap mc')
 bax.plot(Tset, aSum[2], color = 'tab:blue', marker = 'o', label = 'mid gauss')
@@ -637,7 +637,7 @@ bax.fig.savefig("Emnist_t_mid_est_sum.png")
 bax.fig.clf()
 
 fig = plt.figure()
-bax = brokenaxes(ylims = ((-1, 20), (500, 20000)), yscale = 'symlog')
+bax = brokenaxes(ylims = ((0, 20), (200, 20000)), yscale = 'symlog')
 bax.plot(Tset, aPairEst[0], color = 'tab:brown', marker = 'o', label = 'mid lap: min')
 bax.plot(Tset, bPairEst[0], color = 'tab:brown', marker = 'x', label = 'mid lap: max')
 bax.plot(Tset, aPairEst[1], color = 'tab:purple', marker = 'o', label = 'mid lap mc: min')
