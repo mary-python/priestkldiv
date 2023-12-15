@@ -364,8 +364,8 @@ for trial in range(4):
                         if C == 9 and D == 8:
 
                             low = 0
-                            high = 1
-                            mid = 0.5
+                            high = 10
+                            mid = 5
 
                             # COMPUTE UNBIASED ESTIMATORS WITH LAMBDA 0, 1, 0.5 THEN BINARY SEARCH
                             lowSum = unbias_est(low, rKList, tKList, zeroKList, zeroCDList)
@@ -416,8 +416,8 @@ for trial in range(4):
                             minPairEst[trial, INDEX_COUNT, rep] = halfKList[midMinIndex]
 
                             low = 0
-                            high = 1
-                            mid = 0.5
+                            high = 10
+                            mid = 5
 
                             # FIND OPTIMAL LAMBDA FOR MIN PAIR
                             while abs(high - low) > 0.00000001:
@@ -460,8 +460,8 @@ for trial in range(4):
                             maxPairEst[trial, INDEX_COUNT, rep] = halfKList[midMaxIndex]
 
                             low = 0
-                            high = 1
-                            mid = 0.5
+                            high = 10
+                            mid = 5
 
                             # FIND OPTIMAL LAMBDA FOR MAX PAIR
                             while abs(high - low) > 0.00000001:
@@ -539,6 +539,8 @@ for trial in range(4):
             maxPercLarge[trial, INDEX_COUNT, rep] = rank_pres(1, orderedKLDict, maxOrderedKLDict)
         
         # SUM UP REPEATS FOR ALL THE MAIN STATISTICS
+        print(f"\naLambda: {aLambda[trial, INDEX_COUNT]}")
+        print(f"sumLambda: {sumLambda[trial, INDEX_COUNT]}")
         aLambda[trial, INDEX_COUNT] = fmean(sumLambda[trial, INDEX_COUNT])
         aSum[trial, INDEX_COUNT] = fmean(minSum[trial, INDEX_COUNT])
         aPairLambda[trial, INDEX_COUNT] = fmean(minPairLambda[trial, INDEX_COUNT])
