@@ -37,6 +37,50 @@ Tset = [36, 72, 108, 144, 180, 225, 270, 360, 450, 540, 600, 660]
 ES = len(Tset)
 INDEX_COUNT = 0
 
+# parameters for the addition of Laplace and Gaussian noise
+EPS = 0.1
+DTA = 0.1
+A = 0
+R = 10
+
+# list of the trials that will be run
+trialset = ["mid_lap", "mid_lap_mc", "mid_gauss", "mid_gauss_mc", "end_lap", "end_lap_mc", "end_gauss", "end_gauss_mc"]
+TS = len(trialset)
+
+# stores for sum, min/max KLD and lambda
+minSum = np.zeros((TS, ES, R))
+minPairEst = np.zeros((TS, ES, R))
+maxPairEst = np.zeros((TS, ES, R))
+sumLambda = np.zeros((TS, ES, R))
+minPairLambda = np.zeros((TS, ES, R))
+maxPairLambda = np.zeros((TS, ES, R))
+
+aSum = np.zeros((TS, ES))
+aPairEst = np.zeros((TS, ES))
+bPairEst = np.zeros((TS, ES))
+aLambda = np.zeros((TS, ES))
+aPairLambda = np.zeros((TS, ES))
+bPairLambda = np.zeros((TS, ES))
+
+# stores for ranking preservation analysis
+tPercSmall = np.zeros((TS, ES, R))
+tPercLarge = np.zeros((TS, ES, R))
+sumPercSmall = np.zeros((TS, ES, R))
+sumPercLarge = np.zeros((TS, ES, R))
+minPercSmall = np.zeros((TS, ES, R))
+minPercLarge = np.zeros((TS, ES, R))
+maxPercSmall = np.zeros((TS, ES, R))
+maxPercLarge = np.zeros((TS, ES, R))
+
+aPercSmall = np.zeros((TS, ES))
+aPercLarge = np.zeros((TS, ES))
+bPercSmall = np.zeros((TS, ES))
+bPercLarge = np.zeros((TS, ES))
+cPercSmall = np.zeros((TS, ES))
+cPercLarge = np.zeros((TS, ES))
+dPercSmall = np.zeros((TS, ES))
+dPercLarge = np.zeros((TS, ES))
+
 for T in Tset:
 
     # randomly sample 5% of writers without replacement
@@ -234,50 +278,6 @@ for T in Tset:
             eFreqSet[D, i] = uFreqSet[D, uSampledSet[i]]
             eTotalFreq[D] = sum(eFreqSet[D])
             eProbsSet[D, i] = float((eFreqSet[D, i] + ALPHA)/(T2 + (ALPHA*(eTotalFreq[D]))))
-
-    # parameters for the addition of Laplace and Gaussian noise
-    EPS = 0.1
-    DTA = 0.1
-    A = 0
-    R = 10
-
-    # list of the trials that will be run
-    trialset = ["mid_lap", "mid_lap_mc", "mid_gauss", "mid_gauss_mc", "end_lap", "end_lap_mc", "end_gauss", "end_gauss_mc"]
-    TS = len(trialset)
-
-    # stores for sum, min/max KLD and lambda
-    minSum = np.zeros((TS, ES, R))
-    minPairEst = np.zeros((TS, ES, R))
-    maxPairEst = np.zeros((TS, ES, R))
-    sumLambda = np.zeros((TS, ES, R))
-    minPairLambda = np.zeros((TS, ES, R))
-    maxPairLambda = np.zeros((TS, ES, R))
-
-    aSum = np.zeros((TS, ES))
-    aPairEst = np.zeros((TS, ES))
-    bPairEst = np.zeros((TS, ES))
-    aLambda = np.zeros((TS, ES))
-    aPairLambda = np.zeros((TS, ES))
-    bPairLambda = np.zeros((TS, ES))
-
-    # stores for ranking preservation analysis
-    tPercSmall = np.zeros((TS, ES, R))
-    tPercLarge = np.zeros((TS, ES, R))
-    sumPercSmall = np.zeros((TS, ES, R))
-    sumPercLarge = np.zeros((TS, ES, R))
-    minPercSmall = np.zeros((TS, ES, R))
-    minPercLarge = np.zeros((TS, ES, R))
-    maxPercSmall = np.zeros((TS, ES, R))
-    maxPercLarge = np.zeros((TS, ES, R))
-
-    aPercSmall = np.zeros((TS, ES))
-    aPercLarge = np.zeros((TS, ES))
-    bPercSmall = np.zeros((TS, ES))
-    bPercLarge = np.zeros((TS, ES))
-    cPercSmall = np.zeros((TS, ES))
-    cPercLarge = np.zeros((TS, ES))
-    dPercSmall = np.zeros((TS, ES))
-    dPercLarge = np.zeros((TS, ES))
 
     # for trial in range(8):
     for trial in range(4):

@@ -92,10 +92,54 @@ with alive_bar(len(images)) as bar:
         IMAGE_COUNT = IMAGE_COUNT + 1
         bar()
 
+# PARAMETERS FOR THE ADDITION OF LAPLACE AND GAUSSIAN NOISE
+EPS = 0.1
+DTA = 0.1
+A = 0
+R = 10
+
+# LIST OF THE TRIALS THAT WILL BE RUN
+trialset = ["mid_lap", "mid_lap_mc", "mid_gauss", "mid_gauss_mc", "end_lap", "end_lap_mc", "end_gauss", "end_gauss_mc"]
+TS = len(trialset)
+
 # INVESTIGATE SAMPLES FROM APPROX 1% TO APPROX 20% OF IMAGES
 Tset = [280, 560, 840, 1120, 1400, 1750, 2100, 2800, 3500, 4200, 4900, 5600]
 ES = len(Tset)
 INDEX_COUNT = 0
+
+# STORES FOR SUM, MIN/MAX KLD AND LAMBDA
+minSum = np.zeros((TS, ES, R))
+minPairEst = np.zeros((TS, ES, R))
+maxPairEst = np.zeros((TS, ES, R))
+sumLambda = np.zeros((TS, ES, R))
+minPairLambda = np.zeros((TS, ES, R))
+maxPairLambda = np.zeros((TS, ES, R))
+
+aSum = np.zeros((TS, ES))
+aPairEst = np.zeros((TS, ES))
+bPairEst = np.zeros((TS, ES))
+aLambda = np.zeros((TS, ES))
+aPairLambda = np.zeros((TS, ES))
+bPairLambda = np.zeros((TS, ES))
+
+# STORES FOR RANKING PRESERVATION ANALYSIS
+tPercSmall = np.zeros((TS, ES, R))
+tPercLarge = np.zeros((TS, ES, R))
+sumPercSmall = np.zeros((TS, ES, R))
+sumPercLarge = np.zeros((TS, ES, R))
+minPercSmall = np.zeros((TS, ES, R))
+minPercLarge = np.zeros((TS, ES, R))
+maxPercSmall = np.zeros((TS, ES, R))
+maxPercLarge = np.zeros((TS, ES, R))
+
+aPercSmall = np.zeros((TS, ES))
+aPercLarge = np.zeros((TS, ES))
+bPercSmall = np.zeros((TS, ES))
+bPercLarge = np.zeros((TS, ES))
+cPercSmall = np.zeros((TS, ES))
+cPercLarge = np.zeros((TS, ES))
+dPercSmall = np.zeros((TS, ES))
+dPercLarge = np.zeros((TS, ES))
 
 for T in Tset:
 
@@ -172,50 +216,6 @@ for T in Tset:
             eFreqSet[D, i] = uFreqSet[D, uSampledSet[i]]
             eTotalFreq[D] = sum(eFreqSet[D])
             eProbsSet[D, i] = float((eFreqSet[D, i] + ALPHA)/(T + (ALPHA*(eTotalFreq[D]))))
-
-    # PARAMETERS FOR THE ADDITION OF LAPLACE AND GAUSSIAN NOISE
-    EPS = 0.1
-    DTA = 0.1
-    A = 0
-    R = 10
-
-    # LIST OF THE TRIALS THAT WILL BE RUN
-    trialset = ["mid_lap", "mid_lap_mc", "mid_gauss", "mid_gauss_mc", "end_lap", "end_lap_mc", "end_gauss", "end_gauss_mc"]
-    TS = len(trialset)
-
-    # STORES FOR SUM, MIN/MAX KLD AND LAMBDA
-    minSum = np.zeros((TS, ES, R))
-    minPairEst = np.zeros((TS, ES, R))
-    maxPairEst = np.zeros((TS, ES, R))
-    sumLambda = np.zeros((TS, ES, R))
-    minPairLambda = np.zeros((TS, ES, R))
-    maxPairLambda = np.zeros((TS, ES, R))
-
-    aSum = np.zeros((TS, ES))
-    aPairEst = np.zeros((TS, ES))
-    bPairEst = np.zeros((TS, ES))
-    aLambda = np.zeros((TS, ES))
-    aPairLambda = np.zeros((TS, ES))
-    bPairLambda = np.zeros((TS, ES))
-
-    # STORES FOR RANKING PRESERVATION ANALYSIS
-    tPercSmall = np.zeros((TS, ES, R))
-    tPercLarge = np.zeros((TS, ES, R))
-    sumPercSmall = np.zeros((TS, ES, R))
-    sumPercLarge = np.zeros((TS, ES, R))
-    minPercSmall = np.zeros((TS, ES, R))
-    minPercLarge = np.zeros((TS, ES, R))
-    maxPercSmall = np.zeros((TS, ES, R))
-    maxPercLarge = np.zeros((TS, ES, R))
-
-    aPercSmall = np.zeros((TS, ES))
-    aPercLarge = np.zeros((TS, ES))
-    bPercSmall = np.zeros((TS, ES))
-    bPercLarge = np.zeros((TS, ES))
-    cPercSmall = np.zeros((TS, ES))
-    cPercLarge = np.zeros((TS, ES))
-    dPercSmall = np.zeros((TS, ES))
-    dPercLarge = np.zeros((TS, ES))
 
     # for trial in range(8):
     for trial in range(4):
