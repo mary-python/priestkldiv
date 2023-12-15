@@ -598,10 +598,13 @@ for trial in range(4):
             maxPercLarge[trial, INDEX_COUNT, rep] = rank_pres(1, orderedKLDict, maxOrderedKLDict)
         
         # sum up repeats for all the main statistics
-        print(f"\naLambda: {aLambda[trial, INDEX_COUNT]}")
-        print(f"sumLambda: {sumLambda[trial, INDEX_COUNT]}")
         aLambda[trial, INDEX_COUNT] = fmean(sumLambda[trial, INDEX_COUNT])
         aSum[trial, INDEX_COUNT] = fmean(minSum[trial, INDEX_COUNT])
+        print(f"\naLambda: {aLambda[trial, INDEX_COUNT]}")
+        print(f"sumLambda: {sumLambda[trial, INDEX_COUNT]}")
+        print(f"aSum: {aSum[trial, INDEX_COUNT]}")
+        print(f"minSum: {minSum[trial, INDEX_COUNT]}")
+
         aPairLambda[trial, INDEX_COUNT] = fmean(minPairLambda[trial, INDEX_COUNT])
         aPairEst[trial, INDEX_COUNT] = fmean(minPairEst[trial, INDEX_COUNT])
         bPairLambda[trial, INDEX_COUNT] = fmean(maxPairLambda[trial, INDEX_COUNT])
@@ -641,6 +644,7 @@ for trial in range(4):
         INDEX_COUNT = INDEX_COUNT + 1
 
 # plot lambdas for each epsilon
+print(f"\naLambda: {aLambda[0]}")
 plt.errorbar(epsset, aLambda[0], yerr = np.std(aLambda[0], axis = 0), color = 'tab:brown', marker = 'o', label = 'mid lap')
 plt.errorbar(epsset, aLambda[1], yerr = np.std(aLambda[1], axis = 0), color = 'tab:purple', marker = 'x', label = 'mid lap mc')
 plt.errorbar(epsset, aLambda[2], yerr = np.std(aLambda[2], axis = 0), color = 'tab:blue', marker = 'o', label = 'mid gauss')
@@ -680,6 +684,7 @@ plt.savefig("Femnist_eps_mid_lambda_min_max.png")
 plt.clf()
 
 # plot sum / estimates for each epsilon
+print(f"\naSum: {aSum[0]}")
 plt.errorbar(epsset, aSum[0], yerr = np.std(aSum[0], axis = 0), color = 'tab:brown', marker = 'o', label = 'mid lap')
 plt.errorbar(epsset, aSum[1], yerr = np.std(aSum[1], axis = 0), color = 'tab:purple', marker = 'x', label = 'mid lap mc')
 plt.errorbar(epsset, aSum[2], yerr = np.std(aSum[2], axis = 0), color = 'tab:blue', marker = 'o', label = 'mid gauss')
