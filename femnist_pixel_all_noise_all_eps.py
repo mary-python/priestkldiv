@@ -423,8 +423,8 @@ for trial in range(4):
                         if C == 9 and D == 8:
 
                             low = 0
-                            high = 10
-                            mid = 5
+                            high = 1
+                            mid = 0.5
 
                             # compute unbiased estimators with lambda 0, 1, 0.5 then binary search
                             lowSum = unbias_est(low, rKList, tKList, zeroKList, zeroCDList)
@@ -475,8 +475,8 @@ for trial in range(4):
                             minPairEst[trial, INDEX_COUNT, rep] = halfKList[midMinIndex]
 
                             low = 0
-                            high = 10
-                            mid = 5
+                            high = 1
+                            mid = 0.5
 
                             # find optimal lambda for min pair
                             while abs(high - low) > 0.00000001:
@@ -519,8 +519,8 @@ for trial in range(4):
                             maxPairEst[trial, INDEX_COUNT, rep] = halfKList[midMaxIndex]
 
                             low = 0
-                            high = 10
-                            mid = 5
+                            high = 1
+                            mid = 0.5
 
                             # find optimal lambda for max pair
                             while abs(high - low) > 0.00000001:
