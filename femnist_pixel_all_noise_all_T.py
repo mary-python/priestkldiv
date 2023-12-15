@@ -685,7 +685,7 @@ plt.savefig("Femnist_t_mid_lambda_min_max.png")
 plt.clf()
 
 # plot sum / estimates for each T
-print(f"\naLambda: {aSum[0]}")
+print(f"aSum: {aSum[0]}")
 plt.errorbar(Tset, aSum[0], yerr = np.std(aSum[0], axis = 0), color = 'tab:brown', marker = 'o', label = 'mid lap')
 plt.errorbar(Tset, aSum[1], yerr = np.std(aSum[1], axis = 0), color = 'tab:purple', marker = 'x', label = 'mid lap mc')
 plt.errorbar(Tset, aSum[2], yerr = np.std(aSum[2], axis = 0), color = 'tab:blue', marker = 'o', label = 'mid gauss')

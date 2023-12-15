@@ -224,7 +224,7 @@ for trial in range(4):
     for eps in epsset:
         for rep in range(R):
 
-            print(f"Trial {trial + 1}: epsilon = {eps}, repeat = {rep + 1}...")
+            print(f"\nTrial {trial + 1}: epsilon = {eps}, repeat = {rep + 1}...")
 
             # STORES FOR EXACT KLD
             KLDiv = np.zeros((10, 10, U))
@@ -625,7 +625,7 @@ plt.savefig("Emnist_eps_mid_lambda_min_max.png")
 plt.clf()
 
 # PLOT SUM / ESTIMATES FOR EACH EPSILON
-print(f"\naSum: {aSum[0]}")
+print(f"aSum: {aSum[0]}")
 plt.errorbar(epsset, aSum[0], yerr = np.std(aSum[0], axis = 0), color = 'tab:brown', marker = 'o', label = 'mid lap')
 plt.errorbar(epsset, aSum[1], yerr = np.std(aSum[1], axis = 0), color = 'tab:purple', marker = 'x', label = 'mid lap mc')
 plt.errorbar(epsset, aSum[2], yerr = np.std(aSum[2], axis = 0), color = 'tab:blue', marker = 'o', label = 'mid gauss')
