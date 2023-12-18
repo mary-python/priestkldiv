@@ -34,6 +34,7 @@ numWriters = len(writers)
 
 # investigate samples from approx 1% to approx 20% of writers
 Tset = [36, 72, 108, 144, 180, 225, 270, 360, 450, 540, 600, 660]
+T2set = [2.75, 0.09, 0.055, 0.32, 0.065, 0.45, 0.15, 2.75, 0.55, 0.25, 0.55, 0.08]
 ES = len(Tset)
 INDEX_COUNT = 0
 
@@ -83,7 +84,7 @@ dPercLarge = np.zeros((TS, ES))
 
 for T in Tset:
 
-    # randomly sample 5% of writers without replacement
+    # randomly sample T writers without replacement
     sampledWriters = np.random.choice(numWriters, T, replace = False)
     totalDigits = np.zeros(10, dtype = int)
 
@@ -211,12 +212,14 @@ for T in Tset:
 
     # domain for each digit distribution is number of unique images
     U = len(uTotalSet)
+    print(f"U: {U}")
 
     # find and store frequencies of unique images for each digit
     uImageSet = np.ones((10, U, 4, 4))
     uFreqSet = np.zeros((10, U))
     uProbsSet = np.zeros((10, U))
-    T1 = 11*T # change this term so probabilities add up to 1
+    T1 = 110*T # constant 110 chosen to ensure probabilities add up to 1
+    print(f"T1: {T1}")
 
     print("Creating probability distributions...")
 
@@ -259,8 +262,11 @@ for T in Tset:
 
             UNIQUE_COUNT = UNIQUE_COUNT + 1
 
+    print(f"sum(sum(uProbsSet)): {sum(sum(uProbsSet))}")
+
     # for k3 estimator (Schulman) take a small sample of unique images
     E = 17
+    print(f"E/U: {E/U}")
 
     # store images, frequencies and probabilities for this subset
     eImageSet = np.ones((10, E, 4, 4))
@@ -269,7 +275,8 @@ for T in Tset:
     eTotalFreq = np.zeros(10)
 
     uSampledSet = np.random.choice(U, E, replace = False)
-    T2 = (11/3)*T*(E/U) # change this term so probabilities add up to 1
+    T2 = (T2set[INDEX_COUNT])*T*E # constants chosen to ensure probabilities add up to 1
+    print(f"T2: {T2}")
 
     # borrow data from corresponding indices of main image and frequency sets
     for D in range(0, 10):
@@ -278,6 +285,8 @@ for T in Tset:
             eFreqSet[D, i] = uFreqSet[D, uSampledSet[i]]
             eTotalFreq[D] = sum(eFreqSet[D])
             eProbsSet[D, i] = float((eFreqSet[D, i] + ALPHA)/(T2 + (ALPHA*(eTotalFreq[D]))))
+
+    print(f"sum(sum(eProbsSet)): {sum(sum(eProbsSet))}")
 
     # for trial in range(8):
     for trial in range(4):
