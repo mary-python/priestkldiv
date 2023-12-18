@@ -35,6 +35,7 @@ numWriters = len(writers)
 # investigate samples from approx 1% to approx 20% of writers
 Tset = [36, 72, 108, 144, 180, 225, 270, 360, 450, 540, 600, 660]
 T2set = [2.75, 0.09, 0.055, 0.32, 0.065, 0.45, 0.15, 2.75, 0.55, 0.25, 0.55, 0.08]
+Eset = [10, 13, 16, 17, 19, 18, 20, 21, 22, 24, 24, 26]
 ES = len(Tset)
 INDEX_COUNT = 0
 
@@ -265,7 +266,7 @@ for T in Tset:
     print(f"sum(sum(uProbsSet)): {sum(sum(uProbsSet))}")
 
     # for k3 estimator (Schulman) take a small sample of unique images
-    E = 17
+    E = Eset[INDEX_COUNT]
     print(f"E/U: {E/U}")
 
     # store images, frequencies and probabilities for this subset

@@ -175,6 +175,7 @@ for T in Tset:
 
     # DOMAIN FOR EACH DIGIT DISTRIBUTION IS NUMBER OF UNIQUE IMAGES
     U = len(uniqueImList)
+    print(f"U: {U}")
 
     # FIND AND STORE FREQUENCIES OF UNIQUE IMAGES FOR EACH DIGIT
     uImageSet = np.zeros((10, U, 4, 4))
@@ -198,8 +199,11 @@ for T in Tset:
             uProbsSet[D, UNIQUE_COUNT] = float((freq + ALPHA)/(T + (ALPHA*(sizeUniqueImSet[D]))))
             UNIQUE_COUNT = UNIQUE_COUNT + 1
 
+    print(f"sum(sum(uProbsSet)): {sum(sum(uProbsSet))}")
+
     # FOR K3 ESTIMATOR (SCHULMAN) TAKE A SMALL SAMPLE OF UNIQUE IMAGES
     E = 10
+    print(f"E/U: {E/U}")
 
     # STORE IMAGES, FREQUENCIES AND PROBABILITIES FOR THIS SUBSET
     eImageSet = np.ones((10, E, 4, 4))
