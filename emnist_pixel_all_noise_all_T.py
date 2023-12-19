@@ -104,7 +104,7 @@ TS = len(trialset)
 
 # INVESTIGATE SAMPLES FROM APPROX 1% TO APPROX 20% OF IMAGES
 Tset = [280, 560, 840, 1120, 1400, 1750, 2100, 2800, 3500, 4200, 4900, 5600]
-T2set = [0.008, 0.0085, 0.06, 0.029, 0.027, 0.053, 0.0018, 0.013, 0.012, 0.014, 0.035, 0.11]
+T2set = [0.0008, 0.00085, 0.006, 0.0029, 0.0027, 0.0053, 0.00018, 0.0013, 0.0012, 0.0014, 0.0035, 0.011]
 Eset = [6, 7, 9, 10, 11, 12, 12, 14, 15, 15, 16, 17]
 ES = len(Tset)
 INDEX_COUNT = 0
@@ -177,13 +177,11 @@ for T in Tset:
 
     # DOMAIN FOR EACH DIGIT DISTRIBUTION IS NUMBER OF UNIQUE IMAGES
     U = len(uniqueImList)
-    print(f"U: {U}")
 
     # FIND AND STORE FREQUENCIES OF UNIQUE IMAGES FOR EACH DIGIT
     uImageSet = np.zeros((10, U, 4, 4))
     uFreqSet = np.zeros((10, U))
     uProbsSet = np.zeros((10, U))
-    T1 = 10*T # constant 10 chosen to ensure probabilities add up to 1
 
     print("Creating probability distributions...")
 
@@ -199,14 +197,11 @@ for T in Tset:
             freq = len(where[0])
             uImageSet[D, UNIQUE_COUNT] = image
             uFreqSet[D, UNIQUE_COUNT] = int(freq)
-            uProbsSet[D, UNIQUE_COUNT] = float((freq + ALPHA)/(T1 + (ALPHA*(sizeUniqueImSet[D]))))
+            uProbsSet[D, UNIQUE_COUNT] = float((freq + ALPHA)/(T + (ALPHA*(sizeUniqueImSet[D]))))
             UNIQUE_COUNT = UNIQUE_COUNT + 1
-
-    print(f"sum(sum(uProbsSet)): {sum(sum(uProbsSet))}")
 
     # FOR K3 ESTIMATOR (SCHULMAN) TAKE A SMALL SAMPLE OF UNIQUE IMAGES
     E = Eset[INDEX_COUNT]
-    print(f"E/U: {E/U}")
 
     # STORE IMAGES, FREQUENCIES AND PROBABILITIES FOR THIS SUBSET
     eImageSet = np.ones((10, E, 4, 4))
@@ -215,7 +210,7 @@ for T in Tset:
     eTotalFreq = np.zeros(10)
 
     uSampledSet = np.random.choice(U, E, replace = False)
-    T2 = (T2set[INDEX_COUNT])*T*E # constants chosen to ensure probabilities add up to 1
+    T2 = (T2set[INDEX_COUNT])*T*E # CONSTANTS CHOSEN TO ENSURE PROBABILITIES ADD UP TO 1
 
     # BORROW DATA FROM CORRESPONDING INDICES OF MAIN IMAGE AND FREQUENCY SETS
     for D in range(0, 10):
@@ -224,8 +219,6 @@ for T in Tset:
             eFreqSet[D, i] = uFreqSet[D, uSampledSet[i]]
             eTotalFreq[D] = sum(eFreqSet[D])
             eProbsSet[D, i] = float((eFreqSet[D, i] + ALPHA)/(T2 + (ALPHA*(eTotalFreq[D]))))
-
-    print(f"sum(sum(eProbsSet)): {sum(sum(eProbsSet))}")
 
     # for trial in range(8):
     for trial in range(4):

@@ -127,7 +127,7 @@ uniqueImList = np.unique(sampleImList, axis = 0)
 sizeUniqueImList = len(uniqueImList)
 
 # DOMAIN FOR EACH DIGIT DISTRIBUTION IS NUMBER OF UNIQUE IMAGES
-U = 207
+U = len(uniqueImList)
 
 # FIND AND STORE FREQUENCIES OF UNIQUE IMAGES FOR EACH DIGIT
 uImageSet = np.zeros((10, U, 4, 4))
@@ -161,6 +161,7 @@ eProbsSet = np.zeros((10, E))
 eTotalFreq = np.zeros(10)
 
 uSampledSet = np.random.choice(U, E, replace = False)
+T2 = 0.0025*T # CONSTANT CHOSEN TO ENSURE PROBABILITIES ADD UP TO 1
 
 # BORROW DATA FROM CORRESPONDING INDICES OF MAIN IMAGE AND FREQUENCY SETS
 for D in range(0, 10):
@@ -168,7 +169,7 @@ for D in range(0, 10):
         eImageSet[D, i] = uImageSet[D, uSampledSet[i]]
         eFreqSet[D, i] = uFreqSet[D, uSampledSet[i]]
         eTotalFreq[D] = sum(eFreqSet[D])
-        eProbsSet[D, i] = float((eFreqSet[D, i] + ALPHA)/(T + (ALPHA*(eTotalFreq[D]))))
+        eProbsSet[D, i] = float((eFreqSet[D, i] + ALPHA)/(T2 + (ALPHA*(eTotalFreq[D]))))
 
 # PARAMETERS FOR THE ADDITION OF LAPLACE AND GAUSSIAN NOISE
 DTA = 0.1

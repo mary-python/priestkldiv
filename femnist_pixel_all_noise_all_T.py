@@ -34,7 +34,7 @@ numWriters = len(writers)
 
 # investigate samples from approx 1% to approx 20% of writers
 Tset = [36, 72, 108, 144, 180, 225, 270, 360, 450, 540, 600, 660]
-T2set = [4.5, 0.1, 0.055, 0.32, 0.06, 0.42, 0.14, 2.2, 0.55, 0.2, 0.4, 0.06]
+T2set = [0.45, 0.01, 0.0055, 0.032, 0.006, 0.042, 0.014, 0.22, 0.055, 0.02, 0.04, 0.006]
 Eset = [10, 13, 16, 17, 19, 18, 20, 21, 22, 24, 24, 26]
 ES = len(Tset)
 INDEX_COUNT = 0
@@ -218,7 +218,7 @@ for T in Tset:
     uImageSet = np.ones((10, U, 4, 4))
     uFreqSet = np.zeros((10, U))
     uProbsSet = np.zeros((10, U))
-    T1 = 110*T # constant 110 chosen to ensure probabilities add up to 1
+    T1 = 11*T # constant 11 chosen to ensure probabilities add up to 1
 
     print("Creating probability distributions...")
 
@@ -232,6 +232,8 @@ for T in Tset:
         uImageSet[dig, ucount] = im
         uFreqSet[dig, ucount] = int(freq)
         uProbsSet[dig, ucount] = float((freq + ALPHA)/(T1 + (ALPHA*(digCount[dig]))))
+
+    print(f"sum(uProbsSet): {uProbsSet.sum(axis = 1)}")
 
     for D in range(0, 10):
         UNIQUE_COUNT = 0
@@ -281,7 +283,8 @@ for T in Tset:
             eTotalFreq[D] = sum(eFreqSet[D])
             eProbsSet[D, i] = float((eFreqSet[D, i] + ALPHA)/(T2 + (ALPHA*(eTotalFreq[D]))))
 
-    print(f"sum(sum(eProbsSet)): {sum(sum(eProbsSet))}")
+    print(f"sum(eProbsSet): {sum(sum(eProbsSet))}")
+    print(f"sum(eProbsSet): {eProbsSet.sum(axis = 1)}")
 
     # for trial in range(8):
     for trial in range(4):

@@ -166,7 +166,7 @@ U = len(uTotalSet)
 uImageSet = np.ones((10, U, 4, 4))
 uFreqSet = np.zeros((10, U))
 uProbsSet = np.zeros((10, U))
-T1 = 11*T # change this term so probabilities add up to 1
+T1 = 11*T # constant 11 chosen to ensure probabilities add up to 1
 
 print("Creating probability distributions...")
 
@@ -219,7 +219,7 @@ eProbsSet = np.zeros((10, E))
 eTotalFreq = np.zeros(10)
 
 uSampledSet = np.random.choice(U, E, replace = False)
-T2 = (11/3)*T*(E/U) # change this term so probabilities add up to 1
+T2 = 1.3*T # constant 1.3 chosen to ensure probabilities add up to 1
 
 # borrow data from corresponding indices of main image and frequency sets
 for D in range(0, 10):
