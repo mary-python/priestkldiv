@@ -34,7 +34,7 @@ numWriters = len(writers)
 
 # investigate samples from approx 1% to approx 20% of writers
 Tset = [36, 72, 108, 144, 180, 225, 270, 360, 450, 540, 600, 660]
-T2set = [2.75, 0.09, 0.055, 0.32, 0.065, 0.45, 0.15, 2.75, 0.55, 0.25, 0.55, 0.08]
+T2set = [4.5, 0.1, 0.055, 0.32, 0.06, 0.42, 0.14, 2.2, 0.55, 0.2, 0.4, 0.06]
 Eset = [10, 13, 16, 17, 19, 18, 20, 21, 22, 24, 24, 26]
 ES = len(Tset)
 INDEX_COUNT = 0
@@ -213,14 +213,12 @@ for T in Tset:
 
     # domain for each digit distribution is number of unique images
     U = len(uTotalSet)
-    print(f"U: {U}")
 
     # find and store frequencies of unique images for each digit
     uImageSet = np.ones((10, U, 4, 4))
     uFreqSet = np.zeros((10, U))
     uProbsSet = np.zeros((10, U))
     T1 = 110*T # constant 110 chosen to ensure probabilities add up to 1
-    print(f"T1: {T1}")
 
     print("Creating probability distributions...")
 
@@ -263,11 +261,8 @@ for T in Tset:
 
             UNIQUE_COUNT = UNIQUE_COUNT + 1
 
-    print(f"sum(sum(uProbsSet)): {sum(sum(uProbsSet))}")
-
     # for k3 estimator (Schulman) take a small sample of unique images
     E = Eset[INDEX_COUNT]
-    print(f"E/U: {E/U}")
 
     # store images, frequencies and probabilities for this subset
     eImageSet = np.ones((10, E, 4, 4))
@@ -277,7 +272,6 @@ for T in Tset:
 
     uSampledSet = np.random.choice(U, E, replace = False)
     T2 = (T2set[INDEX_COUNT])*T*E # constants chosen to ensure probabilities add up to 1
-    print(f"T2: {T2}")
 
     # borrow data from corresponding indices of main image and frequency sets
     for D in range(0, 10):
