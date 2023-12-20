@@ -233,8 +233,6 @@ for T in Tset:
         uFreqSet[dig, ucount] = int(freq)
         uProbsSet[dig, ucount] = float((freq + ALPHA)/(T1 + (ALPHA*(digCount[dig]))))
 
-    print(f"sum(uProbsSet): {uProbsSet.sum(axis = 1)}")
-
     for D in range(0, 10):
         UNIQUE_COUNT = 0
 
@@ -282,9 +280,6 @@ for T in Tset:
             eFreqSet[D, i] = uFreqSet[D, uSampledSet[i]]
             eTotalFreq[D] = sum(eFreqSet[D])
             eProbsSet[D, i] = float((eFreqSet[D, i] + ALPHA)/(T2 + (ALPHA*(eTotalFreq[D]))))
-
-    print(f"sum(eProbsSet): {sum(sum(eProbsSet))}")
-    print(f"sum(eProbsSet): {eProbsSet.sum(axis = 1)}")
 
     # for trial in range(8):
     for trial in range(4):
