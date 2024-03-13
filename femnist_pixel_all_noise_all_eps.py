@@ -37,16 +37,16 @@ T = int(numWriters / 20)
 sampledWriters = np.random.choice(numWriters, T, replace = False)
 totalDigits = np.zeros(10, dtype = int)
 
-# add up how many times each digit is featured
+# compute the frequecy of each digit
 print("Preprocessing images...")
 for i in sampledWriters:
     tempDataset = file[writers[i]]
 
     for pic in range(len(tempDataset['labels'])):
 
-        for count in range(10):
-            if tempDataset['labels'][pic] == count:
-                totalDigits[count] = totalDigits[count] + 1
+        for freq in range(10):
+            if tempDataset['labels'][pic] == freq:
+                totalDigits[freq] = totalDigits[freq] + 1
 
 # create image store of appropriate dimensions for each digit
 zeroSet = np.ones((totalDigits[0], 4, 4), dtype = int)
@@ -62,16 +62,16 @@ nineSet = np.ones((totalDigits[9], 4, 4), dtype = int)
 
 # to store condensed image and frequency of each digit
 smallPic = np.ones((4, 4), dtype = int)
-digCount = np.zeros(10, dtype = int)
+digFreq = np.zeros(10, dtype = int)
 
 def add_digit(dset):
     """Method to add digit to set corresponding to label."""
-    dset[digCount[label]] = smallPic
+    dset[digFreq[label]] = smallPic
 
 for i in sampledWriters:
 
     tempDataset = file[writers[i]]
-    PIC_COUNT = 0
+    PIC_FREQ = 0
 
     for pic in tempDataset['images']:
 
@@ -87,7 +87,7 @@ for i in sampledWriters:
                 else:
                     smallPic[a, b] = 0
 
-        label = tempDataset['labels'][PIC_COUNT]
+        label = tempDataset['labels'][PIC_FREQ]
 
         # split images according to label
         if label == 0:
@@ -111,8 +111,8 @@ for i in sampledWriters:
         elif label == 9:
             add_digit(nineSet)
 
-        digCount[label] = digCount[label] + 1
-        PIC_COUNT = PIC_COUNT + 1
+        digFreq[label] = digFreq[label] + 1
+        PIC_FREQ = PIC_FREQ + 1
 
 # store frequency of unique images corresponding to each digit
 sizeUSet = np.zeros(11)
@@ -137,77 +137,77 @@ uNineSet = unique_images(9, nineSet)
 # store frequency of unique images in total
 uTotalFreq = int(sum(sizeUSet))
 uTotalSet = np.ones((uTotalFreq, 4, 4), dtype = int)
-TOTAL_COUNT = 0
+TOTAL_FREQ = 0
 
-def total_set(uset, tset, tcount):
+def total_set(uset, tset, tfreq):
     """Method to add each of the unique images for each digit."""
     for im in uset:
-        tset[tcount] = im
-        tcount = tcount + 1
-    return tcount
+        tset[tfreq] = im
+        tfreq = tfreq + 1
+    return tfreq
 
-TOTAL_COUNT = total_set(uZeroSet, uTotalSet, TOTAL_COUNT)
-TOTAL_COUNT = total_set(uOneSet, uTotalSet, TOTAL_COUNT)
-TOTAL_COUNT = total_set(uTwoSet, uTotalSet, TOTAL_COUNT)
-TOTAL_COUNT = total_set(uThreeSet, uTotalSet, TOTAL_COUNT)
-TOTAL_COUNT = total_set(uFourSet, uTotalSet, TOTAL_COUNT)
-TOTAL_COUNT = total_set(uFiveSet, uTotalSet, TOTAL_COUNT)
-TOTAL_COUNT = total_set(uSixSet, uTotalSet, TOTAL_COUNT)
-TOTAL_COUNT = total_set(uSevenSet, uTotalSet, TOTAL_COUNT)
-TOTAL_COUNT = total_set(uEightSet, uTotalSet, TOTAL_COUNT)
-TOTAL_COUNT = total_set(uNineSet, uTotalSet, TOTAL_COUNT)
+TOTAL_FREQ = total_set(uZeroSet, uTotalSet, TOTAL_FREQ)
+TOTAL_FREQ = total_set(uOneSet, uTotalSet, TOTAL_FREQ)
+TOTAL_FREQ = total_set(uTwoSet, uTotalSet, TOTAL_FREQ)
+TOTAL_FREQ = total_set(uThreeSet, uTotalSet, TOTAL_FREQ)
+TOTAL_FREQ = total_set(uFourSet, uTotalSet, TOTAL_FREQ)
+TOTAL_FREQ = total_set(uFiveSet, uTotalSet, TOTAL_FREQ)
+TOTAL_FREQ = total_set(uSixSet, uTotalSet, TOTAL_FREQ)
+TOTAL_FREQ = total_set(uSevenSet, uTotalSet, TOTAL_FREQ)
+TOTAL_FREQ = total_set(uEightSet, uTotalSet, TOTAL_FREQ)
+TOTAL_FREQ = total_set(uNineSet, uTotalSet, TOTAL_FREQ)
 
 uTotalSet = unique_images(10, uTotalSet)
 
 # domain for each digit distribution is number of unique images
 U = len(uTotalSet)
 
-# find and store frequencies of unique images for each digit
+# store frequencies of unique images for each digit
 uImageSet = np.ones((10, U, 4, 4))
 uFreqSet = np.zeros((10, U))
 uProbsSet = np.zeros((10, U))
-T1 = 11*T # constant 11 chosen to ensure probabilities add up to 1
+T1 = 11*T # change this term so probabilities add up to 1
 
 print("Creating probability distributions...")
 
 # smoothing parameter: 0.1 and 1 are too large
 ALPHA = 0.01
 
-def smoothed_prob(dset, dig, im, ucount):
+def smoothed_prob(dset, dig, im, ufreq):
     """Method to compute frequencies of unique images and return smoothed probabilities."""
     where = np.where(np.all(im == dset, axis = (1, 2)))
     freq = len(where[0])
-    uImageSet[dig, ucount] = im
-    uFreqSet[dig, ucount] = int(freq)
-    uProbsSet[dig, ucount] = float((freq + ALPHA)/(T1 + (ALPHA*(digCount[dig]))))
+    uImageSet[dig, ufreq] = im
+    uFreqSet[dig, ufreq] = int(freq)
+    uProbsSet[dig, ufreq] = float((freq + ALPHA)/(T1 + (ALPHA*(digFreq[dig]))))
 
 for D in range(0, 10):
-    UNIQUE_COUNT = 0
+    UNIQUE_FREQ = 0
 
     # store image and smoothed probability as well as frequency
     for image in uTotalSet:
         if D == 0:
-            smoothed_prob(zeroSet, 0, image, UNIQUE_COUNT)
+            smoothed_prob(zeroSet, 0, image, UNIQUE_FREQ)
         elif D == 1:
-            smoothed_prob(oneSet, 1, image, UNIQUE_COUNT)
+            smoothed_prob(oneSet, 1, image, UNIQUE_FREQ)
         elif D == 2:
-            smoothed_prob(twoSet, 2, image, UNIQUE_COUNT)
+            smoothed_prob(twoSet, 2, image, UNIQUE_FREQ)
         elif D == 3:
-            smoothed_prob(threeSet, 3, image, UNIQUE_COUNT)
+            smoothed_prob(threeSet, 3, image, UNIQUE_FREQ)
         elif D == 4:
-            smoothed_prob(fourSet, 4, image, UNIQUE_COUNT)
+            smoothed_prob(fourSet, 4, image, UNIQUE_FREQ)
         elif D == 5:
-            smoothed_prob(fiveSet, 5, image, UNIQUE_COUNT)
+            smoothed_prob(fiveSet, 5, image, UNIQUE_FREQ)
         elif D == 6:
-            smoothed_prob(sixSet, 6, image, UNIQUE_COUNT)
+            smoothed_prob(sixSet, 6, image, UNIQUE_FREQ)
         elif D == 7:
-            smoothed_prob(sevenSet, 7, image, UNIQUE_COUNT)
+            smoothed_prob(sevenSet, 7, image, UNIQUE_FREQ)
         elif D == 8:
-            smoothed_prob(eightSet, 8, image, UNIQUE_COUNT)
+            smoothed_prob(eightSet, 8, image, UNIQUE_FREQ)
         elif D == 9:
-            smoothed_prob(nineSet, 9, image, UNIQUE_COUNT)
+            smoothed_prob(nineSet, 9, image, UNIQUE_FREQ)
 
-        UNIQUE_COUNT = UNIQUE_COUNT + 1
+        UNIQUE_FREQ = UNIQUE_FREQ + 1
 
 # for k3 estimator (Schulman) take a small sample of unique images
 E = 17
@@ -219,7 +219,7 @@ eProbsSet = np.zeros((10, E))
 eTotalFreq = np.zeros(10)
 
 uSampledSet = np.random.choice(U, E, replace = False)
-T2 = 1.3*T # constant 1.3 chosen to ensure probabilities add up to 1
+T2 = (11/3)*T*(E/U) # change this term so probabilities add up to 1
 
 # borrow data from corresponding indices of main image and frequency sets
 for D in range(0, 10):
@@ -240,7 +240,7 @@ trialset = ["mid_lap", "mid_lap_mc", "mid_gauss", "mid_gauss_mc", "end_lap", "en
 ES = len(epsset)
 TS = len(trialset)
 
-# stores for sum, min/max KLD and lambda
+# stores for sum, min/max distributions and lambda
 minSum = np.zeros((TS, ES, R))
 minPairEst = np.zeros((TS, ES, R))
 maxPairEst = np.zeros((TS, ES, R))
@@ -256,8 +256,8 @@ aPairLambda = np.zeros((TS, ES))
 bPairLambda = np.zeros((TS, ES))
 
 # stores for ranking preservation analysis
-tPercSmall = np.zeros((TS, ES, R))
-tPercLarge = np.zeros((TS, ES, R))
+kPercSmall = np.zeros((TS, ES, R))
+kPercLarge = np.zeros((TS, ES, R))
 sumPercSmall = np.zeros((TS, ES, R))
 sumPercLarge = np.zeros((TS, ES, R))
 minPercSmall = np.zeros((TS, ES, R))
@@ -278,40 +278,37 @@ dPercLarge = np.zeros((TS, ES))
 for trial in range(4):
 
     print(f"\nTrial {trial + 1}: {trialset[trial]}")
-    INDEX_COUNT = 0
+    INDEX_FREQ = 0
 
     for eps in epsset:
         for rep in range(R):
 
-            print(f"Trial {trial + 1}: epsilon = {eps}, repeat = {rep + 1}...")
+            print(f"\nTrial {trial + 1}: epsilon = {eps}, repeat = {rep + 1}...")
 
-            # stores for exact KLD
-            KLDiv = np.zeros((10, 10, U))
-            KList = []
-            CDList = []
+            # stores for exact and noisy unknown distributions
+            uDist = np.zeros((10, 10, U))
+            nDist = np.zeros((10, 10, E, R))
+            uList = []
+            uCDList = []
 
-            # stores for estimated KLD
-            eKLDiv = np.zeros((10, 10, E, R))
-            eKList = []
+            # stores for ratio between unknown and known distributions
+            rList = []
+            kList = []
+            kCDList = []
 
-            # stores for ratio between KLDs and true distribution
-            rKList = []
-            tKList = []
-            tCDList = []
-
-            # stores for unbiased estimate of KLD
-            zeroKList = []
+            # stores for binary search
+            zeroUList = []
             zeroCDList = []
-            oneKList = []
+            oneUList = []
             oneCDList = []
-            halfKList = []
+            halfUList = []
             halfCDList = []
 
-            # option 1a: querying entire distribution
+            # option 1a: baseline case
             if trial % 2 == 0:
                 b1 = log(2) / eps
 
-            # option 1b: Monte Carlo sampling
+            # option 1b: Monte Carlo estimate
             else:
                 b1 = (1 + log(2)) / eps
 
@@ -325,12 +322,12 @@ for trial in range(4):
             else:
                 noiseLG = tfp.distributions.Normal(loc = A, scale = b2)
 
-            def unbias_est(lda, rklist, tklist, lklist, lcdlist):
+            def unbias_est(lda, rlist, klist, ulist, cdlist):
                 """Compute sum of unbiased estimators corresponding to all pairs."""
                 count = 1
 
-                for row in range(0, len(rklist)):
-                    lest = ((lda * (rklist[row] - 1)) - log(rklist[row])) / T1
+                for row in range(0, len(rlist)):
+                    uest = ((lda * (rlist[row] - 1)) - log(rlist[row])) / T1
           
                     # option 3b: add noise at end
                     if trial >= 4:
@@ -338,30 +335,30 @@ for trial in range(4):
                     else:
                         err = 0.0
 
-                    # add noise to unbiased estimator then compare to true distribution
-                    err = abs(err + lest - tklist[row])
+                    # add noise to unknown distribution estimator then compare to known distribution
+                    err = abs(err + uest - klist[row])
 
                     if err != 0.0:
-                        lklist.append(err)
+                        ulist.append(err)
 
                         c = count // 10
                         d = count % 10
 
-                        lcdlist.append((c, d))
+                        cdlist.append((c, d))
 
                         if c == d + 1:
                             count = count + 2
                         else:
                             count = count + 1
 
-                return sum(lklist)
+                return sum(ulist)
     
-            def min_max(lda, rklist, tklist, lklist, lcdlist, mp):
+            def min_max(lda, rlist, klist, ulist, cdlist, mp):
                 """Compute unbiased estimator corresponding to min or max pair."""
                 count = 1
 
-                for row in range(0, len(rklist)):
-                    lest = ((lda * (rklist[row] - 1)) - log(rklist[row])) / T1
+                for row in range(0, len(rlist)):
+                    uest = ((lda * (rlist[row] - 1)) - log(rlist[row])) / T1
 
                     # option 3b: add noise at end
                     if trial >= 4:
@@ -369,57 +366,57 @@ for trial in range(4):
                     else:
                         err = 0.0
 
-                    # add noise to unbiased estimator then compare to true distribution
-                    err = abs(err + lest - tklist[row])
+                    # add noise to unknown distribution estimator then compare to known distribution
+                    err = abs(err + uest - klist[row])
 
                     if err != 0.0:
-                        lklist.append(err)
+                        ulist.append(err)
 
                         c = count // 10
                         d = count % 10
 
-                        lcdlist.append((c, d))
+                        cdlist.append((c, d))
 
                         if c == d + 1:
                             count = count + 2
                         else:
                             count = count + 1
 
-                lmi = lcdlist.index(mp)
-                return lklist[lmi]
+                mi = cdlist.index(mp)
+                return ulist[mi]
 
-            # for each comparison digit compute KLD for all digits
+            # for each comparison digit compute exact and noisy unknown distributions for all digits
             for C in range(0, 10):
                 for D in range(0, 10):
 
                     for i in range(0, U):
-                        KLDiv[C, D, i] = uProbsSet[D, i] * (np.log((uProbsSet[D, i]) / (uProbsSet[C, i])))
+                        uDist[C, D, i] = uProbsSet[D, i] * (np.log((uProbsSet[D, i]) / (uProbsSet[C, i])))
 
                     for j in range(0, E):
-                        eKLDiv[C, D, j] = eProbsSet[D, j] * (np.log((eProbsSet[D, j]) / (eProbsSet[C, j])))
+                        nDist[C, D, j] = eProbsSet[D, j] * (np.log((eProbsSet[D, j]) / (eProbsSet[C, j])))
 
                         # option 3a: add noise in middle
                         if trial < 4:
-                            eKLDiv[C, D, j] = eKLDiv[C, D, j] + noiseLG.sample(sample_shape = (1,))
+                            nDist[C, D, j] = nDist[C, D, j] + noiseLG.sample(sample_shape = (1,))
 
                     # eliminate all zero values when digits are identical
-                    if sum(KLDiv[C, D]) != 0.0:
-                        KList.append(sum(KLDiv[C, D]))
-                        CDList.append((C, D))
+                    if sum(uDist[C, D]) != 0.0:
+                        uList.append(sum(uDist[C, D]))
+                        uCDList.append((C, D))
 
-                    # compute ratio between exact and estimated KLD
-                    ratio = abs(sum(eKLDiv[C, D, j]) / sum(KLDiv[C, D]))
+                    # compute ratio between exact and noisy unknown distributions
+                    ratio = abs(sum(nDist[C, D, j]) / sum(uDist[C, D]))
 
                     # eliminate all divide by zero errors
-                    if ratio != 0.0 and sum(KLDiv[C, D]) != 0.0:
-                        rKList.append(ratio)
+                    if ratio != 0.0 and sum(uDist[C, D]) != 0.0:
+                        rList.append(ratio)
 
-                        # compute true distribution
-                        trueDist = abs(sum(eKLDiv[C, D, j]) * log(ratio))
-                        tKList.append(trueDist)
-                        tCDList.append((C, D))
+                        # compute known distribution
+                        kDist = abs(sum(nDist[C, D, j]) * log(ratio))
+                        kList.append(kDist)
+                        kCDList.append((C, D))
 
-                        # wait until final digit pair (9, 8) to analyse exact KLD list
+                        # wait until final digit pair (9, 8) to analyse exact unknown distribution list
                         if C == 9 and D == 8:
 
                             low = 0
@@ -427,22 +424,22 @@ for trial in range(4):
                             mid = 0.5
 
                             # compute unbiased estimators with lambda 0, 1, 0.5 then binary search
-                            lowSum = unbias_est(low, rKList, tKList, zeroKList, zeroCDList)
-                            highSum = unbias_est(high, rKList, tKList, oneKList, oneCDList)
-                            minSum[trial, INDEX_COUNT, rep] = unbias_est(mid, rKList, tKList, halfKList, halfCDList)
+                            lowSum = unbias_est(low, rList, kList, zeroUList, zeroCDList)
+                            highSum = unbias_est(high, rList, kList, oneUList, oneCDList)
+                            minSum[trial, INDEX_FREQ, rep] = unbias_est(mid, rList, kList, halfUList, halfCDList)
 
                             # tolerance between binary search limits always gets small enough
                             while abs(high - low) > 0.00000001:
 
-                                lowKList = []
+                                lowUList = []
                                 lowCDList = []
-                                highKList = []
+                                highUList = []
                                 highCDList = []
-                                sumKList = []
+                                sumUList = []
                                 sumCDList = []
 
-                                lowSum = unbias_est(low, rKList, tKList, lowKList, lowCDList)
-                                highSum = unbias_est(high, rKList, tKList, highKList, highCDList)
+                                lowSum = unbias_est(low, rList, kList, lowUList, lowCDList)
+                                highSum = unbias_est(high, rList, kList, highUList, highCDList)
 
                                 # reduce / increase binary search limit depending on absolute value
                                 if abs(lowSum) < abs(highSum):
@@ -452,27 +449,27 @@ for trial in range(4):
 
                                 # set new midpoint
                                 mid = (0.5*abs((high - low))) + low
-                                minSum[trial, INDEX_COUNT, rep] = unbias_est(mid, rKList, tKList, sumKList, sumCDList)
+                                minSum[trial, INDEX_FREQ, rep] = unbias_est(mid, rList, kList, sumUList, sumCDList)
 
-                            sumLambda[trial, INDEX_COUNT, rep] = mid
+                            sumLambda[trial, INDEX_FREQ, rep] = mid
 
-                            # extract min pair by absolute value of exact KLD
-                            absKList = [abs(kl) for kl in KList]
-                            minKList = sorted(absKList)
-                            minAbs = minKList[0]
-                            minIndex = KList.index(minAbs)
-                            minPair = CDList[minIndex]
+                            # extract min pair by absolute value of exact unknown distribution
+                            absUList = [abs(ul) for ul in uList]
+                            minUList = sorted(absUList)
+                            minAbs = minUList[0]
+                            minIndex = uList.index(minAbs)
+                            minPair = uCDList[minIndex]
                             MIN_COUNT = 1
 
-                            # if max pair is not in lambda 0.5 list then get next smallest
+                            # if min pair is not in lambda 0.5 list then get next smallest
                             while minPair not in halfCDList:        
-                                minAbs = minKList[MIN_COUNT]
-                                minIndex = KList.index(minAbs)
-                                minPair = CDList[minIndex]
+                                minAbs = minUList[MIN_COUNT]
+                                minIndex = uList.index(minAbs)
+                                minPair = uCDList[minIndex]
                                 MIN_COUNT = MIN_COUNT + 1
 
                             midMinIndex = halfCDList.index(minPair)
-                            minPairEst[trial, INDEX_COUNT, rep] = halfKList[midMinIndex]
+                            minPairEst[trial, INDEX_FREQ, rep] = halfUList[midMinIndex]
 
                             low = 0
                             high = 1
@@ -481,42 +478,42 @@ for trial in range(4):
                             # find optimal lambda for min pair
                             while abs(high - low) > 0.00000001:
 
-                                lowKList = []
+                                lowUList = []
                                 lowCDList = []
-                                highKList = []
+                                highUList = []
                                 highCDList = []
-                                minKList = []
+                                minUList = []
                                 minCDList = []
 
-                                lowMinKL = min_max(low, rKList, tKList, lowKList, lowCDList, minPair)
-                                highMinKL = min_max(high, rKList, tKList, highKList, highCDList, minPair)
+                                lowMinUL = min_max(low, rList, kList, lowUList, lowCDList, minPair)
+                                highMinUL = min_max(high, rList, kList, highUList, highCDList, minPair)
 
-                                if abs(lowMinKL) < abs(highMinKL):
+                                if abs(lowMinUL) < abs(highMinUL):
                                     high = mid
                                 else:
                                     low = mid
 
                                 mid = (0.5*abs((high - low))) + low
-                                minPairEst[trial, INDEX_COUNT, rep] = min_max(mid, rKList, tKList, minKList, minCDList, minPair)
+                                minPairEst[trial, INDEX_FREQ, rep] = min_max(mid, rList, kList, minUList, minCDList, minPair)
 
-                            minPairLambda[trial, INDEX_COUNT, rep] = mid
+                            minPairLambda[trial, INDEX_FREQ, rep] = mid
 
-                            # extract max pair by reversing exact KLD list
-                            maxKList = sorted(absKList, reverse = True)
-                            maxAbs = maxKList[0]
-                            maxIndex = KList.index(maxAbs)
-                            maxPair = CDList[maxIndex]
+                            # extract max pair by reversing unknown distribution list
+                            maxUList = sorted(absUList, reverse = True)
+                            maxAbs = maxUList[0]
+                            maxIndex = uList.index(maxAbs)
+                            maxPair = uCDList[maxIndex]
                             MAX_COUNT = 1
 
                             # if max pair is not in lambda 0.5 list then get next largest
                             while maxPair not in halfCDList:        
-                                maxAbs = maxKList[MAX_COUNT]
-                                maxIndex = KList.index(maxAbs)
-                                maxPair = CDList[maxIndex]
+                                maxAbs = maxUList[MAX_COUNT]
+                                maxIndex = uList.index(maxAbs)
+                                maxPair = uCDList[maxIndex]
                                 MAX_COUNT = MAX_COUNT + 1
 
                             midMaxIndex = halfCDList.index(maxPair)
-                            maxPairEst[trial, INDEX_COUNT, rep] = halfKList[midMaxIndex]
+                            maxPairEst[trial, INDEX_FREQ, rep] = halfUList[midMaxIndex]
 
                             low = 0
                             high = 1
@@ -525,121 +522,126 @@ for trial in range(4):
                             # find optimal lambda for max pair
                             while abs(high - low) > 0.00000001:
 
-                                lowKList = []
+                                lowUList = []
                                 lowCDList = []
-                                highKList = []
+                                highUList = []
                                 highCDList = []
-                                maxKList = []
+                                maxUList = []
                                 maxCDList = []
 
-                                lowMaxKL = min_max(low, rKList, tKList, lowKList, lowCDList, maxPair)
-                                highMaxKL = min_max(high, rKList, tKList, highKList, highCDList, maxPair)
+                                lowMaxUL = min_max(low, rList, kList, lowUList, lowCDList, maxPair)
+                                highMaxUL = min_max(high, rList, kList, highUList, highCDList, maxPair)
                 
-                                if abs(lowMaxKL) < abs(highMaxKL):
+                                if abs(lowMaxUL) < abs(highMaxUL):
                                     high = mid
                                 else:
                                     low = mid
 
                                 mid = (0.5*(abs(high - low))) + low
-                                maxPairEst[trial, INDEX_COUNT, rep] = min_max(mid, rKList, tKList, maxKList, maxCDList, maxPair)
+                                maxPairEst[trial, INDEX_FREQ, rep] = min_max(mid, rList, kList, maxUList, maxCDList, maxPair)
 
-                            maxPairLambda[trial, INDEX_COUNT, rep] = mid
+                            maxPairLambda[trial, INDEX_FREQ, rep] = mid
 
-            def rank_pres(bin, okld, tokld):
-                """Do smallest/largest 10% in exact KLD remain in smaller/larger half of estimator?"""
+            def rank_pres(bin, oud, okd):
+                """Do smallest/largest 10% in unknown distribution remain in smaller/larger half of estimator?"""
                 rows = 90
                 num = 0
 
                 if bin == 0: 
-                    dict = list(okld.values())[0 : int(rows / 10)]
-                    tdict = list(tokld.values())[0 : int(rows / 2)]
+                    udict = list(oud.values())[0 : int(rows / 10)]
+                    kdict = list(okd.values())[0 : int(rows / 2)]
                 else:
-                    dict = list(okld.values())[int(9*(rows / 10)) : rows]
-                    tdict = list(tokld.values())[int(rows / 2) : rows]
+                    udict = list(oud.values())[int(9*(rows / 10)) : rows]
+                    kdict = list(okd.values())[int(rows / 2) : rows]
 
-                for di in dict:
-                    for dj in tdict:    
-                        if dj == di:
+                for ud in udict:
+                    for kd in kdict:    
+                        if kd == ud:
                             num = num + 1
 
                 return 100*(num / int(rows/10))
 
-            KLDict = dict(zip(KList, CDList))
-            orderedKLDict = OrderedDict(sorted(KLDict.items()))
+            uDict = dict(zip(uList, uCDList))
+            oUDict = OrderedDict(sorted(uDict.items()))
 
-            # exact KLD is identical for all trials, epsilons and repeats
+            # unknown distribution is identical for all trials, epsilons and repeats
             if trial == 0 and eps == 0.001 and rep == 0:
-                orderfile = open("femnist_exact_kld_in_order.txt", "w", encoding = 'utf-8')
-                orderfile.write("FEMNIST: Exact KL Divergence In Order\n")
+                orderfile = open("femnist_unknown_dist_in_order.txt", "w", encoding = 'utf-8')
+                orderfile.write("FEMNIST: Unknown Distribution In Order\n")
                 orderfile.write("Smaller corresponds to more similar digits\n\n")
 
-                for i in orderedKLDict:
-                    orderfile.write(f"{i} : {orderedKLDict[i]}\n")
+                for i in oUDict:
+                    orderfile.write(f"{i} : {oUDict[i]}\n")
 
             # compute ranking preservation statistics for each repeat
-            tKLDict = dict(zip(tKList, tCDList))
-            tOrderedKLDict = OrderedDict(sorted(tKLDict.items()))
-            tPercSmall[trial, INDEX_COUNT, rep] = rank_pres(0, orderedKLDict, tOrderedKLDict)
-            tPercLarge[trial, INDEX_COUNT, rep] = rank_pres(1, orderedKLDict, tOrderedKLDict)
+            kDict = dict(zip(kList, kCDList))
+            oKDict = OrderedDict(sorted(kDict.items()))
+            kPercSmall[trial, INDEX_FREQ, rep] = rank_pres(0, oUDict, oKDict)
+            kPercLarge[trial, INDEX_FREQ, rep] = rank_pres(1, oUDict, oKDict)
 
-            sumKLDict = dict(zip(sumKList, sumCDList))
-            sumOrderedKLDict = OrderedDict(sorted(sumKLDict.items()))
-            sumPercSmall[trial, INDEX_COUNT, rep] = rank_pres(0, orderedKLDict, sumOrderedKLDict)
-            sumPercLarge[trial, INDEX_COUNT, rep] = rank_pres(1, orderedKLDict, sumOrderedKLDict)
+            sumUDict = dict(zip(sumUList, sumCDList))
+            sumOUDict = OrderedDict(sorted(sumUDict.items()))
+            sumPercSmall[trial, INDEX_FREQ, rep] = rank_pres(0, oUDict, sumOUDict)
+            sumPercLarge[trial, INDEX_FREQ, rep] = rank_pres(1, oUDict, sumOUDict)
 
-            minKLDict = dict(zip(minKList, minCDList))
-            minOrderedKLDict = OrderedDict(sorted(minKLDict.items()))
-            minPercSmall[trial, INDEX_COUNT, rep] = rank_pres(0, orderedKLDict, minOrderedKLDict)
-            minPercLarge[trial, INDEX_COUNT, rep] = rank_pres(1, orderedKLDict, minOrderedKLDict)
+            minUDict = dict(zip(minUList, minCDList))
+            minOUDict = OrderedDict(sorted(minUDict.items()))
+            minPercSmall[trial, INDEX_FREQ, rep] = rank_pres(0, oUDict, minOUDict)
+            minPercLarge[trial, INDEX_FREQ, rep] = rank_pres(1, oUDict, minOUDict)
 
-            maxKLDict = dict(zip(maxKList, maxCDList))
-            maxOrderedKLDict = OrderedDict(sorted(maxKLDict.items()))
-            maxPercSmall[trial, INDEX_COUNT, rep] = rank_pres(0, orderedKLDict, maxOrderedKLDict)
-            maxPercLarge[trial, INDEX_COUNT, rep] = rank_pres(1, orderedKLDict, maxOrderedKLDict)
+            maxUDict = dict(zip(maxUList, maxCDList))
+            maxOUDict = OrderedDict(sorted(maxUDict.items()))
+            maxPercSmall[trial, INDEX_FREQ, rep] = rank_pres(0, oUDict, maxOUDict)
+            maxPercLarge[trial, INDEX_FREQ, rep] = rank_pres(1, oUDict, maxOUDict)
         
         # sum up repeats for all the main statistics
-        aLambda[trial, INDEX_COUNT] = fmean(sumLambda[trial, INDEX_COUNT])
-        aSum[trial, INDEX_COUNT] = fmean(minSum[trial, INDEX_COUNT])
+        aLambda[trial, INDEX_FREQ] = fmean(sumLambda[trial, INDEX_FREQ])
+        aSum[trial, INDEX_FREQ] = fmean(minSum[trial, INDEX_FREQ])
+        print(f"\naLambda: {aLambda[trial, INDEX_FREQ]}")
+        print(f"sumLambda: {sumLambda[trial, INDEX_FREQ]}")
+        print(f"aSum: {aSum[trial, INDEX_FREQ]}")
+        print(f"minSum: {minSum[trial, INDEX_FREQ]}")
 
-        aPairLambda[trial, INDEX_COUNT] = fmean(minPairLambda[trial, INDEX_COUNT])
-        aPairEst[trial, INDEX_COUNT] = fmean(minPairEst[trial, INDEX_COUNT])
-        bPairLambda[trial, INDEX_COUNT] = fmean(maxPairLambda[trial, INDEX_COUNT])
-        bPairEst[trial, INDEX_COUNT] = fmean(maxPairEst[trial, INDEX_COUNT])
+        aPairLambda[trial, INDEX_FREQ] = fmean(minPairLambda[trial, INDEX_FREQ])
+        aPairEst[trial, INDEX_FREQ] = fmean(minPairEst[trial, INDEX_FREQ])
+        bPairLambda[trial, INDEX_FREQ] = fmean(maxPairLambda[trial, INDEX_FREQ])
+        bPairEst[trial, INDEX_FREQ] = fmean(maxPairEst[trial, INDEX_FREQ])
 
-        aPercSmall[trial, INDEX_COUNT] = fmean(tPercSmall[trial, INDEX_COUNT])
-        aPercLarge[trial, INDEX_COUNT] = fmean(tPercLarge[trial, INDEX_COUNT])
-        bPercSmall[trial, INDEX_COUNT] = fmean(sumPercSmall[trial, INDEX_COUNT])
-        bPercLarge[trial, INDEX_COUNT] = fmean(sumPercLarge[trial, INDEX_COUNT])
-        cPercSmall[trial, INDEX_COUNT] = fmean(minPercSmall[trial, INDEX_COUNT])
-        cPercLarge[trial, INDEX_COUNT] = fmean(minPercLarge[trial, INDEX_COUNT])
-        dPercSmall[trial, INDEX_COUNT] = fmean(maxPercSmall[trial, INDEX_COUNT])
-        dPercLarge[trial, INDEX_COUNT] = fmean(maxPercLarge[trial, INDEX_COUNT])
+        aPercSmall[trial, INDEX_FREQ] = fmean(kPercSmall[trial, INDEX_FREQ])
+        aPercLarge[trial, INDEX_FREQ] = fmean(kPercLarge[trial, INDEX_FREQ])
+        bPercSmall[trial, INDEX_FREQ] = fmean(sumPercSmall[trial, INDEX_FREQ])
+        bPercLarge[trial, INDEX_FREQ] = fmean(sumPercLarge[trial, INDEX_FREQ])
+        cPercSmall[trial, INDEX_FREQ] = fmean(minPercSmall[trial, INDEX_FREQ])
+        cPercLarge[trial, INDEX_FREQ] = fmean(minPercLarge[trial, INDEX_FREQ])
+        dPercSmall[trial, INDEX_FREQ] = fmean(maxPercSmall[trial, INDEX_FREQ])
+        dPercLarge[trial, INDEX_FREQ] = fmean(maxPercLarge[trial, INDEX_FREQ])
 
         statsfile = open(f"femnist_{trialset[trial]}_noise_eps_{eps}.txt", "w", encoding = 'utf-8')
         statsfile.write(f"FEMNIST: Laplace Noise in Middle, no Monte Carlo, Eps = {eps}\n")
-        statsfile.write(f"Optimal Lambda {round(aLambda[trial, INDEX_COUNT], 4)} for Sum {round(aSum[trial, INDEX_COUNT], 4)}\n\n")
+        statsfile.write(f"Optimal Lambda {round(aLambda[trial, INDEX_FREQ], 4)} for Sum {round(aSum[trial, INDEX_FREQ], 4)}\n\n")
 
-        statsfile.write(f"Digit Pair with Min Exact KLD: {minPair}\n")
-        statsfile.write(f"Optimal Lambda {round(aPairLambda[trial, INDEX_COUNT], 4)} for Estimate {round(aPairEst[trial, INDEX_COUNT], 4)}\n\n")
+        statsfile.write(f"Digit Pair with Min Exact Unknown Dist: {minPair}\n")
+        statsfile.write(f"Optimal Lambda {round(aPairLambda[trial, INDEX_FREQ], 4)} for Estimate {round(aPairEst[trial, INDEX_FREQ], 4)}\n\n")
 
-        statsfile.write(f"Digit Pair with Max Exact KLD: {maxPair}\n")
-        statsfile.write(f"Optimal Lambda {round(bPairLambda[trial, INDEX_COUNT], 4)} for Estimate {round(bPairEst[trial, INDEX_COUNT], 4)}\n\n")
+        statsfile.write(f"Digit Pair with Max Exact Unknown Dist: {maxPair}\n")
+        statsfile.write(f"Optimal Lambda {round(bPairLambda[trial, INDEX_FREQ], 4)} for Estimate {round(bPairEst[trial, INDEX_FREQ], 4)}\n\n")
 
-        statsfile.write(f"Smallest 10% exact KLD -> smaller half true dist ranking: {round(aPercSmall[trial, INDEX_COUNT], 1)}%\n")
-        statsfile.write(f"Largest 10% exact KLD -> larger half true dist ranking: {round(aPercLarge[trial, INDEX_COUNT], 1)}%\n\n")
+        statsfile.write(f"Smallest 10% exact unknown dist -> smaller half unknown dist ranking: {round(aPercSmall[trial, INDEX_FREQ], 1)}%\n")
+        statsfile.write(f"Largest 10% exact unknown dist -> larger half unknown dist ranking: {round(aPercLarge[trial, INDEX_FREQ], 1)}%\n\n")
         
-        statsfile.write(f"Smallest 10% exact KLD -> smaller half sum ranking: {round(bPercSmall[trial, INDEX_COUNT], 1)}%\n")
-        statsfile.write(f"Largest 10% exact KLD -> larger half sum ranking: {round(bPercLarge[trial, INDEX_COUNT], 1)}%\n\n")
+        statsfile.write(f"Smallest 10% exact unknown dist -> smaller half sum ranking: {round(bPercSmall[trial, INDEX_FREQ], 1)}%\n")
+        statsfile.write(f"Largest 10% exact unknown dist -> larger half sum ranking: {round(bPercLarge[trial, INDEX_FREQ], 1)}%\n\n")
 
-        statsfile.write(f"Smallest 10% exact KLD -> smaller half min pair ranking: {round(cPercSmall[trial, INDEX_COUNT], 1)}%\n")
-        statsfile.write(f"Largest 10% exact KLD -> larger half min pair ranking: {round(cPercLarge[trial, INDEX_COUNT], 1)}%\n\n")
+        statsfile.write(f"Smallest 10% exact unknown dist -> smaller half min pair ranking: {round(cPercSmall[trial, INDEX_FREQ], 1)}%\n")
+        statsfile.write(f"Largest 10% exact unknown dist -> larger half min pair ranking: {round(cPercLarge[trial, INDEX_FREQ], 1)}%\n\n")
 
-        statsfile.write(f"Smallest 10% exact KLD -> smaller half max pair ranking: {round(dPercSmall[trial, INDEX_COUNT], 1)}%\n")
-        statsfile.write(f"Largest 10% exact KLD -> larger half max pair ranking: {round(dPercLarge[trial, INDEX_COUNT], 1)}%\n\n")
+        statsfile.write(f"Smallest 10% exact unknown dist -> smaller half max pair ranking: {round(dPercSmall[trial, INDEX_FREQ], 1)}%\n")
+        statsfile.write(f"Largest 10% exact unknown dist -> larger half max pair ranking: {round(dPercLarge[trial, INDEX_FREQ], 1)}%\n\n")
 
-        INDEX_COUNT = INDEX_COUNT + 1
+        INDEX_FREQ = INDEX_FREQ + 1
 
 # plot lambdas for each epsilon
+print(f"\naLambda: {aLambda[0]}")
 plt.errorbar(epsset, aLambda[0], yerr = np.std(aLambda[0], axis = 0), color = 'tab:brown', marker = 'o', label = 'mid lap')
 plt.errorbar(epsset, aLambda[1], yerr = np.std(aLambda[1], axis = 0), color = 'tab:purple', marker = 'x', label = 'mid lap mc')
 plt.errorbar(epsset, aLambda[2], yerr = np.std(aLambda[2], axis = 0), color = 'tab:blue', marker = 'o', label = 'mid gauss')
@@ -679,6 +681,7 @@ plt.savefig("Femnist_eps_mid_lambda_min_max.png")
 plt.clf()
 
 # plot sum / estimates for each epsilon
+print(f"aSum: {aSum[0]}")
 plt.errorbar(epsset, aSum[0], yerr = np.std(aSum[0], axis = 0), color = 'tab:brown', marker = 'o', label = 'mid lap')
 plt.errorbar(epsset, aSum[1], yerr = np.std(aSum[1], axis = 0), color = 'tab:purple', marker = 'x', label = 'mid lap mc')
 plt.errorbar(epsset, aSum[2], yerr = np.std(aSum[2], axis = 0), color = 'tab:blue', marker = 'o', label = 'mid gauss')
