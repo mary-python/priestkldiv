@@ -631,7 +631,7 @@ for T in Tset:
         statsfile.write(f"Largest 10% exact unknown dist -> larger half unknown dist ranking: {round(aPercLarge[trial, INDEX_FREQ], 1)}%\n\n")
         
         statsfile.write(f"Smallest 10% exact unknown dist -> smaller half sum ranking: {round(bPercSmall[trial, INDEX_FREQ], 1)}%\n")
-        statsfile.write(f"Largest 10% exact KLD -> larger half sum ranking: {round(bPercLarge[trial, INDEX_FREQ], 1)}%\n\n")
+        statsfile.write(f"Largest 10% exact unknown dist -> larger half sum ranking: {round(bPercLarge[trial, INDEX_FREQ], 1)}%\n\n")
 
         statsfile.write(f"Smallest 10% exact unknown dist -> smaller half min pair ranking: {round(cPercSmall[trial, INDEX_FREQ], 1)}%\n")
         statsfile.write(f"Largest 10% exact unknown dist -> larger half min pair ranking: {round(cPercLarge[trial, INDEX_FREQ], 1)}%\n\n")
