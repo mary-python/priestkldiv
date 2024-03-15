@@ -49,6 +49,7 @@ for trial in range(4):
     # 10-100K clients each with a few hundred points
     C = 10000
     N = 500
+    M = (C / N) - 1
 
     # parameters for the addition of Laplace and Gaussian noise
     epsset = np.array([0.01, 0.025, 0.05, 0.1, 0.2, 0.4, 0.8, 1, 1.5, 2, 3, 4])
@@ -83,9 +84,9 @@ for trial in range(4):
                 indices = torch.randperm(len(qNegativeRound))[:N]
                 qClientSamp = qNegativeRound[indices]
 
-            # each client gets 500 points in order from ordered pre-processed sample
-            # translated by 49 every time to stay below upper bound 499947 for client 10000
-            qOrdClientSamp = qOrderedRound[0][49*j : (49*j) + 500]
+            # each client gets N points in order from ordered pre-processed sample
+            # translated by M = (C / N) - 1 every time to stay below upper bound (C * N) - 1 for client C
+            qOrdClientSamp = qOrderedRound[0][M*j : (M*j) + N]
 
             # compute ratio between unknown and known distributions
             sLogr = p.log_prob(qClientSamp) - q.log_prob(qClientSamp)
@@ -113,34 +114,17 @@ for trial in range(4):
 
     for eps in epsset:
 
-        sTotalNoiseL = 0
-        sTotalNoiseN = 0
-        oTotalNoiseL = 0
-        oTotalNoiseN = 0
-
         # load Laplace and Normal noise distributions, dependent on eps
         s1 = b1 / eps
         s2 = b2 / eps
         noiseL = dis.Laplace(loc = A, scale = s1)
         noiseN = dis.Normal(loc = A, scale = s2)
 
-        # compute average of R possible noise terms
-        for k in range(0, R):
-            sTotalNoiseL = sTotalNoiseL + (noiseL.sample(sample_shape = (1,)))
-            sTotalNoiseN = sTotalNoiseN + (noiseN.sample(sample_shape = (1,)))
-            oTotalNoiseL = oTotalNoiseL + (noiseL.sample(sample_shape = (1,)))
-            oTotalNoiseN = oTotalNoiseN + (noiseN.sample(sample_shape = (1,)))
-
-        sAvNoiseL = sTotalNoiseL / R
-        sAvNoiseN = sTotalNoiseN / R
-        oAvNoiseL = oTotalNoiseL / R
-        oAvNoiseN = oTotalNoiseN / R
-
         # option 3b: add average noise term to final result
-        sMeanL[EPS_COUNT] = sMean + sAvNoiseL
-        sMeanN[EPS_COUNT] = sMean + sAvNoiseN
-        oMeanL[EPS_COUNT] = oMean + oAvNoiseL
-        oMeanN[EPS_COUNT] = oMean + oAvNoiseN
+        sMeanL[EPS_COUNT] = sMean + noiseL.sample(sample_shape = (1,))
+        sMeanN[EPS_COUNT] = sMean + noiseN.sample(sample_shape = (1,))
+        oMeanL[EPS_COUNT] = oMean + noiseL.sample(sample_shape = (1,))
+        oMeanN[EPS_COUNT] = oMean + noiseN.sample(sample_shape = (1,))
         EPS_COUNT = EPS_COUNT + 1
 
 if trial % 4 == 0:

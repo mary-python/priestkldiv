@@ -49,6 +49,7 @@ for trial in range(4):
     # 10-100K clients each with a few hundred points
     C = 10000
     N = 500
+    M = (C / N) - 1
 
     # parameters for the addition of Laplace and Gaussian noise
     epsset = np.array([0.01, 0.025, 0.05, 0.1, 0.2, 0.4, 0.8, 1, 1.5, 2, 3, 4])
@@ -67,11 +68,12 @@ for trial in range(4):
     b2 = 2*((log(1.25))/DTA)*b1
 
     # multi-dimensional numpy arrays
-    L = np.size(epsset)
-    sEstL = np.zeros((C, L))
-    sEstN = np.zeros((C, L))
-    oEstL = np.zeros((C, L))
-    oEstN = np.zeros((C, L))
+    E = np.size(epsset)
+    rLda = 1
+    ldaStep = 0.05
+    L = int(rLda / ldaStep)
+    sEst = np.zeros((C, E, L))
+    oEst = np.zeros((C, E, L))
     print("Evaluating KL Divergence estimator...\n")
 
     with alive_bar(C*L) as bar:
@@ -87,94 +89,98 @@ for trial in range(4):
 
             qT = torch.numel(qClientSamp)
 
-            # each client gets 500 points in order from ordered pre-processed sample
-            # translated by 49 every time to stay below upper bound 499947 for client 10000
-            qOrdClientSamp = qOrderedRound[0][49*j : (49*j) + 500]
+            # each client gets N points in order from ordered pre-processed sample
+            # translated by M = (C / N) - 1 every time to stay below upper bound (C * N) - 1 for client C
+            qOrdClientSamp = qOrderedRound[0][M*j : (M*j) + N]
             qOrderedT = torch.numel(qOrdClientSamp)
             EPS_COUNT = 0
 
             for eps in epsset:
 
-                sTotalNoiseL = 0
-                sTotalNoiseN = 0
-                oTotalNoiseL = 0
-                oTotalNoiseN = 0
+                sNoiseLda = np.zeros(L)
+                oNoiseLda = np.zeros(L)
 
-                # load Laplace and Normal noise distributions, dependent on eps
-                s1 = b1 / eps
-                s2 = b2 / eps
-                noiseL = dis.Laplace(loc = A, scale = s1)
-                noiseN = dis.Normal(loc = A, scale = s2)
+                # load Gaussian noise distribution, dependent on eps and dta
+                s1 = (b2 / eps) * (np.sqrt(2) / C)
+                noise1 = dis.Normal(loc = A, scale = s1)
+                
+                sLogr = p.log_prob(qClientSamp) - q.log_prob(qClientSamp)
+                oLogr = p.log_prob(qOrdClientSamp) - q.log_prob(qOrdClientSamp)
 
-                # compute average of R possible noise terms
-                for k in range(0, R):
-                    sTotalNoiseL = sTotalNoiseL + (noiseL.sample(sample_shape = (qT,)))
-                    sTotalNoiseN = sTotalNoiseN + (noiseN.sample(sample_shape = (qT,)))
-                    oTotalNoiseL = oTotalNoiseL + (noiseL.sample(sample_shape = (qOrderedT,)))
-                    oTotalNoiseN = oTotalNoiseN + (noiseN.sample(sample_shape = (qOrderedT,)))
+                # option 3a: intermediate server adds noise terms
+                sNoise1 = p.log_prob(qClientSamp) - q.log_prob(qClientSamp) + noise1.sample(sample_shape = (qT,))
+                oNoise1 = p.log_prob(qOrdClientSamp) - q.log_prob(qOrdClientSamp) + noise1.sample(sample_shape = (qOrderedT,))
+                LDA_COUNT = 0
 
-                sAvNoiseL = sTotalNoiseL / R
-                sAvNoiseN = sTotalNoiseN / R
-                oAvNoiseL = oTotalNoiseL / R
-                oAvNoiseN = oTotalNoiseN / R
+                # explore lambdas in a range
+                for lda in range(0, rLda, ldaStep):
 
-                # option 3a: add average noise term to unknown distribution
-                sLogrL = p.log_prob(qClientSamp + sAvNoiseL) - q.log_prob(qClientSamp)
-                sLogrN = p.log_prob(qClientSamp + sAvNoiseN) - q.log_prob(qClientSamp)
-                oLogrL = p.log_prob(qOrdClientSamp + oAvNoiseL) - q.log_prob(qOrdClientSamp)
-                oLogrN = p.log_prob(qOrdClientSamp + oAvNoiseN) - q.log_prob(qOrdClientSamp)
+                    s2 = (b2 / eps) * ((lda * np.sqrt(2)) / C)
+                    noise2 = dis.Normal(loc = A, scale = s2)
 
-                # compute k3 estimator
-                sK3noiseL = (sLogrL.exp() - 1) - sLogrL
-                sK3noiseN = (sLogrN.exp() - 1) - sLogrN
-                oK3noiseL = (oLogrL.exp() - 1) - oLogrL
-                oK3noiseN = (oLogrN.exp() - 1) - oLogrN
+                    # compute k3 estimator
+                    sNoise2 = sLogr.exp() + noise2.sample(sample_shape = (qT,))
+                    oNoise2 = oLogr.exp() + noise2.sample(sample_shape = (qOrderedT,))
 
-                # compare with known KL divergence
-                sEstL[j, EPS_COUNT] = abs(sK3noiseL.mean() - knownKLD)
-                sEstN[j, EPS_COUNT] = abs(sK3noiseN.mean() - knownKLD)
-                oEstL[j, EPS_COUNT] = abs(oK3noiseL.mean() - knownKLD)
-                oEstN[j, EPS_COUNT] = abs(oK3noiseN.mean() - knownKLD)
+                    sNoiseLda = (sNoise2 - 1) - sNoise1
+                    oNoiseLda = (oNoise2 - 1) - oNoise1
+
+                    # compare with known KL divergence
+                    sEst[j, EPS_COUNT, LDA_COUNT] = abs(sNoiseLda.mean() - knownKLD)
+                    oEst[j, EPS_COUNT, LDA_COUNT] = abs(oNoiseLda.mean() - knownKLD)
+
+                    LDA_COUNT = LDA_COUNT + 1
+
                 EPS_COUNT = EPS_COUNT + 1
                 bar()
 
-    # compute mean of unbiased estimator for particular epsilon across all clients
+    sMeanLda = np.zeros((L, E))
+    oMeanLda = np.zeros((L, E))
+
+    # compute mean of unbiased estimator across clients
+    for l in range(0, rLda, ldaStep):
+        sMeanLda[l] = np.mean(sEst, axis = (0, 1))
+        oMeanLda[l] = np.mean(oEst, axis = (0, 1))
+
+    # compute mean of unbiased estimator across epsilon
+    sOpt = np.mean(sMeanLda, axis = 1)
+    oOpt = np.mean(sMeanLda, axis = 1)
+
+    # find lambda that produces minimum error
+    sIndex = np.argmin(sOpt)
+    oIndex = np.argmin(oOpt)
+
+    sLda = ldaStep * sIndex
+    oLda = ldaStep * oIndex
+
+    # mean across clients for optimum lambda
+    sMean = sMeanLda[sLda]
+    oMean = sMeanLda[oLda]
+
     if trial % 4 == 0:
-        sMeanL1 = np.mean(sEstL, axis = 0)
-        sMeanN1 = np.mean(sEstN, axis = 0)
-        oMeanL1 = np.mean(oEstL, axis = 0)
-        oMeanN1 = np.mean(oEstN, axis = 0)
+        sMean1 = sMean
+        oMean1 = oMean
     
     if trial % 4 == 1:
-        sMeanL2 = np.mean(sEstL, axis = 0)
-        sMeanN2 = np.mean(sEstN, axis = 0)
-        oMeanL2 = np.mean(oEstL, axis = 0)
-        oMeanN2 = np.mean(oEstN, axis = 0)
+        sMean2 = sMean
+        oMean2 = oMean
 
     if trial % 4 == 2:
-        sMeanL3 = np.mean(sEstL, axis = 0)
-        sMeanN3 = np.mean(sEstN, axis = 0)
-        oMeanL3 = np.mean(oEstL, axis = 0)
-        oMeanN3 = np.mean(oEstN, axis = 0)
-    
+        sMean3 = sMean
+        oMean3 = oMean
+
     if trial % 4 == 3:
-        sMeanL4 = np.mean(sEstL, axis = 0)
-        sMeanN4 = np.mean(sEstN, axis = 0)
-        oMeanL4 = np.mean(oEstL, axis = 0)
-        oMeanN4 = np.mean(oEstN, axis = 0)
+        sMean4 = sMean
+        oMean4 = oMean
 
 # separate graphs for Small / Large KL divergence to show trends
 fig = plt.figure(figsize = (12.8, 4.8))
 
 ax1 = plt.subplot(121)
-ax1.plot(epsset, sMeanL1, label = "Small KLD + Lap (samp)")
-ax1.plot(epsset, sMeanN1, label = "Small KLD + Gauss (samp)")
-ax1.plot(epsset, oMeanL1, label = "Small KLD + Lap (ord)")
-ax1.plot(epsset, oMeanN1, label = "Small KLD + Gauss (ord)")
-ax1.plot(epsset, sMeanL2, label = "Small KLD + Lap (samp) mc")
-ax1.plot(epsset, sMeanN2, label = "Small KLD + Gauss (samp) mc")
-ax1.plot(epsset, oMeanL2, label = "Small KLD + Lap (ord) mc")
-ax1.plot(epsset, oMeanN2, label = "Small KLD + Gauss (ord) mc")
+ax1.plot(epsset, sMean1, label = "Small KLD (samp)")
+ax1.plot(epsset, oMean1, label = "Small KLD (ord)")
+ax1.plot(epsset, sMean2, label = "Small KLD (samp) mc")
+ax1.plot(epsset, oMean2, label = "Small KLD (ord) mc")
 
 ax1.set_title("Effect of epsilon on error of unbiased estimator")
 ax1.set_xlabel("Value of epsilon")
@@ -183,14 +189,10 @@ ax1.set_yscale("log")
 ax1.legend(loc = "best")
 
 ax2 = plt.subplot(122)
-ax2.plot(epsset, sMeanL3, label = "Large KLD + Lap (samp)")
-ax2.plot(epsset, sMeanN3, label = "Large KLD + Gauss (samp)")
-ax2.plot(epsset, oMeanL3, label = "Large KLD + Lap (ord)")
-ax2.plot(epsset, oMeanN3, label = "Large KLD + Gauss (ord)")
-ax2.plot(epsset, sMeanL4, label = "Large KLD + Lap (samp) mc")
-ax2.plot(epsset, sMeanN4, label = "Large KLD + Gauss (samp) mc")
-ax2.plot(epsset, oMeanL4, label = "Large KLD + Lap (ord) mc")
-ax2.plot(epsset, oMeanN4, label = "Large KLD + Gauss (ord) mc")
+ax2.plot(epsset, sMean3, label = "Large KLD (samp)")
+ax2.plot(epsset, oMean3, label = "Large KLD (ord)")
+ax2.plot(epsset, sMean4, label = "Large KLD (samp) mc")
+ax2.plot(epsset, oMean4, label = "Large KLD (ord) mc")
 
 ax2.set_title("Effect of epsilon on error of unbiased estimator")
 ax2.set_xlabel("Value of epsilon")

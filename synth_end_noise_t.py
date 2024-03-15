@@ -88,9 +88,9 @@ for trial in range(4):
                     indices = torch.randperm(len(qNegativeRound))[:N]
                     qClientSamp = qNegativeRound[indices]
 
-                # each client gets 500 points in order from ordered pre-processed sample
+                # each client gets N points in order from ordered pre-processed sample
                 # translated by 1 every time and added mod 4419 to stay below upper bound 4918
-                qOrdClientSamp = qOrderedRound[0][(j % 4419) : (j % 4419) + 500]
+                qOrdClientSamp = qOrderedRound[0][(j % 4419) : (j % 4419) + N]
 
                 # compute ratio between unknown and known distributions
                 sLogr = p.log_prob(qClientSamp) - q.log_prob(qClientSamp)
@@ -118,28 +118,11 @@ for trial in range(4):
 
     for T in Tset:
 
-        sTotalNoiseL = 0
-        sTotalNoiseN = 0
-        oTotalNoiseL = 0
-        oTotalNoiseN = 0
-
-        # compute average of R possible noise terms
-        for k in range(0, R):
-            sTotalNoiseL = sTotalNoiseL + (noiseL.sample(sample_shape = (1,)))
-            sTotalNoiseN = sTotalNoiseN + (noiseN.sample(sample_shape = (1,)))
-            oTotalNoiseL = oTotalNoiseL + (noiseL.sample(sample_shape = (1,)))
-            oTotalNoiseN = oTotalNoiseN + (noiseN.sample(sample_shape = (1,)))
-
-        sAvNoiseL = sTotalNoiseL / R
-        sAvNoiseN = sTotalNoiseN / R
-        oAvNoiseL = oTotalNoiseL / R
-        oAvNoiseN = oTotalNoiseN / R
-
         # option 3b: add average noise term to final result
-        sMeanL[T_COUNT] = sMean + sAvNoiseL
-        sMeanN[T_COUNT] = sMean + sAvNoiseN
-        oMeanL[T_COUNT] = sMean + oAvNoiseL
-        oMeanN[T_COUNT] = sMean + oAvNoiseN
+        sMeanL[T_COUNT] = sMean + noiseL.sample(sample_shape = (1,))
+        sMeanN[T_COUNT] = sMean + noiseN.sample(sample_shape = (1,))
+        oMeanL[T_COUNT] = sMean + noiseL.sample(sample_shape = (1,))
+        oMeanN[T_COUNT] = sMean + noiseN.sample(sample_shape = (1,))
         T_COUNT = T_COUNT + 1
 
 if trial % 4 == 0:

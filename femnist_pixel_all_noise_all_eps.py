@@ -274,8 +274,7 @@ cPercLarge = np.zeros((TS, ES))
 dPercSmall = np.zeros((TS, ES))
 dPercLarge = np.zeros((TS, ES))
 
-# for trial in range(8):
-for trial in range(4):
+for trial in range(8):
 
     print(f"\nTrial {trial + 1}: {trialset[trial]}")
     INDEX_FREQ = 0
@@ -328,15 +327,13 @@ for trial in range(4):
 
                 for row in range(0, len(rlist)):
                     uest = ((lda * (rlist[row] - 1)) - log(rlist[row])) / T1
-          
+
+                    # compare unknown distribution estimator to known distribution
+                    err = abs(uest - klist[row])
+
                     # option 3b: add noise at end
                     if trial >= 4:
-                        err = noiseLG.sample(sample_shape = (1,)).numpy()[0]
-                    else:
-                        err = 0.0
-
-                    # add noise to unknown distribution estimator then compare to known distribution
-                    err = abs(err + uest - klist[row])
+                        err = err + noiseLG.sample(sample_shape = (1,)).numpy()[0]
 
                     if err != 0.0:
                         ulist.append(err)
@@ -360,14 +357,12 @@ for trial in range(4):
                 for row in range(0, len(rlist)):
                     uest = ((lda * (rlist[row] - 1)) - log(rlist[row])) / T1
 
+                    # compare unknown distribution estimator to known distribution
+                    err = abs(uest - klist[row])
+
                     # option 3b: add noise at end
                     if trial >= 4:
-                        err = noiseLG.sample(sample_shape = (1,)).numpy()[0]
-                    else:
-                        err = 0.0
-
-                    # add noise to unknown distribution estimator then compare to known distribution
-                    err = abs(err + uest - klist[row])
+                        err = err + noiseLG.sample(sample_shape = (1,)).numpy()[0]
 
                     if err != 0.0:
                         ulist.append(err)
@@ -646,10 +641,10 @@ plt.errorbar(epsset, aLambda[0], yerr = np.std(aLambda[0], axis = 0), color = 't
 plt.errorbar(epsset, aLambda[1], yerr = np.std(aLambda[1], axis = 0), color = 'tab:purple', marker = 'x', label = 'mid lap mc')
 plt.errorbar(epsset, aLambda[2], yerr = np.std(aLambda[2], axis = 0), color = 'tab:blue', marker = 'o', label = 'mid gauss')
 plt.errorbar(epsset, aLambda[3], yerr = np.std(aLambda[3], axis = 0), color = 'tab:cyan', marker = 'x', label = 'mid gauss mc')
-# plt.errorbar(epsset, aLambda[4], yerr = np.std(aLambda[4], axis = 0), color = 'tab:olive', marker = 'o', label = 'end lap')
-# plt.errorbar(epsset, aLambda[5], yerr = np.std(aLambda[5], axis = 0), color = 'tab:green', marker = 'x', label = 'end lap mc')
-# plt.errorbar(epsset, aLambda[6], yerr = np.std(aLambda[6], axis = 0), color = 'tab:red', marker = 'o', label = 'end gauss')
-# plt.errorbar(epsset, aLambda[7], yerr = np.std(aLambda[7], axis = 0), color = 'tab:pink', marker = 'x', label = 'end gauss mc')
+plt.errorbar(epsset, aLambda[4], yerr = np.std(aLambda[4], axis = 0), color = 'tab:olive', marker = 'o', label = 'end lap')
+plt.errorbar(epsset, aLambda[5], yerr = np.std(aLambda[5], axis = 0), color = 'tab:green', marker = 'x', label = 'end lap mc')
+plt.errorbar(epsset, aLambda[6], yerr = np.std(aLambda[6], axis = 0), color = 'tab:red', marker = 'o', label = 'end gauss')
+plt.errorbar(epsset, aLambda[7], yerr = np.std(aLambda[7], axis = 0), color = 'tab:pink', marker = 'x', label = 'end gauss mc')
 plt.legend(loc = 'best')
 plt.xlabel("Value of epsilon")
 plt.ylabel("Lambda to minimise error of unbiased estimator")
@@ -665,14 +660,14 @@ plt.errorbar(epsset, aPairLambda[2], yerr = np.std(aPairLambda[2], axis = 0), co
 plt.errorbar(epsset, bPairLambda[2], yerr = np.std(aPairLambda[2], axis = 0), color = 'tab:blue', marker = 'x', label = 'mid gauss: max')
 plt.errorbar(epsset, aPairLambda[3], yerr = np.std(aPairLambda[3], axis = 0), color = 'tab:cyan', marker = 'o', label = 'mid gauss mc: min')
 plt.errorbar(epsset, bPairLambda[3], yerr = np.std(aPairLambda[3], axis = 0), color = 'tab:cyan', marker = 'x', label = 'mid gauss mc: max')
-# plt.errorbar(epsset, aPairLambda[4], yerr = np.std(aPairLambda[4], axis = 0), color = 'tab:olive', marker = 'o', label = 'end lap: min')
-# plt.errorbar(epsset, bPairLambda[4], yerr = np.std(aPairLambda[4], axis = 0), color = 'tab:olive', marker = 'x', label = 'end lap: max')
-# plt.errorbar(epsset, aPairLambda[5], yerr = np.std(aPairLambda[5], axis = 0), color = 'tab:green', marker = 'o', label = 'end lap mc: min')
-# plt.errorbar(epsset, bPairLambda[5], yerr = np.std(aPairLambda[5], axis = 0), color = 'tab:green', marker = 'x', label = 'end lap mc: max')
-# plt.errorbar(epsset, aPairLambda[6], yerr = np.std(aPairLambda[6], axis = 0), color = 'tab:red', marker = 'o', label = 'end gauss: min')
-# plt.errorbar(epsset, bPairLambda[6], yerr = np.std(aPairLambda[6], axis = 0), color = 'tab:red', marker = 'x', label = 'end gauss: max')
-# plt.errorbar(epsset, aPairLambda[7], yerr = np.std(aPairLambda[7], axis = 0), color = 'tab:pink', marker = 'o', label = 'end gauss mc: min')
-# plt.errorbar(epsset, bPairLambda[7], yerr = np.std(aPairLambda[7], axis = 0), color = 'tab:pink', marker = 'x', label = 'end gauss mc: max')
+plt.errorbar(epsset, aPairLambda[4], yerr = np.std(aPairLambda[4], axis = 0), color = 'tab:olive', marker = 'o', label = 'end lap: min')
+plt.errorbar(epsset, bPairLambda[4], yerr = np.std(aPairLambda[4], axis = 0), color = 'tab:olive', marker = 'x', label = 'end lap: max')
+plt.errorbar(epsset, aPairLambda[5], yerr = np.std(aPairLambda[5], axis = 0), color = 'tab:green', marker = 'o', label = 'end lap mc: min')
+plt.errorbar(epsset, bPairLambda[5], yerr = np.std(aPairLambda[5], axis = 0), color = 'tab:green', marker = 'x', label = 'end lap mc: max')
+plt.errorbar(epsset, aPairLambda[6], yerr = np.std(aPairLambda[6], axis = 0), color = 'tab:red', marker = 'o', label = 'end gauss: min')
+plt.errorbar(epsset, bPairLambda[6], yerr = np.std(aPairLambda[6], axis = 0), color = 'tab:red', marker = 'x', label = 'end gauss: max')
+plt.errorbar(epsset, aPairLambda[7], yerr = np.std(aPairLambda[7], axis = 0), color = 'tab:pink', marker = 'o', label = 'end gauss mc: min')
+plt.errorbar(epsset, bPairLambda[7], yerr = np.std(aPairLambda[7], axis = 0), color = 'tab:pink', marker = 'x', label = 'end gauss mc: max')
 plt.legend(loc = 'best')
 plt.xlabel("Value of epsilon")
 plt.ylabel("Lambda to minimise error of unbiased estimator")
@@ -686,10 +681,10 @@ plt.errorbar(epsset, aSum[0], yerr = np.std(aSum[0], axis = 0), color = 'tab:bro
 plt.errorbar(epsset, aSum[1], yerr = np.std(aSum[1], axis = 0), color = 'tab:purple', marker = 'x', label = 'mid lap mc')
 plt.errorbar(epsset, aSum[2], yerr = np.std(aSum[2], axis = 0), color = 'tab:blue', marker = 'o', label = 'mid gauss')
 plt.errorbar(epsset, aSum[3], yerr = np.std(aSum[3], axis = 0), color = 'tab:cyan', marker = 'x', label = 'mid gauss mc')
-# plt.errorbar(epsset, aSum[4], yerr = np.std(aSum[4], axis = 0), color = 'tab:olive', marker = 'o', label = 'end lap')
-# plt.errorbar(epsset, aSum[5], yerr = np.std(aSum[5], axis = 0), color = 'tab:green', marker = 'x', label = 'end lap mc')
-# plt.errorbar(epsset, aSum[6], yerr = np.std(aSum[6], axis = 0), color = 'tab:red', marker = 'o', label = 'end gauss')
-# plt.errorbar(epsset, aSum[7], yerr = np.std(aSum[7], axis = 0), color = 'tab:pink', marker = 'x', label = 'end gauss mc')
+plt.errorbar(epsset, aSum[4], yerr = np.std(aSum[4], axis = 0), color = 'tab:olive', marker = 'o', label = 'end lap')
+plt.errorbar(epsset, aSum[5], yerr = np.std(aSum[5], axis = 0), color = 'tab:green', marker = 'x', label = 'end lap mc')
+plt.errorbar(epsset, aSum[6], yerr = np.std(aSum[6], axis = 0), color = 'tab:red', marker = 'o', label = 'end gauss')
+plt.errorbar(epsset, aSum[7], yerr = np.std(aSum[7], axis = 0), color = 'tab:pink', marker = 'x', label = 'end gauss mc')
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of epsilon")
@@ -706,14 +701,14 @@ plt.errorbar(epsset, aPairEst[2], yerr = np.std(aPairEst[2], axis = 0), color = 
 plt.errorbar(epsset, bPairEst[2], yerr = np.std(aPairEst[2], axis = 0), color = 'tab:blue', marker = 'x', label = 'mid gauss: max')
 plt.errorbar(epsset, aPairEst[3], yerr = np.std(aPairEst[3], axis = 0), color = 'tab:cyan', marker = 'o', label = 'mid gauss mc: min')
 plt.errorbar(epsset, bPairEst[3], yerr = np.std(aPairEst[3], axis = 0), color = 'tab:cyan', marker = 'x', label = 'mid gauss mc: max')
-# plt.errorbar(epsset, aPairEst[4], yerr = np.std(aPairEst[4], axis = 0), color = 'tab:olive', marker = 'o', label = 'end lap: min')
-# plt.errorbar(epsset, bPairEst[4], yerr = np.std(aPairEst[4], axis = 0), color = 'tab:olive', marker = 'x', label = 'end lap: max')
-# plt.errorbar(epsset, aPairEst[5], yerr = np.std(aPairEst[5], axis = 0), color = 'tab:green', marker = 'o', label = 'end lap mc: min')
-# plt.errorbar(epsset, bPairEst[5], yerr = np.std(aPairEst[5], axis = 0), color = 'tab:green', marker = 'x', label = 'end lap mc: max')
-# plt.errorbar(epsset, aPairEst[6], yerr = np.std(aPairEst[6], axis = 0), color = 'tab:red', marker = 'o', label = 'end gauss: min')
-# plt.errorbar(epsset, bPairEst[6], yerr = np.std(aPairEst[6], axis = 0), color = 'tab:red', marker = 'x', label = 'end gauss: max')
-# plt.errorbar(epsset, aPairEst[7], yerr = np.std(aPairEst[7], axis = 0), color = 'tab:pink', marker = 'o', label = 'end gauss mc: min')
-# plt.errorbar(epsset, bPairEst[7], yerr = np.std(aPairEst[7], axis = 0), color = 'tab:pink', marker = 'x', label = 'end gauss mc: max')
+plt.errorbar(epsset, aPairEst[4], yerr = np.std(aPairEst[4], axis = 0), color = 'tab:olive', marker = 'o', label = 'end lap: min')
+plt.errorbar(epsset, bPairEst[4], yerr = np.std(aPairEst[4], axis = 0), color = 'tab:olive', marker = 'x', label = 'end lap: max')
+plt.errorbar(epsset, aPairEst[5], yerr = np.std(aPairEst[5], axis = 0), color = 'tab:green', marker = 'o', label = 'end lap mc: min')
+plt.errorbar(epsset, bPairEst[5], yerr = np.std(aPairEst[5], axis = 0), color = 'tab:green', marker = 'x', label = 'end lap mc: max')
+plt.errorbar(epsset, aPairEst[6], yerr = np.std(aPairEst[6], axis = 0), color = 'tab:red', marker = 'o', label = 'end gauss: min')
+plt.errorbar(epsset, bPairEst[6], yerr = np.std(aPairEst[6], axis = 0), color = 'tab:red', marker = 'x', label = 'end gauss: max')
+plt.errorbar(epsset, aPairEst[7], yerr = np.std(aPairEst[7], axis = 0), color = 'tab:pink', marker = 'o', label = 'end gauss mc: min')
+plt.errorbar(epsset, bPairEst[7], yerr = np.std(aPairEst[7], axis = 0), color = 'tab:pink', marker = 'x', label = 'end gauss mc: max')
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of epsilon")
@@ -731,14 +726,14 @@ plt.errorbar(epsset, aPercSmall[2], yerr = np.std(aPercSmall[2], axis = 0), colo
 plt.errorbar(epsset, aPercLarge[2], yerr = np.std(aPercLarge[2], axis = 0), color = 'tab:blue', marker = 'x', label = 'mid gauss: largest 10%')
 plt.errorbar(epsset, aPercSmall[3], yerr = np.std(aPercSmall[3], axis = 0), color = 'tab:cyan', marker = 'o', label = 'mid gauss mc: smallest 10%')
 plt.errorbar(epsset, aPercLarge[3], yerr = np.std(aPercLarge[3], axis = 0), color = 'tab:cyan', marker = 'x', label = 'mid gauss mc: largest 10%')
-# plt.errorbar(epsset, aPercSmall[4], yerr = np.std(aPercSmall[4], axis = 0), color = 'tab:olive', marker = 'o', label = 'end lap: smallest 10%')
-# plt.errorbar(epsset, aPercLarge[4], yerr = np.std(aPercLarge[4], axis = 0), color = 'tab:olive', marker = 'x', label = 'end lap: largest 10%')
-# plt.errorbar(epsset, aPercSmall[5], yerr = np.std(aPercSmall[5], axis = 0), color = 'tab:green', marker = 'o', label = 'end lap mc: smallest 10%')
-# plt.errorbar(epsset, aPercLarge[5], yerr = np.std(aPercLarge[5], axis = 0), color = 'tab:green', marker = 'x', label = 'end lap mc: largest 10%')
-# plt.errorbar(epsset, aPercSmall[6], yerr = np.std(aPercSmall[6], axis = 0), color = 'tab:red', marker = 'o', label = 'end gauss: smallest 10%')
-# plt.errorbar(epsset, aPercLarge[6], yerr = np.std(aPercLarge[6], axis = 0), color = 'tab:red', marker = 'x', label = 'end gauss: largest 10%')
-# plt.errorbar(epsset, aPercSmall[7], yerr = np.std(aPercSmall[7], axis = 0), color = 'tab:pink', marker = 'o', label = 'end gauss mc: smallest 10%')
-# plt.errorbar(epsset, aPercLarge[7], yerr = np.std(aPercLarge[7], axis = 0), color = 'tab:pink', marker = 'x', label = 'end gauss mc: largest 10%')
+plt.errorbar(epsset, aPercSmall[4], yerr = np.std(aPercSmall[4], axis = 0), color = 'tab:olive', marker = 'o', label = 'end lap: smallest 10%')
+plt.errorbar(epsset, aPercLarge[4], yerr = np.std(aPercLarge[4], axis = 0), color = 'tab:olive', marker = 'x', label = 'end lap: largest 10%')
+plt.errorbar(epsset, aPercSmall[5], yerr = np.std(aPercSmall[5], axis = 0), color = 'tab:green', marker = 'o', label = 'end lap mc: smallest 10%')
+plt.errorbar(epsset, aPercLarge[5], yerr = np.std(aPercLarge[5], axis = 0), color = 'tab:green', marker = 'x', label = 'end lap mc: largest 10%')
+plt.errorbar(epsset, aPercSmall[6], yerr = np.std(aPercSmall[6], axis = 0), color = 'tab:red', marker = 'o', label = 'end gauss: smallest 10%')
+plt.errorbar(epsset, aPercLarge[6], yerr = np.std(aPercLarge[6], axis = 0), color = 'tab:red', marker = 'x', label = 'end gauss: largest 10%')
+plt.errorbar(epsset, aPercSmall[7], yerr = np.std(aPercSmall[7], axis = 0), color = 'tab:pink', marker = 'o', label = 'end gauss mc: smallest 10%')
+plt.errorbar(epsset, aPercLarge[7], yerr = np.std(aPercLarge[7], axis = 0), color = 'tab:pink', marker = 'x', label = 'end gauss mc: largest 10%')
 plt.legend(loc = 'best')
 plt.xlabel("Value of epsilon")
 plt.ylabel(f"% staying in smaller/larger half")
@@ -754,14 +749,14 @@ plt.errorbar(epsset, bPercSmall[2], yerr = np.std(bPercSmall[2], axis = 0), colo
 plt.errorbar(epsset, bPercLarge[2], yerr = np.std(bPercLarge[2], axis = 0), color = 'tab:blue', marker = 'x', label = 'mid gauss: largest 10%')
 plt.errorbar(epsset, bPercSmall[3], yerr = np.std(bPercSmall[3], axis = 0), color = 'tab:cyan', marker = 'o', label = 'mid gauss mc: smallest 10%')
 plt.errorbar(epsset, bPercLarge[3], yerr = np.std(bPercLarge[3], axis = 0), color = 'tab:cyan', marker = 'x', label = 'mid gauss mc: largest 10%')
-# plt.errorbar(epsset, bPercSmall[4], yerr = np.std(bPercSmall[4], axis = 0), color = 'tab:olive', marker = 'o', label = 'end lap: smallest 10%')
-# plt.errorbar(epsset, bPercLarge[4], yerr = np.std(bPercLarge[4], axis = 0), color = 'tab:olive', marker = 'x', label = 'end lap: largest 10%')
-# plt.errorbar(epsset, bPercSmall[5], yerr = np.std(bPercSmall[5], axis = 0), color = 'tab:green', marker = 'o', label = 'end lap mc: smallest 10%')
-# plt.errorbar(epsset, bPercLarge[5], yerr = np.std(bPercLarge[5], axis = 0), color = 'tab:green', marker = 'x', label = 'end lap mc: largest 10%')
-# plt.errorbar(epsset, bPercSmall[6], yerr = np.std(bPercSmall[6], axis = 0), color = 'tab:red', marker = 'o', label = 'end gauss: smallest 10%')
-# plt.errorbar(epsset, bPercLarge[6], yerr = np.std(bPercLarge[6], axis = 0), color = 'tab:red', marker = 'x', label = 'end gauss: largest 10%')
-# plt.errorbar(epsset, bPercSmall[7], yerr = np.std(bPercSmall[7], axis = 0), color = 'tab:pink', marker = 'o', label = 'end gauss mc: smallest 10%')
-# plt.errorbar(epsset, bPercLarge[7], yerr = np.std(bPercLarge[7], axis = 0), color = 'tab:pink', marker = 'x', label = 'end gauss mc: largest 10%')
+plt.errorbar(epsset, bPercSmall[4], yerr = np.std(bPercSmall[4], axis = 0), color = 'tab:olive', marker = 'o', label = 'end lap: smallest 10%')
+plt.errorbar(epsset, bPercLarge[4], yerr = np.std(bPercLarge[4], axis = 0), color = 'tab:olive', marker = 'x', label = 'end lap: largest 10%')
+plt.errorbar(epsset, bPercSmall[5], yerr = np.std(bPercSmall[5], axis = 0), color = 'tab:green', marker = 'o', label = 'end lap mc: smallest 10%')
+plt.errorbar(epsset, bPercLarge[5], yerr = np.std(bPercLarge[5], axis = 0), color = 'tab:green', marker = 'x', label = 'end lap mc: largest 10%')
+plt.errorbar(epsset, bPercSmall[6], yerr = np.std(bPercSmall[6], axis = 0), color = 'tab:red', marker = 'o', label = 'end gauss: smallest 10%')
+plt.errorbar(epsset, bPercLarge[6], yerr = np.std(bPercLarge[6], axis = 0), color = 'tab:red', marker = 'x', label = 'end gauss: largest 10%')
+plt.errorbar(epsset, bPercSmall[7], yerr = np.std(bPercSmall[7], axis = 0), color = 'tab:pink', marker = 'o', label = 'end gauss mc: smallest 10%')
+plt.errorbar(epsset, bPercLarge[7], yerr = np.std(bPercLarge[7], axis = 0), color = 'tab:pink', marker = 'x', label = 'end gauss mc: largest 10%')
 plt.legend(loc = 'best')
 plt.xlabel("Value of epsilon")
 plt.ylabel(f"% staying in smaller/larger half")
@@ -777,14 +772,14 @@ plt.errorbar(epsset, cPercSmall[2], yerr = np.std(cPercSmall[2], axis = 0), colo
 plt.errorbar(epsset, cPercLarge[2], yerr = np.std(cPercLarge[2], axis = 0), color = 'tab:blue', marker = 'x', label = 'mid gauss: largest 10%')
 plt.errorbar(epsset, cPercSmall[3], yerr = np.std(cPercSmall[3], axis = 0), color = 'tab:cyan', marker = 'o', label = 'mid gauss mc: smallest 10%')
 plt.errorbar(epsset, cPercLarge[3], yerr = np.std(cPercLarge[3], axis = 0), color = 'tab:cyan', marker = 'x', label = 'mid gauss mc: largest 10%')
-# plt.errorbar(epsset, cPercSmall[4], yerr = np.std(cPercSmall[4], axis = 0), color = 'tab:olive', marker = 'o', label = 'end lap: smallest 10%')
-# plt.errorbar(epsset, cPercLarge[4], yerr = np.std(cPercLarge[4], axis = 0), color = 'tab:olive', marker = 'x', label = 'end lap: largest 10%')
-# plt.errorbar(epsset, cPercSmall[5], yerr = np.std(cPercSmall[5], axis = 0), color = 'tab:green', marker = 'o', label = 'end lap mc: smallest 10%')
-# plt.errorbar(epsset, cPercLarge[5], yerr = np.std(cPercLarge[5], axis = 0), color = 'tab:green', marker = 'x', label = 'end lap mc: largest 10%')
-# plt.errorbar(epsset, cPercSmall[6], yerr = np.std(cPercSmall[6], axis = 0), color = 'tab:red', marker = 'o', label = 'end gauss: smallest 10%')
-# plt.errorbar(epsset, cPercLarge[6], yerr = np.std(cPercLarge[6], axis = 0), color = 'tab:red', marker = 'x', label = 'end gauss: largest 10%')
-# plt.errorbar(epsset, cPercSmall[7], yerr = np.std(cPercSmall[7], axis = 0), color = 'tab:pink', marker = 'o', label = 'end gauss mc: smallest 10%')
-# plt.errorbar(epsset, cPercLarge[7], yerr = np.std(cPercLarge[7], axis = 0), color = 'tab:pink', marker = 'x', label = 'end gauss mc: largest 10%')
+plt.errorbar(epsset, cPercSmall[4], yerr = np.std(cPercSmall[4], axis = 0), color = 'tab:olive', marker = 'o', label = 'end lap: smallest 10%')
+plt.errorbar(epsset, cPercLarge[4], yerr = np.std(cPercLarge[4], axis = 0), color = 'tab:olive', marker = 'x', label = 'end lap: largest 10%')
+plt.errorbar(epsset, cPercSmall[5], yerr = np.std(cPercSmall[5], axis = 0), color = 'tab:green', marker = 'o', label = 'end lap mc: smallest 10%')
+plt.errorbar(epsset, cPercLarge[5], yerr = np.std(cPercLarge[5], axis = 0), color = 'tab:green', marker = 'x', label = 'end lap mc: largest 10%')
+plt.errorbar(epsset, cPercSmall[6], yerr = np.std(cPercSmall[6], axis = 0), color = 'tab:red', marker = 'o', label = 'end gauss: smallest 10%')
+plt.errorbar(epsset, cPercLarge[6], yerr = np.std(cPercLarge[6], axis = 0), color = 'tab:red', marker = 'x', label = 'end gauss: largest 10%')
+plt.errorbar(epsset, cPercSmall[7], yerr = np.std(cPercSmall[7], axis = 0), color = 'tab:pink', marker = 'o', label = 'end gauss mc: smallest 10%')
+plt.errorbar(epsset, cPercLarge[7], yerr = np.std(cPercLarge[7], axis = 0), color = 'tab:pink', marker = 'x', label = 'end gauss mc: largest 10%')
 plt.legend(loc = 'best')
 plt.xlabel("Value of epsilon")
 plt.ylabel(f"% staying in smaller/larger half")
@@ -800,14 +795,14 @@ plt.errorbar(epsset, dPercSmall[2], yerr = np.std(dPercSmall[2], axis = 0), colo
 plt.errorbar(epsset, dPercLarge[2], yerr = np.std(dPercLarge[2], axis = 0), color = 'tab:blue', marker = 'x', label = 'mid gauss: largest 10%')
 plt.errorbar(epsset, dPercSmall[3], yerr = np.std(dPercSmall[3], axis = 0), color = 'tab:cyan', marker = 'o', label = 'mid gauss mc: smallest 10%')
 plt.errorbar(epsset, dPercLarge[3], yerr = np.std(dPercLarge[3], axis = 0), color = 'tab:cyan', marker = 'x', label = 'mid gauss mc: largest 10%')
-# plt.errorbar(epsset, dPercSmall[4], yerr = np.std(dPercSmall[4], axis = 0), color = 'tab:olive', marker = 'o', label = 'end lap: smallest 10%')
-# plt.errorbar(epsset, dPercLarge[4], yerr = np.std(dPercLarge[4], axis = 0), color = 'tab:olive', marker = 'x', label = 'end lap: largest 10%')
-# plt.errorbar(epsset, dPercSmall[5], yerr = np.std(dPercSmall[5], axis = 0), color = 'tab:green', marker = 'o', label = 'end lap mc: smallest 10%')
-# plt.errorbar(epsset, dPercLarge[5], yerr = np.std(dPercLarge[5], axis = 0), color = 'tab:green', marker = 'x', label = 'end lap mc: largest 10%')
-# plt.errorbar(epsset, dPercSmall[6], yerr = np.std(dPercSmall[6], axis = 0), color = 'tab:red', marker = 'o', label = 'end gauss: smallest 10%')
-# plt.errorbar(epsset, dPercLarge[6], yerr = np.std(dPercLarge[6], axis = 0), color = 'tab:red', marker = 'x', label = 'end gauss: largest 10%')
-# plt.errorbar(epsset, dPercSmall[7], yerr = np.std(dPercSmall[7], axis = 0), color = 'tab:pink', marker = 'o', label = 'end gauss mc: smallest 10%')
-# plt.errorbar(epsset, dPercLarge[7], yerr = np.std(dPercLarge[7], axis = 0), color = 'tab:pink', marker = 'x', label = 'end gauss mc: largest 10%')
+plt.errorbar(epsset, dPercSmall[4], yerr = np.std(dPercSmall[4], axis = 0), color = 'tab:olive', marker = 'o', label = 'end lap: smallest 10%')
+plt.errorbar(epsset, dPercLarge[4], yerr = np.std(dPercLarge[4], axis = 0), color = 'tab:olive', marker = 'x', label = 'end lap: largest 10%')
+plt.errorbar(epsset, dPercSmall[5], yerr = np.std(dPercSmall[5], axis = 0), color = 'tab:green', marker = 'o', label = 'end lap mc: smallest 10%')
+plt.errorbar(epsset, dPercLarge[5], yerr = np.std(dPercLarge[5], axis = 0), color = 'tab:green', marker = 'x', label = 'end lap mc: largest 10%')
+plt.errorbar(epsset, dPercSmall[6], yerr = np.std(dPercSmall[6], axis = 0), color = 'tab:red', marker = 'o', label = 'end gauss: smallest 10%')
+plt.errorbar(epsset, dPercLarge[6], yerr = np.std(dPercLarge[6], axis = 0), color = 'tab:red', marker = 'x', label = 'end gauss: largest 10%')
+plt.errorbar(epsset, dPercSmall[7], yerr = np.std(dPercSmall[7], axis = 0), color = 'tab:pink', marker = 'o', label = 'end gauss mc: smallest 10%')
+plt.errorbar(epsset, dPercLarge[7], yerr = np.std(dPercLarge[7], axis = 0), color = 'tab:pink', marker = 'x', label = 'end gauss mc: largest 10%')
 plt.legend(loc = 'best')
 plt.xlabel("Value of epsilon")
 plt.ylabel(f"% staying in smaller/larger half")
