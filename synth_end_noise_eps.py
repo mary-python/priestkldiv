@@ -120,7 +120,7 @@ for trial in range(4):
         noiseL = dis.Laplace(loc = A, scale = s1)
         noiseN = dis.Normal(loc = A, scale = s2)
 
-        # option 3b: add average noise term to final result
+        # option 3b: server adds noise term to final result
         sMeanL[EPS_COUNT] = sMean + noiseL.sample(sample_shape = (1,))
         sMeanN[EPS_COUNT] = sMean + noiseN.sample(sample_shape = (1,))
         oMeanL[EPS_COUNT] = oMean + noiseL.sample(sample_shape = (1,))

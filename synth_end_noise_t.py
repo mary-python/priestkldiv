@@ -118,7 +118,7 @@ for trial in range(4):
 
     for T in Tset:
 
-        # option 3b: add average noise term to final result
+        # option 3b: server adds noise term to final result
         sMeanL[T_COUNT] = sMean + noiseL.sample(sample_shape = (1,))
         sMeanN[T_COUNT] = sMean + noiseN.sample(sample_shape = (1,))
         oMeanL[T_COUNT] = sMean + noiseL.sample(sample_shape = (1,))
