@@ -122,13 +122,12 @@ for trial in range(4):
                     sNoise2 = sLogr.exp() + noise2.sample(sample_shape = (qT,))
                     oNoise2 = oLogr.exp() + noise2.sample(sample_shape = (qOrderedT,))
 
-                    sNoiseLda = (sNoise2 - 1) - sNoise1
-                    oNoiseLda = (oNoise2 - 1) - oNoise1
+                    sNoiseLda = (lda * (sNoise2 - 1)) - sNoise1
+                    oNoiseLda = (lda * (oNoise2 - 1)) - oNoise1
 
                     # compare with known KL divergence
                     sEst[j, EPS_COUNT, LDA_COUNT] = abs(sNoiseLda.mean() - knownKLD)
                     oEst[j, EPS_COUNT, LDA_COUNT] = abs(oNoiseLda.mean() - knownKLD)
-
                     LDA_COUNT = LDA_COUNT + 1
 
                 EPS_COUNT = EPS_COUNT + 1

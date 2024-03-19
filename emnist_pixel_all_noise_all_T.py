@@ -95,7 +95,7 @@ with alive_bar(len(images)) as bar:
 # INVESTIGATE SAMPLES FROM APPROX 1% TO APPROX 20% OF IMAGES
 Tset = [280, 560, 840, 1120, 1400, 1750, 2100, 2800, 3500, 4200, 4900, 5600]
 ES = len(Tset)
-INDEX_FREQ = 0
+T_FREQ = 0
 
 for T in Tset:
 
@@ -180,326 +180,108 @@ for T in Tset:
     R = 10
 
     # LIST OF THE TRIALS THAT WILL BE RUN
-    trialset = ["mid_gauss", "mid_gauss_mc", "end_lap", "end_lap_mc", "end_gauss", "end_gauss_mc"]
+    trialset = ["end_lap", "end_lap_mc", "end_gauss", "end_gauss_mc", "mid_gauss", "mid_gauss_mc"]
     TS = len(trialset)
 
-    # STORES FOR SUM, MIN/MAX DISTRIBUTIONS AND LAMBDA
-    minSum = np.zeros((TS, ES, R))
-    minPairEst = np.zeros((TS, ES, R))
-    maxPairEst = np.zeros((TS, ES, R))
-    sumLambda = np.zeros((TS, ES, R))
-    minPairLambda = np.zeros((TS, ES, R))
-    maxPairLambda = np.zeros((TS, ES, R))
+    # CONSTANTS FOR LAMBDA SEARCH
+    rLda = 1
+    ldaStep = 0.05
+    L = int(rLda / ldaStep)
 
-    aSum = np.zeros((TS, ES))
-    aPairEst = np.zeros((TS, ES))
-    bPairEst = np.zeros((TS, ES))
-    aLambda = np.zeros((TS, ES))
-    aPairLambda = np.zeros((TS, ES))
-    bPairLambda = np.zeros((TS, ES))
-
-    # STORES FOR RANKING PRESERVATION ANALYSIS
-    kPercSmall = np.zeros((TS, ES, R))
-    kPercLarge = np.zeros((TS, ES, R))
-    sumPercSmall = np.zeros((TS, ES, R))
-    sumPercLarge = np.zeros((TS, ES, R))
-    minPercSmall = np.zeros((TS, ES, R))
-    minPercLarge = np.zeros((TS, ES, R))
-    maxPercSmall = np.zeros((TS, ES, R))
-    maxPercLarge = np.zeros((TS, ES, R))
-
-    aPercSmall = np.zeros((TS, ES))
-    aPercLarge = np.zeros((TS, ES))
-    bPercSmall = np.zeros((TS, ES))
-    bPercLarge = np.zeros((TS, ES))
-    cPercSmall = np.zeros((TS, ES))
-    cPercLarge = np.zeros((TS, ES))
-    dPercSmall = np.zeros((TS, ES))
-    dPercLarge = np.zeros((TS, ES))
+    # STORES FOR MEAN OF UNBIASED ESTIMATOR AND LAMBDA
+    uEst = np.zeros((TS, ES, L))
+    meanEst = np.zeros((TS, ES))
 
     for trial in range(6):
         print(f"\nTrial {trial + 1}: {trialset[trial]}")
+        print(f"T = {T}: trial {trial + 1}...")
 
-        for rep in range(R):
-            print(f"T = {T}: trial {trial + 1}, repeat = {rep + 1}...")
+        # STORES FOR EXACT AND NOISY UNKNOWN DISTRIBUTIONS
+        uDist = np.zeros((10, 10, U))
+        nDist = np.zeros((10, 10, E))
+        uList = []
+        uCDList = []
 
-            # STORES FOR EXACT AND NOISY UNKNOWN DISTRIBUTIONS
-            uDist = np.zeros((10, 10, U))
-            nDist = np.zeros((10, 10, E, R))
-            uList = []
-            uCDList = []
+        # STORES FOR RATIO BETWEEN UNKNOWN AND KNOWN DISTRIBUTIONS
+        rList = []
+        kList = []
 
-            # STORES FOR RATIO BETWEEN UNKNOWN AND KNOWN DISTRIBUTIONS
-            rList = []
-            kList = []
-            kCDList = []
+        # OPTION 1A: BASELINE CASE
+        if trial % 2 == 0:
+            b1 = log(2) / EPS
 
-            # STORES FOR BINARY SEARCH
-            zeroUList = []
-            zeroCDList = []
-            oneUList = []
-            oneCDList = []
-            halfUList = []
-            halfCDList = []
+        # OPTION 1B: MONTE CARLO ESTIMATE
+        else:
+            b1 = (1 + log(2)) / EPS
 
-            # OPTION 1A: BASELINE CASE
-            if trial % 2 == 0:
-                b1 = log(2) / EPS
+        b2 = (2*((log(1.25))/DTA)*b1) / EPS
 
-            # OPTION 1B: MONTE CARLO ESTIMATE
-            else:
-                b1 = (1 + log(2)) / EPS
+        # FOR EACH COMPARISON DIGIT COMPUTE EXACT AND NOISY UNKNOWN DISTRIBUTIONS FOR ALL DIGITS
+        for C in range(0, 10):
+            for D in range(0, 10):
 
-            b2 = (2*((log(1.25))/DTA)*b1) / EPS
+                for i in range(0, U):
+                    uDist[C, D, i] = uProbsSet[D, i] * (np.log((uProbsSet[D, i]) / (uProbsSet[C, i])))
 
-            # OPTION 2A: ADD LAPLACE NOISE
-            if trial % 4 == 0 or trial % 4 == 1:
-                noiseLG = tfp.distributions.Laplace(loc = A, scale = b1)
-        
-            # OPTION 2B: ADD GAUSSIAN NOISE
-            else:
-                noiseLG = tfp.distributions.Normal(loc = A, scale = b2)
+                for j in range(0, E):
+                    nDist[C, D, j] = eProbsSet[D, j] * (np.log((eProbsSet[D, j]) / (eProbsSet[C, j])))
 
-            def unbias_est(lda, rlist, klist, ulist, cdlist):
-                """Compute sum of unbiased estimators corresponding to all pairs."""
-                count = 1
+                # ELIMINATE ALL ZERO VALUES WHEN DIGITS ARE IDENTICAL
+                if sum(uDist[C, D]) != 0.0:
+                    uList.append(sum(uDist[C, D]))
+                    uCDList.append((C, D))
 
-                for row in range(0, len(rlist)):
-                    uest = ((lda * (rlist[row] - 1)) - log(rlist[row])) / T
-          
-                    # COMPARE UNKNOWN DISTRIBUTION ESTIMATOR TO KNOWN DISTRIBUTION
-                    err = abs(uest - klist[row])
+                # COMPUTE RATIO BETWEEN EXACT AND NOISY UNKNOWN DISTRIBUTIONS
+                ratio = abs(sum(nDist[C, D, j]) / sum(uDist[C, D]))
 
-                    # OPTION 3B: ADD NOISE AT END
-                    if trial >= 4:
-                        err = err + noiseLG.sample(sample_shape = (1,)).numpy()[0]
+                # ELIMINATE ALL DIVIDE BY ZERO ERRORS
+                if ratio != 0.0 and sum(uDist[C, D]) != 0.0:
+                    rList.append(ratio)
 
-                    if err != 0.0:
-                        ulist.append(err)
+                    # COMPUTE KNOWN DISTRIBUTION
+                    kDist = abs(sum(nDist[C, D, j]) * log(ratio))
+                    kList.append(kDist)
 
-                        c = count // 10
-                        d = count % 10
+                    # WAIT UNTIL FINAL DIGIT PAIR (9, 8) TO ANALYSE EXACT UNKNOWN DISTRIBUTION LIST
+                    if C == 9 and D == 8:
+                        
+                        # LOAD GAUSSIAN NOISE DISTRIBUTIONS FOR INTERMEDIATE SERVER
+                        if trial >= 4:
+                            s1 = b2 * (np.sqrt(2) / T)
+                            s2 = b2 * lda * (np.sqrt(2) / T)
+                            noise1 = tfp.distributions.Normal(loc = A, scale = s1)
+                            noise2 = tfp.distributions.Normal(loc = A, scale = s2)
 
-                        cdlist.append((c, d))
+                        for row in range(0, len(rList)):
+                            uLogr = log(rList[row])
 
-                        if c == d + 1:
-                            count = count + 2
-                        else:
-                            count = count + 1
+                            # OPTION 2A: INTERMEDIATE SERVER ADDS NOISE TERMS
+                            if trial >= 4:
+                                uNoise1 = log(rList[row]) + noise1.sample(sample_shape = (1,))
+                            
+                            LDA_FREQ = 0
 
-                return sum(ulist)
-    
-            def min_max(lda, rlist, klist, ulist, cdlist, mp):
-                """Compute unbiased estimator corresponding to min or max pair."""
-                count = 1
+                            # EXPLORE LAMBDAS IN A RANGE
+                            for lda in range(0, rLda, ldaStep):
 
-                for row in range(0, len(rlist)):
-                    uest = ((lda * (rlist[row] - 1)) - log(rlist[row])) / T
-
-                    # COMPARE UNKNOWN DISTRIBUTION ESTIMATOR TO KNOWN DISTRIBUTION
-                    err = abs(uest - klist[row])
-
-                    # OPTION 3B: ADD NOISE AT END
-                    if trial >= 4:
-                        err = err + noiseLG.sample(sample_shape = (1,)).numpy()[0]
-
-                    if err != 0.0:
-                        ulist.append(err)
-
-                        c = count // 10
-                        d = count % 10
-
-                        cdlist.append((c, d))
-
-                        if c == d + 1:
-                            count = count + 2
-                        else:
-                            count = count + 1
-
-                mi = cdlist.index(mp)
-                return ulist[mi]
-
-            # FOR EACH COMPARISON DIGIT COMPUTE EXACT AND NOISY UNKNOWN DISTRIBUTIONS FOR ALL DIGITS
-            for C in range(0, 10):
-                for D in range(0, 10):
-
-                    for i in range(0, U):
-                        uDist[C, D, i] = uProbsSet[D, i] * (np.log((uProbsSet[D, i]) / (uProbsSet[C, i])))
-
-                    for j in range(0, E):
-                        nDist[C, D, j] = eProbsSet[D, j] * (np.log((eProbsSet[D, j]) / (eProbsSet[C, j])))
-
-                        # OPTION 3A: ADD NOISE IN MIDDLE
-                        if trial < 4:
-                            nDist[C, D, j] = nDist[C, D, j] + noiseLG.sample(sample_shape = (1,))
-
-                    # ELIMINATE ALL ZERO VALUES WHEN DIGITS ARE IDENTICAL
-                    if sum(uDist[C, D]) != 0.0:
-                        uList.append(sum(uDist[C, D]))
-                        uCDList.append((C, D))
-
-                    # COMPUTE RATIO BETWEEN EXACT AND NOISY UNKNOWN DISTRIBUTIONS
-                    ratio = abs(sum(nDist[C, D, j]) / sum(uDist[C, D]))
-
-                    # ELIMINATE ALL DIVIDE BY ZERO ERRORS
-                    if ratio != 0.0 and sum(uDist[C, D]) != 0.0:
-                        rList.append(ratio)
-
-                        # COMPUTE KNOWN DISTRIBUTION
-                        kDist = abs(sum(nDist[C, D, j]) * log(ratio))
-                        kList.append(kDist)
-                        kCDList.append((C, D))
-
-                        # WAIT UNTIL FINAL DIGIT PAIR (9, 8) TO ANALYSE EXACT UNKNOWN DISTRIBUTION LIST
-                        if C == 9 and D == 8:
-
-                            low = 0
-                            high = 10
-                            mid = 5
-
-                            # COMPUTE UNBIASED ESTIMATORS WITH LAMBDA 0, 1, 0.5 THEN BINARY SEARCH
-                            lowSum = unbias_est(low, rList, kList, zeroUList, zeroCDList)
-                            highSum = unbias_est(high, rList, kList, oneUList, oneCDList)
-                            minSum[trial, INDEX_FREQ, rep] = unbias_est(mid, rList, kList, halfUList, halfCDList)
-
-                            # TOLERANCE BETWEEN BINARY SEARCH LIMITS ALWAYS GETS SMALL ENOUGH
-                            while abs(high - low) > 0.00000001:
-
-                                lowUList = []
-                                lowCDList = []
-                                highUList = []
-                                highCDList = []
-                                sumUList = []
-                                sumCDList = []
-
-                                lowSum = unbias_est(low, rList, kList, lowUList, lowCDList)
-                                highSum = unbias_est(high, rList, kList, highUList, highCDList)
-
-                                # REDUCE / INCREASE BINARY SEARCH LIMIT DEPENDING ON ABSOLUTE VALUE
-                                if abs(lowSum) < abs(highSum):
-                                    high = mid
+                                # COMPUTE K3 ESTIMATOR
+                                if trial >= 4:
+                                    uNoise2 = uLogr.exp() + noise2.sample(sample_shape = (1,))
+                                    uRangeEst = (lda * (uNoise2 - 1)) - uNoise1
+                                
+                                # OPTION 2B: NO NOISE UNTIL END
                                 else:
-                                    low = mid
+                                    uRangeEst = lda * (uLogr.exp() - 1) - uLogr
 
-                                # SET NEW MIDPOINT
-                                mid = (0.5*abs((high - low))) + low
-                                minSum[trial, INDEX_FREQ, rep] = unbias_est(mid, rList, kList, sumUList, sumCDList)
-
-                            sumLambda[trial, INDEX_FREQ, rep] = mid
-
-                            # EXTRACT MIN PAIR BY ABSOLUTE VALUE OF EXACT UNKNOWN DISTRIBUTION
-                            absUList = [abs(ul) for ul in uList]
-                            minUList = sorted(absUList)
-                            minAbs = minUList[0]
-                            minIndex = uList.index(minAbs)
-                            minPair = uCDList[minIndex]
-                            MIN_COUNT = 1
-
-                            # IF MIN PAIR IS NOT IN LAMBDA 0.5 LIST THEN GET NEXT SMALLEST
-                            while minPair not in halfCDList:        
-                                minAbs = minUList[MIN_COUNT]
-                                minIndex = uList.index(minAbs)
-                                minPair = uCDList[minIndex]
-                                MIN_COUNT = MIN_COUNT + 1
-
-                            midMinIndex = halfCDList.index(minPair)
-                            minPairEst[trial, INDEX_FREQ, rep] = halfUList[midMinIndex]
-
-                            low = 0
-                            high = 10
-                            mid = 5
-
-                            # FIND OPTIMAL LAMBDA FOR MIN PAIR
-                            while abs(high - low) > 0.00000001:
-
-                                lowUList = []
-                                lowCDList = []
-                                highUList = []
-                                highCDList = []
-                                minUList = []
-                                minCDList = []
-
-                                lowMinUL = min_max(low, rList, kList, lowUList, lowCDList, minPair)
-                                highMinUL = min_max(high, rList, kList, highUList, highCDList, minPair)
-
-                                if abs(lowMinUL) < abs(highMinUL):
-                                    high = mid
-                                else:
-                                    low = mid
-
-                                mid = (0.5*abs((high - low))) + low
-                                minPairEst[trial, INDEX_FREQ, rep] = min_max(mid, rList, kList, minUList, minCDList, minPair)
-
-                            minPairLambda[trial, INDEX_FREQ, rep] = mid
-
-                            # EXTRACT MAX PAIR BY REVERSING UNKNOWN DISTRIBUTION LIST
-                            maxUList = sorted(absUList, reverse = True)
-                            maxAbs = maxUList[0]
-                            maxIndex = uList.index(maxAbs)
-                            maxPair = uCDList[maxIndex]
-                            MAX_COUNT = 1
-
-                            # IF MAX PAIR IS NOT IN LAMBDA 0.5 LIST THEN GET NEXT LARGEST
-                            while maxPair not in halfCDList:        
-                                maxAbs = maxUList[MAX_COUNT]
-                                maxIndex = uList.index(maxAbs)
-                                maxPair = uCDList[maxIndex]
-                                MAX_COUNT = MAX_COUNT + 1
-
-                            midMaxIndex = halfCDList.index(maxPair)
-                            maxPairEst[trial, INDEX_FREQ, rep] = halfUList[midMaxIndex]
-
-                            low = 0
-                            high = 10
-                            mid = 5
-
-                            # FIND OPTIMAL LAMBDA FOR MAX PAIR
-                            while abs(high - low) > 0.00000001:
-
-                                lowUList = []
-                                lowCDList = []
-                                highUList = []
-                                highCDList = []
-                                maxUList = []
-                                maxCDList = []
-
-                                lowMaxUL = min_max(low, rList, kList, lowUList, lowCDList, maxPair)
-                                highMaxUL = min_max(high, rList, kList, highUList, highCDList, maxPair)
-                
-                                if abs(lowMaxUL) < abs(highMaxUL):
-                                    high = mid
-                                else:
-                                    low = mid
-
-                                mid = (0.5*(abs(high - low))) + low
-                                maxPairEst[trial, INDEX_FREQ, rep] = min_max(mid, rList, kList, maxUList, maxCDList, maxPair)
-
-                            maxPairLambda[trial, INDEX_FREQ, rep] = mid
-
-            def rank_pres(bin, oud, okd):
-                """Do smallest/largest 10% in unknown distribution remain in smaller/larger half of estimator?"""
-                rows = 90
-                num = 0
-
-                if bin == 0: 
-                    udict = list(oud.values())[0 : int(rows / 10)]
-                    kdict = list(okd.values())[0 : int(rows / 2)]
-                else:
-                    udict = list(oud.values())[int(9*(rows / 10)) : rows]
-                    kdict = list(okd.values())[int(rows / 2) : rows]
-
-                for ud in udict:
-                    for kd in kdict:    
-                        if kd == ud:
-                            num = num + 1
-
-                return 100*(num / int(rows/10))
+                                # COMPARE UNKNOWN DISTRIBUTION ESTIMATOR TO KNOWN DISTRIBUTION
+                                uEst[trial, T_FREQ, LDA_FREQ] = abs(uRangeEst - kList[row])
+                                LDA_FREQ = LDA_FREQ + 1 
 
             uDict = dict(zip(uList, uCDList))
             oUDict = OrderedDict(sorted(uDict.items()))
             
-            # UNKNOWN DISTRIBUTION IS IDENTICAL FOR ALL TS, TRIALS AND REPEATS
-            if T == 280 and trial == 0 and rep == 0:
+            # UNKNOWN DISTRIBUTION IS IDENTICAL FOR ALL TS AND TRIALS
+            if T == 280 and trial == 0:
                 orderfile = open("emnist_unknown_dist_in_order.txt", "w", encoding = 'utf-8')
                 orderfile.write("EMNIST: Unknown Distribution In Order\n")
                 orderfile.write("Smaller corresponds to more similar digits\n\n")
@@ -507,216 +289,69 @@ for T in Tset:
                 for i in oUDict:
                     orderfile.write(f"{i} : {oUDict[i]}\n")
 
-            # COMPUTE RANKING PRESERVATION STATISTICS FOR EACH REPEAT
-            kDict = dict(zip(kList, kCDList))
-            oKDict = OrderedDict(sorted(kDict.items()))
-            kPercSmall[trial, INDEX_FREQ, rep] = rank_pres(0, oUDict, oKDict)
-            kPercLarge[trial, INDEX_FREQ, rep] = rank_pres(1, oUDict, oKDict)
+        meanLda = np.zeros((L, ES))
 
-            sumUDict = dict(zip(sumUList, sumCDList))
-            sumOUDict = OrderedDict(sorted(sumUDict.items()))
-            sumPercSmall[trial, INDEX_FREQ, rep] = rank_pres(0, oUDict, sumOUDict)
-            sumPercLarge[trial, INDEX_FREQ, rep] = rank_pres(1, oUDict, sumOUDict)
+        # COMPUTE MEAN ERROR OF UNBIASED ESTIMATOR FOR EACH LAMBDA
+        for l in range(0, rLda, ldaStep):
+            meanLda[l] = np.mean(uEst, axis = (0, 1))
 
-            minUDict = dict(zip(minUList, minCDList))
-            minOUDict = OrderedDict(sorted(minUDict.items()))
-            minPercSmall[trial, INDEX_FREQ, rep] = rank_pres(0, oUDict, minOUDict)
-            minPercLarge[trial, INDEX_FREQ, rep] = rank_pres(1, oUDict, minOUDict)
+        # FIND LAMBDA THAT PRODUCES MINIMUM ERROR
+        meanOpt = np.mean(meanLda, axis = 1)
+        meanIndex = np.argmin(meanOpt)
+        ldaIndex = ldaStep * meanIndex
 
-            maxUDict = dict(zip(maxUList, maxCDList))
-            maxOUDict = OrderedDict(sorted(maxUDict.items()))
-            maxPercSmall[trial, INDEX_FREQ, rep] = rank_pres(0, oUDict, maxOUDict)
-            maxPercLarge[trial, INDEX_FREQ, rep] = rank_pres(1, oUDict, maxOUDict)
-        
-        # SUM UP REPEATS FOR ALL THE MAIN STATISTICS
-        aLambda[trial, INDEX_FREQ] = fmean(sumLambda[trial, INDEX_FREQ])
-        aSum[trial, INDEX_FREQ] = fmean(minSum[trial, INDEX_FREQ])
-        print(f"\naLambda: {aLambda[trial, INDEX_FREQ]}")
-        print(f"sumLambda: {sumLambda[trial, INDEX_FREQ]}")
-        print(f"aSum: {aSum[trial, INDEX_FREQ]}")
-        print(f"minSum: {minSum[trial, INDEX_FREQ]}")
+        # MEAN ACROSS CLIENTS FOR OPTIMUM LAMBDA
+        meanEst = meanLda[ldaIndex]
 
-        aPairLambda[trial, INDEX_FREQ] = fmean(minPairLambda[trial, INDEX_FREQ])
-        aPairEst[trial, INDEX_FREQ] = fmean(minPairEst[trial, INDEX_FREQ])
-        bPairLambda[trial, INDEX_FREQ] = fmean(maxPairLambda[trial, INDEX_FREQ])
-        bPairEst[trial, INDEX_FREQ] = fmean(maxPairEst[trial, INDEX_FREQ])
+        # OPTION 2B: SERVER ADDS NOISE TERM TO FINAL RESULT
+        if trial < 4:
+            
+            # OPTION 3A: ADD LAPLACE NOISE
+            if trial < 2:    
+                endNoise = tfp.distributions.Laplace(loc = A, scale = s1)
+            
+            # OPTION 3B: ADD GAUSSIAN NOISE
+            else:
+                endNoise = tfp.distributions.Normal(loc = A, scale = s1)
 
-        aPercSmall[trial, INDEX_FREQ] = fmean(kPercSmall[trial, INDEX_FREQ])
-        aPercLarge[trial, INDEX_FREQ] = fmean(kPercLarge[trial, INDEX_FREQ])
-        bPercSmall[trial, INDEX_FREQ] = fmean(sumPercSmall[trial, INDEX_FREQ])
-        bPercLarge[trial, INDEX_FREQ] = fmean(sumPercLarge[trial, INDEX_FREQ])
-        cPercSmall[trial, INDEX_FREQ] = fmean(minPercSmall[trial, INDEX_FREQ])
-        cPercLarge[trial, INDEX_FREQ] = fmean(minPercLarge[trial, INDEX_FREQ])
-        dPercSmall[trial, INDEX_FREQ] = fmean(maxPercSmall[trial, INDEX_FREQ])
-        dPercLarge[trial, INDEX_FREQ] = fmean(maxPercLarge[trial, INDEX_FREQ])
+            meanEst = meanEst + endNoise.sample(sample_shape = (1,))
 
         statsfile = open(f"emnist_{trialset[trial]}_noise_t_{T}.txt", "w", encoding = 'utf-8')
-        statsfile.write(f"EMNIST: Laplace Noise in Middle, no Monte Carlo, T = {T}\n")
-        statsfile.write(f"Optimal Lambda {round(aLambda[trial, INDEX_FREQ], 4)} for Sum {round(aSum[trial, INDEX_FREQ], 4)}\n\n")
+        statsfile.write(f"EMNIST: T = {T}\n")
+        statsfile.write(f"Optimal Lambda {round(meanEst[trial, T_FREQ], 4)} for Mean {round(meanEst[trial, T_FREQ], 4)}\n\n")
 
-        statsfile.write(f"Digit Pair with Min Exact Unknown Dist: {minPair}\n")
-        statsfile.write(f"Optimal Lambda {round(aPairLambda[trial, INDEX_FREQ], 4)} for Estimate {round(aPairEst[trial, INDEX_FREQ], 4)}\n\n")
+        T_FREQ = T_FREQ + 1
 
-        statsfile.write(f"Digit Pair with Max Exact Unknown Dist: {maxPair}\n")
-        statsfile.write(f"Optimal Lambda {round(bPairLambda[trial, INDEX_FREQ], 4)} for Estimate {round(bPairEst[trial, INDEX_FREQ], 4)}\n\n")
-
-        statsfile.write(f"Smallest 10% exact unknown dist -> smaller half unknown dist ranking: {round(aPercSmall[trial, INDEX_FREQ], 1)}%\n")
-        statsfile.write(f"Largest 10% exact unknown dist -> larger half unknown dist ranking: {round(aPercLarge[trial, INDEX_FREQ], 1)}%\n\n")
-        
-        statsfile.write(f"Smallest 10% exact unknown dist -> smaller half sum ranking: {round(bPercSmall[trial, INDEX_FREQ], 1)}%\n")
-        statsfile.write(f"Largest 10% exact unknown dist -> larger half sum ranking: {round(bPercLarge[trial, INDEX_FREQ], 1)}%\n\n")
-
-        statsfile.write(f"Smallest 10% exact unknown dist -> smaller half min pair ranking: {round(cPercSmall[trial, INDEX_FREQ], 1)}%\n")
-        statsfile.write(f"Largest 10% exact unknown dist -> larger half min pair ranking: {round(cPercLarge[trial, INDEX_FREQ], 1)}%\n\n")
-
-        statsfile.write(f"Smallest 10% exact unknown dist -> smaller half max pair ranking: {round(dPercSmall[trial, INDEX_FREQ], 1)}%\n")
-        statsfile.write(f"Largest 10% exact unknown dist -> larger half max pair ranking: {round(dPercLarge[trial, INDEX_FREQ], 1)}%\n\n")
-
-    INDEX_FREQ = INDEX_FREQ + 1
+# PLOT MEAN ERROR OF UNBIASED ESTIMATOR FOR EACH T
+print(f"\nmeanEst: {meanEst[0]}")
+plt.errorbar(Tset, meanEst[0], yerr = np.std(meanEst[0], axis = 0), color = 'tab:blue', marker = 'o', label = 'end lap')
+plt.errorbar(Tset, meanEst[1], yerr = np.std(meanEst[1], axis = 0), color = 'tab:cyan', marker = 'x', label = 'end lap mc')
+plt.errorbar(Tset, meanEst[2], yerr = np.std(meanEst[2], axis = 0), color = 'tab:olive', marker = 'o', label = 'end gauss')
+plt.errorbar(Tset, meanEst[3], yerr = np.std(meanEst[3], axis = 0), color = 'tab:green', marker = 'x', label = 'end gauss mc')
+plt.errorbar(Tset, meanEst[4], yerr = np.std(meanEst[4], axis = 0), color = 'tab:red', marker = 'o', label = 'mid gauss')
+plt.errorbar(Tset, meanEst[5], yerr = np.std(meanEst[5], axis = 0), color = 'tab:pink', marker = 'x', label = 'mid gauss mc')
+plt.legend(loc = 'best')
+plt.xlabel("Value of T")
+plt.ylabel("Error of unbiased estimator (mean)")
+plt.title("How T affects error of unbiased estimator (mean)")
+plt.savefig("Emnist_pixel_T_mean.png")
+plt.clf()
 
 # PLOT LAMBDAS FOR EACH T
-print(f"\naLambda: {aLambda[0]}")
-plt.errorbar(Tset, aLambda[0], yerr = np.std(aLambda[0], axis = 0), color = 'tab:blue', marker = 'o', label = 'end gauss')
-plt.errorbar(Tset, aLambda[1], yerr = np.std(aLambda[1], axis = 0), color = 'tab:cyan', marker = 'x', label = 'end gauss mc')
-plt.errorbar(Tset, aLambda[2], yerr = np.std(aLambda[2], axis = 0), color = 'tab:olive', marker = 'o', label = 'mid gauss')
-plt.errorbar(Tset, aLambda[3], yerr = np.std(aLambda[3], axis = 0), color = 'tab:green', marker = 'x', label = 'mid gauss mc')
-plt.errorbar(Tset, aLambda[4], yerr = np.std(aLambda[4], axis = 0), color = 'tab:red', marker = 'o', label = 'mid lap')
-plt.errorbar(Tset, aLambda[5], yerr = np.std(aLambda[5], axis = 0), color = 'tab:pink', marker = 'x', label = 'mid lap mc')
+print(f"meanLda: {meanLda[0]}")
+plt.errorbar(Tset, meanLda[0], yerr = np.std(meanLda[0], axis = 0), color = 'tab:blue', marker = 'o', label = 'end lap')
+plt.errorbar(Tset, meanLda[1], yerr = np.std(meanLda[1], axis = 0), color = 'tab:cyan', marker = 'x', label = 'end lap mc')
+plt.errorbar(Tset, meanLda[2], yerr = np.std(meanLda[2], axis = 0), color = 'tab:olive', marker = 'o', label = 'end gauss')
+plt.errorbar(Tset, meanLda[3], yerr = np.std(meanLda[3], axis = 0), color = 'tab:green', marker = 'x', label = 'end gauss mc')
+plt.errorbar(Tset, meanLda[4], yerr = np.std(meanLda[4], axis = 0), color = 'tab:red', marker = 'o', label = 'mid gauss')
+plt.errorbar(Tset, meanLda[5], yerr = np.std(meanLda[5], axis = 0), color = 'tab:pink', marker = 'x', label = 'mid gauss mc')
 plt.legend(loc = 'best')
+plt.yscale('log')
 plt.xlabel("Value of T")
 plt.ylabel("Lambda to minimise error of unbiased estimator")
-plt.title("How T affects lambda (sum)")
-plt.savefig("Emnist_t_mid_lambda_sum.png")
+plt.title("How T affects lambda (mean)")
+plt.savefig("Emnist_pixel_T_lda.png")
 plt.clf()
-
-plt.errorbar(Tset, aPairLambda[0], yerr = np.std(aPairLambda[0], axis = 0), color = 'tab:blue', marker = 'o', label = 'end gauss: min')
-plt.errorbar(Tset, bPairLambda[0], yerr = np.std(aPairLambda[0], axis = 0), color = 'tab:blue', marker = 'x', label = 'end gauss: max')
-plt.errorbar(Tset, aPairLambda[1], yerr = np.std(aPairLambda[1], axis = 0), color = 'tab:cyan', marker = 'o', label = 'end gauss mc: min')
-plt.errorbar(Tset, bPairLambda[1], yerr = np.std(aPairLambda[1], axis = 0), color = 'tab:cyan', marker = 'x', label = 'end gauss mc: max')
-plt.errorbar(Tset, aPairLambda[2], yerr = np.std(aPairLambda[2], axis = 0), color = 'tab:olive', marker = 'o', label = 'mid gauss: min')
-plt.errorbar(Tset, bPairLambda[2], yerr = np.std(aPairLambda[2], axis = 0), color = 'tab:olive', marker = 'x', label = 'mid gauss: max')
-plt.errorbar(Tset, aPairLambda[3], yerr = np.std(aPairLambda[3], axis = 0), color = 'tab:green', marker = 'o', label = 'mid gauss mc: min')
-plt.errorbar(Tset, bPairLambda[3], yerr = np.std(aPairLambda[3], axis = 0), color = 'tab:green', marker = 'x', label = 'mid gauss mc: max')
-plt.errorbar(Tset, aPairLambda[4], yerr = np.std(aPairLambda[4], axis = 0), color = 'tab:red', marker = 'o', label = 'mid lap: min')
-plt.errorbar(Tset, bPairLambda[4], yerr = np.std(aPairLambda[4], axis = 0), color = 'tab:red', marker = 'x', label = 'mid lap: max')
-plt.errorbar(Tset, aPairLambda[5], yerr = np.std(aPairLambda[5], axis = 0), color = 'tab:pink', marker = 'o', label = 'mid lap mc: min')
-plt.errorbar(Tset, bPairLambda[5], yerr = np.std(aPairLambda[5], axis = 0), color = 'tab:pink', marker = 'x', label = 'mid lap mc: max')
-plt.legend(loc = 'best')
-plt.xlabel("Value of T")
-plt.ylabel("Lambda to minimise error of unbiased estimator")
-plt.title("How T affects lambda (min/max pair)")
-plt.savefig("Emnist_t_mid_lambda_min_max.png")
-plt.clf()
-
-# PLOT SUM / ESTIMATES FOR EACH T
-print(f"aSum: {aSum[0]}")
-plt.errorbar(Tset, aSum[0], yerr = np.std(aSum[0], axis = 0), color = 'tab:blue', marker = 'o', label = 'end gauss')
-plt.errorbar(Tset, aSum[1], yerr = np.std(aSum[1], axis = 0), color = 'tab:cyan', marker = 'x', label = 'end gauss mc')
-plt.errorbar(Tset, aSum[2], yerr = np.std(aSum[2], axis = 0), color = 'tab:olive', marker = 'o', label = 'mid gauss')
-plt.errorbar(Tset, aSum[3], yerr = np.std(aSum[3], axis = 0), color = 'tab:green', marker = 'x', label = 'mid gauss mc')
-plt.errorbar(Tset, aSum[4], yerr = np.std(aSum[4], axis = 0), color = 'tab:red', marker = 'o', label = 'mid lap')
-plt.errorbar(Tset, aSum[5], yerr = np.std(aSum[5], axis = 0), color = 'tab:pink', marker = 'x', label = 'mid lap mc')
-plt.legend(loc = 'best')
-plt.xlabel("Value of T")
-plt.ylabel("Error of unbiased estimator (sum)")
-plt.title("How T affects error of unbiased estimator (sum)")
-plt.savefig("Emnist_t_mid_est_sum.png")
-plt.clf()
-
-plt.errorbar(Tset, aPairEst[0], yerr = np.std(aPairEst[0], axis = 0), color = 'tab:blue', marker = 'o', label = 'end gauss: min')
-plt.errorbar(Tset, bPairEst[0], yerr = np.std(bPairEst[0], axis = 0), color = 'tab:blue', marker = 'x', label = 'end gauss: max')
-plt.errorbar(Tset, aPairEst[1], yerr = np.std(aPairEst[1], axis = 0), color = 'tab:cyan', marker = 'o', label = 'end gauss mc: min')
-plt.errorbar(Tset, bPairEst[1], yerr = np.std(bPairEst[1], axis = 0), color = 'tab:cyan', marker = 'x', label = 'end gauss mc: max')
-plt.errorbar(Tset, aPairEst[2], yerr = np.std(aPairEst[2], axis = 0), color = 'tab:olive', marker = 'o', label = 'mid gauss: min')
-plt.errorbar(Tset, bPairEst[2], yerr = np.std(bPairEst[2], axis = 0), color = 'tab:olive', marker = 'x', label = 'mid gauss: max')
-plt.errorbar(Tset, aPairEst[3], yerr = np.std(aPairEst[3], axis = 0), color = 'tab:green', marker = 'o', label = 'mid gauss mc: min')
-plt.errorbar(Tset, bPairEst[3], yerr = np.std(bPairEst[3], axis = 0), color = 'tab:green', marker = 'x', label = 'mid gauss mc: max')
-plt.errorbar(Tset, aPairEst[4], yerr = np.std(aPairEst[4], axis = 0), color = 'tab:red', marker = 'o', label = 'mid lap: min')
-plt.errorbar(Tset, bPairEst[4], yerr = np.std(bPairEst[4], axis = 0), color = 'tab:red', marker = 'x', label = 'mid lap: max')
-plt.errorbar(Tset, aPairEst[5], yerr = np.std(aPairEst[5], axis = 0), color = 'tab:pink', marker = 'o', label = 'mid lap mc: min')
-plt.errorbar(Tset, bPairEst[5], yerr = np.std(bPairEst[5], axis = 0), color = 'tab:pink', marker = 'x', label = 'mid lap mc: max')
-plt.legend(loc = 'best')
-plt.xlabel("Value of T")
-plt.ylabel("Error of unbiased estimator (min/max pair)")
-plt.title("How T affects error of unbiased estimator (min/max pair)")
-plt.savefig("Emnist_t_mid_est_min_max.png")
-plt.clf()
-
-# PLOT RANKING PRESERVATIONS FOR EACH T
-plt.errorbar(Tset, aPercSmall[0], yerr = np.std(aPercSmall[0], axis = 0), color = 'tab:blue', marker = 'o', label = 'end gauss: smallest 10%')
-plt.errorbar(Tset, aPercLarge[0], yerr = np.std(aPercLarge[0], axis = 0), color = 'tab:blue', marker = 'x', label = 'end gauss: largest 10%')
-plt.errorbar(Tset, aPercSmall[1], yerr = np.std(aPercSmall[1], axis = 0), color = 'tab:cyan', marker = 'o', label = 'end gauss mc: smallest 10%')
-plt.errorbar(Tset, aPercLarge[1], yerr = np.std(aPercLarge[1], axis = 0), color = 'tab:cyan', marker = 'x', label = 'end gauss mc: largest 10%')
-plt.errorbar(Tset, aPercSmall[2], yerr = np.std(aPercSmall[2], axis = 0), color = 'tab:olive', marker = 'o', label = 'mid gauss: smallest 10%')
-plt.errorbar(Tset, aPercLarge[2], yerr = np.std(aPercLarge[2], axis = 0), color = 'tab:olive', marker = 'x', label = 'mid gauss: largest 10%')
-plt.errorbar(Tset, aPercSmall[3], yerr = np.std(aPercSmall[3], axis = 0), color = 'tab:green', marker = 'o', label = 'mid gauss mc: smallest 10%')
-plt.errorbar(Tset, aPercLarge[3], yerr = np.std(aPercLarge[3], axis = 0), color = 'tab:green', marker = 'x', label = 'mid gauss mc: largest 10%')
-plt.errorbar(Tset, aPercSmall[4], yerr = np.std(aPercSmall[4], axis = 0), color = 'tab:red', marker = 'o', label = 'mid lap: smallest 10%')
-plt.errorbar(Tset, aPercLarge[4], yerr = np.std(aPercLarge[4], axis = 0), color = 'tab:red', marker = 'x', label = 'mid lap: largest 10%')
-plt.errorbar(Tset, aPercSmall[5], yerr = np.std(aPercSmall[5], axis = 0), color = 'tab:pink', marker = 'o', label = 'mid lap mc: smallest 10%')
-plt.errorbar(Tset, aPercLarge[5], yerr = np.std(aPercLarge[5], axis = 0), color = 'tab:pink', marker = 'x', label = 'mid lap mc: largest 10%')
-plt.legend(loc = 'best')
-plt.xlabel("Value of T")
-plt.ylabel(f"% staying in smaller/larger half")
-plt.title("Ranking preservation for true distribution")
-plt.savefig("Emnist_t_mid_perc_ratio.png")
-plt.clf()
-
-plt.errorbar(Tset, bPercSmall[0], yerr = np.std(bPercSmall[0], axis = 0), color = 'tab:blue', marker = 'o', label = 'end gauss: smallest 10%')
-plt.errorbar(Tset, bPercLarge[0], yerr = np.std(bPercLarge[0], axis = 0), color = 'tab:blue', marker = 'x', label = 'end gauss: largest 10%')
-plt.errorbar(Tset, bPercSmall[1], yerr = np.std(bPercSmall[1], axis = 0), color = 'tab:cyan', marker = 'o', label = 'end gauss mc: smallest 10%')
-plt.errorbar(Tset, bPercLarge[1], yerr = np.std(bPercLarge[1], axis = 0), color = 'tab:cyan', marker = 'x', label = 'end gauss mc: largest 10%')
-plt.errorbar(Tset, bPercSmall[2], yerr = np.std(bPercSmall[2], axis = 0), color = 'tab:olive', marker = 'o', label = 'mid gauss: smallest 10%')
-plt.errorbar(Tset, bPercLarge[2], yerr = np.std(bPercLarge[2], axis = 0), color = 'tab:olive', marker = 'x', label = 'mid gauss: largest 10%')
-plt.errorbar(Tset, bPercSmall[3], yerr = np.std(bPercSmall[3], axis = 0), color = 'tab:green', marker = 'o', label = 'mid gauss mc: smallest 10%')
-plt.errorbar(Tset, bPercLarge[3], yerr = np.std(bPercLarge[3], axis = 0), color = 'tab:green', marker = 'x', label = 'mid gauss mc: largest 10%')
-plt.errorbar(Tset, bPercSmall[4], yerr = np.std(bPercSmall[4], axis = 0), color = 'tab:red', marker = 'o', label = 'mid lap: smallest 10%')
-plt.errorbar(Tset, bPercLarge[4], yerr = np.std(bPercLarge[4], axis = 0), color = 'tab:red', marker = 'x', label = 'mid lap: largest 10%')
-plt.errorbar(Tset, bPercSmall[5], yerr = np.std(bPercSmall[5], axis = 0), color = 'tab:pink', marker = 'o', label = 'mid lap mc: smallest 10%')
-plt.errorbar(Tset, bPercLarge[5], yerr = np.std(bPercLarge[5], axis = 0), color = 'tab:pink', marker = 'x', label = 'mid lap mc: largest 10%')
-plt.legend(loc = 'best')
-plt.xlabel("Value of T")
-plt.ylabel(f"% staying in smaller/larger half")
-plt.title("Ranking preservation for error of unbiased estimator (sum)")
-plt.savefig("Emnist_t_mid_perc_sum.png")
-plt.clf()
-
-plt.errorbar(Tset, cPercSmall[0], yerr = np.std(cPercSmall[0], axis = 0), color = 'tab:blue', marker = 'o', label = 'end gauss: smallest 10%')
-plt.errorbar(Tset, cPercLarge[0], yerr = np.std(cPercLarge[0], axis = 0), color = 'tab:blue', marker = 'x', label = 'end gauss: largest 10%')
-plt.errorbar(Tset, cPercSmall[1], yerr = np.std(cPercSmall[1], axis = 0), color = 'tab:cyan', marker = 'o', label = 'end gauss mc: smallest 10%')
-plt.errorbar(Tset, cPercLarge[1], yerr = np.std(cPercLarge[1], axis = 0), color = 'tab:cyan', marker = 'x', label = 'end gauss mc: largest 10%')
-plt.errorbar(Tset, cPercSmall[2], yerr = np.std(cPercSmall[2], axis = 0), color = 'tab:olive', marker = 'o', label = 'mid gauss: smallest 10%')
-plt.errorbar(Tset, cPercLarge[2], yerr = np.std(cPercLarge[2], axis = 0), color = 'tab:olive', marker = 'x', label = 'mid gauss: largest 10%')
-plt.errorbar(Tset, cPercSmall[3], yerr = np.std(cPercSmall[3], axis = 0), color = 'tab:green', marker = 'o', label = 'mid gauss mc: smallest 10%')
-plt.errorbar(Tset, cPercLarge[3], yerr = np.std(cPercLarge[3], axis = 0), color = 'tab:green', marker = 'x', label = 'mid gauss mc: largest 10%')
-plt.errorbar(Tset, cPercSmall[4], yerr = np.std(cPercSmall[4], axis = 0), color = 'tab:red', marker = 'o', label = 'mid lap: smallest 10%')
-plt.errorbar(Tset, cPercLarge[4], yerr = np.std(cPercLarge[4], axis = 0), color = 'tab:red', marker = 'x', label = 'mid lap: largest 10%')
-plt.errorbar(Tset, cPercSmall[5], yerr = np.std(cPercSmall[5], axis = 0), color = 'tab:pink', marker = 'o', label = 'mid lap mc: smallest 10%')
-plt.errorbar(Tset, cPercLarge[5], yerr = np.std(cPercLarge[5], axis = 0), color = 'tab:pink', marker = 'x', label = 'mid lap mc: largest 10%')
-plt.legend(loc = 'best')
-plt.xlabel("Value of T")
-plt.ylabel(f"% staying in smaller/larger half")
-plt.title("Ranking preservation for error of unbiased estimator (min pair)")
-plt.savefig("Emnist_t_mid_perc_min.png")
-plt.clf()
-
-plt.errorbar(Tset, dPercSmall[0], yerr = np.std(dPercSmall[0], axis = 0), color = 'tab:blue', marker = 'o', label = 'end gauss: smallest 10%')
-plt.errorbar(Tset, dPercLarge[0], yerr = np.std(dPercLarge[0], axis = 0), color = 'tab:blue', marker = 'x', label = 'end gauss: largest 10%')
-plt.errorbar(Tset, dPercSmall[1], yerr = np.std(dPercSmall[1], axis = 0), color = 'tab:cyan', marker = 'o', label = 'end gauss mc: smallest 10%')
-plt.errorbar(Tset, dPercLarge[1], yerr = np.std(dPercLarge[1], axis = 0), color = 'tab:cyan', marker = 'x', label = 'end gauss mc: largest 10%')
-plt.errorbar(Tset, dPercSmall[2], yerr = np.std(dPercSmall[2], axis = 0), color = 'tab:olive', marker = 'o', label = 'mid gauss: smallest 10%')
-plt.errorbar(Tset, dPercLarge[2], yerr = np.std(dPercLarge[2], axis = 0), color = 'tab:olive', marker = 'x', label = 'mid gauss: largest 10%')
-plt.errorbar(Tset, dPercSmall[3], yerr = np.std(dPercSmall[3], axis = 0), color = 'tab:green', marker = 'o', label = 'mid gauss mc: smallest 10%')
-plt.errorbar(Tset, dPercLarge[3], yerr = np.std(dPercLarge[3], axis = 0), color = 'tab:green', marker = 'x', label = 'mid gauss mc: largest 10%')
-plt.errorbar(Tset, dPercSmall[4], yerr = np.std(dPercSmall[4], axis = 0), color = 'tab:red', marker = 'o', label = 'mid lap: smallest 10%')
-plt.errorbar(Tset, dPercLarge[4], yerr = np.std(dPercLarge[4], axis = 0), color = 'tab:red', marker = 'x', label = 'mid lap: largest 10%')
-plt.errorbar(Tset, dPercSmall[5], yerr = np.std(dPercSmall[5], axis = 0), color = 'tab:pink', marker = 'o', label = 'mid lap mc: smallest 10%')
-plt.errorbar(Tset, dPercLarge[5], yerr = np.std(dPercLarge[5], axis = 0), color = 'tab:pink', marker = 'x', label = 'mid lap mc: largest 10%')
-plt.legend(loc = 'best')
-plt.xlabel("Value of T")
-plt.ylabel(f"% staying in smaller/larger half")
-plt.title("Ranking preservation for error of unbiased estimator (max pair)")
-plt.savefig("Emnist_t_mid_perc_max.png")
 
 # COMPUTE TOTAL RUNTIME IN MINUTES AND SECONDS
 totalTime = time.perf_counter() - startTime

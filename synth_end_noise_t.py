@@ -55,12 +55,15 @@ for trial in range(4):
     # numpy arrays
     F = 5_000
     Tset = np.array([1*F, 2*F, 5*F, 10*F, 20*F, 50*F, 100*F, 200*F, 500*F, 1_000*F])
-    L = np.size(Tset)
-    sEst = np.zeros(C)
-    oEst = np.zeros(C)
+    E = np.size(Tset)
+    rLda = 1
+    ldaStep = 0.05
+    L = int(rLda / ldaStep)
+    sEst = np.zeros((C, L))
+    oEst = np.zeros((C, L))
     print("Evaluating KL Divergence estimator...\n")
 
-    with alive_bar(C*L) as bar:
+    with alive_bar(C*E) as bar:
         for T in Tset:
 
             # round to 2 d.p., find indices of and eliminate unique values
@@ -95,25 +98,50 @@ for trial in range(4):
                 # compute ratio between unknown and known distributions
                 sLogr = p.log_prob(qClientSamp) - q.log_prob(qClientSamp)
                 oLogr = p.log_prob(qOrdClientSamp) - q.log_prob(qOrdClientSamp)
+                LDA_COUNT = 0
 
-                # compute k3 estimator
-                sK3noise = (sLogr.exp() - 1) - sLogr
-                oK3noise = (oLogr.exp() - 1) - oLogr
+                # explore lambdas in a range
+                for lda in range(0, rLda, ldaStep):
 
-                # compare with known KL divergence
-                sEst[j] = abs(sK3noise.mean() - knownKLD)
-                oEst[j] = abs(oK3noise.mean() - knownKLD)
+                    # compute k3 estimator
+                    sK3noise = (lda * (sLogr.exp() - 1)) - sLogr
+                    oK3noise = (lda * (oLogr.exp() - 1)) - oLogr
+
+                    # compare with known KL divergence
+                    sEst[j] = abs(sK3noise.mean() - knownKLD)
+                    oEst[j] = abs(oK3noise.mean() - knownKLD)
+                    LDA_COUNT = LDA_COUNT + 1
+
                 bar()
+
+    sMeanLda = np.zeros((L, E))
+    oMeanLda = np.zeros((L, E))
+
+    # compute mean of unbiased estimator across clients
+    for l in range(0, rLda, ldaStep):
+        sMeanLda[l] = np.mean(sEst, axis = (0, 1))
+        oMeanLda[l] = np.mean(oEst, axis = (0, 1))
+
+    # compute mean of unbiased estimator across epsilon
+    sOpt = np.mean(sMeanLda, axis = 1)
+    oOpt = np.mean(sMeanLda, axis = 1)
+
+    # find lambda that produces minimum error
+    sIndex = np.argmin(sOpt)
+    oIndex = np.argmin(oOpt)
+
+    sLda = ldaStep * sIndex
+    oLda = ldaStep * oIndex
 
     # compute mean of unbiased estimator across all clients
     sMean = np.mean(sEst)
     oMean = np.mean(oEst)
 
     # numpy arrays
-    sMeanL = np.zeros(L)
-    sMeanN = np.zeros(L)
-    oMeanL = np.zeros(L)
-    oMeanN = np.zeros(L)
+    sMeanL = np.zeros(E)
+    sMeanN = np.zeros(E)
+    oMeanL = np.zeros(E)
+    oMeanN = np.zeros(E)
     T_COUNT = 0
 
     for T in Tset:
