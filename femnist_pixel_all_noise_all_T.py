@@ -309,10 +309,8 @@ for T in Tset:
 
                         # load Gaussian noise distributions for intermediate server
                         if trial >= 4:
-                            s1 = b2 * (np.sqrt(2) / T)
-                            s2 = b2 * lda * (np.sqrt(2) / T)
+                            s1 = b2 * (np.sqrt(2) / T)   
                             noise1 = tfp.distributions.Normal(loc = A, scale = s1)
-                            noise2 = tfp.distributions.Normal(loc = A, scale = s2)
 
                         for row in range(0, len(rList)):
                             uLogr = log(rList[row])
@@ -325,6 +323,9 @@ for T in Tset:
 
                             # explore lambdas in a range
                             for lda in range(0, rLda, ldaStep):
+
+                                s2 = b2 * lda * (np.sqrt(2) / T)
+                                noise2 = tfp.distributions.Normal(loc = A, scale = s2)
 
                                 # compute k3 estimator
                                 if trial >= 4:

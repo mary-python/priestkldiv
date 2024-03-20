@@ -250,10 +250,8 @@ for trial in range(6):
                         # LOAD GAUSSIAN NOISE DISTRIBUTIONS FOR INTERMEDIATE SERVER
                         if trial >= 4:
                             s1 = b2 * (np.sqrt(2) / T)
-                            s2 = b2 * lda * (np.sqrt(2) / T)
                             noise1 = tfp.distributions.Normal(loc = A, scale = s1)
-                            noise2 = tfp.distributions.Normal(loc = A, scale = s2)
-
+                            
                         for row in range(0, len(rList)):
                             uLogr = log(rList[row])
 
@@ -265,6 +263,9 @@ for trial in range(6):
 
                             # EXPLORE LAMBDAS IN A RANGE
                             for lda in range(0, rLda, ldaStep):
+
+                                s2 = b2 * lda * (np.sqrt(2) / T)
+                                noise2 = tfp.distributions.Normal(loc = A, scale = s2)
 
                                 # COMPUTE K3 ESTIMATOR
                                 if trial >= 4:
