@@ -262,7 +262,7 @@ for trial in range(6):
                             LDA_FREQ = 0
 
                             # EXPLORE LAMBDAS IN A RANGE
-                            for lda in range(0, rLda, ldaStep):
+                            for lda in range(0, rLda + ldaStep, ldaStep):
 
                                 s2 = b2 * lda * (np.sqrt(2) / T)
                                 noise2 = tfp.distributions.Normal(loc = A, scale = s2)
@@ -295,7 +295,7 @@ for trial in range(6):
         meanLda = np.zeros((L, ES))
 
         # COMPUTE MEAN ERROR OF UNBIASED ESTIMATOR FOR EACH LAMBDA
-        for l in range(0, rLda, ldaStep):
+        for l in range(0, rLda + ldaStep, ldaStep):
             meanLda[l] = np.mean(uEst, axis = (0, 1))
 
         # FIND LAMBDA THAT PRODUCES MINIMUM ERROR

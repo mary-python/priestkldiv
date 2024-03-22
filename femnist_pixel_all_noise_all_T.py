@@ -322,7 +322,7 @@ for T in Tset:
                             LDA_FREQ = 0
 
                             # explore lambdas in a range
-                            for lda in range(0, rLda, ldaStep):
+                            for lda in range(0, rLda + ldaStep, ldaStep):
 
                                 s2 = b2 * lda * (np.sqrt(2) / T)
                                 noise2 = tfp.distributions.Normal(loc = A, scale = s2)
@@ -355,7 +355,7 @@ for T in Tset:
         meanLda = np.zeros((L, ES))
 
         # compute mean error of unbiased estimator for each lambda
-        for l in range(0, rLda, ldaStep):
+        for l in range(0, rLda + ldaStep, ldaStep):
             meanLda[l] = np.mean(uEst, axis = (0, 1))
 
         # find lambda that produces minimum error

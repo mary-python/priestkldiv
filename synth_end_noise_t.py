@@ -101,7 +101,7 @@ for trial in range(4):
                 LDA_COUNT = 0
 
                 # explore lambdas in a range
-                for lda in range(0, rLda, ldaStep):
+                for lda in range(0, rLda + ldaStep, ldaStep):
 
                     # compute k3 estimator
                     sK3noise = (lda * (sLogr.exp() - 1)) - sLogr
@@ -118,7 +118,7 @@ for trial in range(4):
     oMeanLda = np.zeros((L, E))
 
     # compute mean of unbiased estimator across clients
-    for l in range(0, rLda, ldaStep):
+    for l in range(0, rLda + ldaStep, ldaStep):
         sMeanLda[l] = np.mean(sEst, axis = (0, 1))
         oMeanLda[l] = np.mean(oEst, axis = (0, 1))
 
