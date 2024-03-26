@@ -173,38 +173,73 @@ for T in Tset:
             eTotalFreq[D] = sum(eFreqSet[D])
             eProbsSet[D, i] = float((eFreqSet[D, i] + ALPHA)/(T + (ALPHA*(eTotalFreq[D]))))
 
-    # PARAMETERS FOR THE ADDITION OF LAPLACE AND GAUSSIAN NOISE
-    EPS = 0.1
-    DTA = 0.1
-    A = 0
-    R = 10
+    # STORES FOR EXACT UNKNOWN DISTRIBUTIONS
+    uDist = np.zeros((10, 10, U))
+    nDist = np.zeros((10, 10, E))
+    uList = []
+    uCDList = []
+
+    # STORES FOR RATIO BETWEEN UNKNOWN AND KNOWN DISTRIBUTIONS
+    rList = []
+    kList = []
+
+    # FOR EACH COMPARISON DIGIT COMPUTE EXACT UNKNOWN DISTRIBUTIONS FOR ALL DIGITS
+    for C in range(0, 10):
+        for D in range(0, 10):
+
+            for i in range(0, U):
+                uDist[C, D, i] = uProbsSet[D, i] * (np.log((uProbsSet[D, i]) / (uProbsSet[C, i])))
+
+            for j in range(0, E):
+                nDist[C, D, j] = eProbsSet[D, j] * (np.log((eProbsSet[D, j]) / (eProbsSet[C, j])))
+
+            # ELIMINATE ALL ZERO VALUES WHEN DIGITS ARE IDENTICAL
+            if sum(uDist[C, D]) != 0.0:
+                uList.append(sum(uDist[C, D]))
+                uCDList.append((C, D))
+
+            # COMPUTE RATIO BETWEEN EXACT UNKNOWN DISTRIBUTIONS
+            ratio = abs(sum(nDist[C, D, j]) / sum(uDist[C, D]))
+
+            # ELIMINATE ALL DIVIDE BY ZERO ERRORS
+            if ratio != 0.0 and sum(uDist[C, D]) != 0.0:
+                rList.append(ratio)
+
+                # COMPUTE KNOWN DISTRIBUTION
+                kDist = abs(sum(nDist[C, D, j]) * log(ratio))
+                kList.append(kDist)
+    
+    uDict = dict(zip(uList, uCDList))
+    oUDict = OrderedDict(sorted(uDict.items()))
+
+    orderfile = open("emnist_unknown_dist_in_order.txt", "w", encoding = 'utf-8')
+    orderfile.write("EMNIST: Unknown Distribution In Order\n")
+    orderfile.write("Smaller corresponds to more similar digits\n\n")
+
+    for i in oUDict:
+        orderfile.write(f"{i} : {oUDict[i]}\n")
 
     # LIST OF THE TRIALS THAT WILL BE RUN
     trialset = ["end_lap", "end_lap_mc", "end_gauss", "end_gauss_mc", "mid_gauss", "mid_gauss_mc"]
     TS = len(trialset)
+
+    # PARAMETERS FOR THE ADDITION OF LAPLACE AND GAUSSIAN NOISE
+    EPS = 0.1
+    DTA = 0.1
+    A = 0
+    R = len(rList)
 
     # CONSTANTS FOR LAMBDA SEARCH
     rLda = 1
     ldaStep = 0.05
     L = int(rLda / ldaStep)
 
-    # STORES FOR MEAN OF UNBIASED ESTIMATOR AND LAMBDA
-    uEst = np.zeros((TS, ES, L))
+    # STORES FOR MEAN OF UNBIASED ESTIMATOR
+    uEst = np.zeros((R, L))
     meanEst = np.zeros((TS, ES))
 
     for trial in range(6):
         print(f"\nTrial {trial + 1}: {trialset[trial]}")
-        print(f"T = {T}: trial {trial + 1}...")
-
-        # STORES FOR EXACT AND NOISY UNKNOWN DISTRIBUTIONS
-        uDist = np.zeros((10, 10, U))
-        nDist = np.zeros((10, 10, E))
-        uList = []
-        uCDList = []
-
-        # STORES FOR RATIO BETWEEN UNKNOWN AND KNOWN DISTRIBUTIONS
-        rList = []
-        kList = []
 
         # OPTION 1A: BASELINE CASE
         if trial % 2 == 0:
@@ -216,106 +251,69 @@ for T in Tset:
 
         b2 = (2*((log(1.25))/DTA)*b1) / EPS
 
-        # FOR EACH COMPARISON DIGIT COMPUTE EXACT AND NOISY UNKNOWN DISTRIBUTIONS FOR ALL DIGITS
-        for C in range(0, 10):
-            for D in range(0, 10):
+        # LOAD GAUSSIAN NOISE DISTRIBUTIONS FOR INTERMEDIATE SERVER
+        if trial >= 4:
+            s1 = b2 * (np.sqrt(2) / R)                            
+            noise1 = tfp.distributions.Normal(loc = A, scale = s1)
 
-                for i in range(0, U):
-                    uDist[C, D, i] = uProbsSet[D, i] * (np.log((uProbsSet[D, i]) / (uProbsSet[C, i])))
-
-                for j in range(0, E):
-                    nDist[C, D, j] = eProbsSet[D, j] * (np.log((eProbsSet[D, j]) / (eProbsSet[C, j])))
-
-                # ELIMINATE ALL ZERO VALUES WHEN DIGITS ARE IDENTICAL
-                if sum(uDist[C, D]) != 0.0:
-                    uList.append(sum(uDist[C, D]))
-                    uCDList.append((C, D))
-
-                # COMPUTE RATIO BETWEEN EXACT AND NOISY UNKNOWN DISTRIBUTIONS
-                ratio = abs(sum(nDist[C, D, j]) / sum(uDist[C, D]))
-
-                # ELIMINATE ALL DIVIDE BY ZERO ERRORS
-                if ratio != 0.0 and sum(uDist[C, D]) != 0.0:
-                    rList.append(ratio)
-
-                    # COMPUTE KNOWN DISTRIBUTION
-                    kDist = abs(sum(nDist[C, D, j]) * log(ratio))
-                    kList.append(kDist)
-
-                    # WAIT UNTIL FINAL DIGIT PAIR (9, 8) TO ANALYSE EXACT UNKNOWN DISTRIBUTION LIST
-                    if C == 9 and D == 8:
-                        
-                        # LOAD GAUSSIAN NOISE DISTRIBUTIONS FOR INTERMEDIATE SERVER
-                        if trial >= 4:
-                            s1 = b2 * (np.sqrt(2) / T)                            
-                            noise1 = tfp.distributions.Normal(loc = A, scale = s1)
+        R_FREQ = 0
                             
-                        for row in range(0, len(rList)):
-                            uLogr = log(rList[row])
+        for row in range(0, R):
+            uLogr = log(rList[row])
 
-                            # OPTION 2A: INTERMEDIATE SERVER ADDS NOISE TERMS
-                            if trial >= 4:
-                                uNoise1 = log(rList[row]) + noise1.sample(sample_shape = (1,))
+            # OPTION 2A: INTERMEDIATE SERVER ADDS NOISE TERMS
+            if trial >= 4:
+                uNoise1 = log(rList[row]) + noise1.sample(sample_shape = (1,))
                             
-                            LDA_FREQ = 0
+            LDA_FREQ = 0
 
-                            # EXPLORE LAMBDAS IN A RANGE
-                            for lda in range(0, rLda + ldaStep, ldaStep):
+            # EXPLORE LAMBDAS IN A RANGE
+            for lda in range(0, rLda + ldaStep, ldaStep):
 
-                                s2 = b2 * lda * (np.sqrt(2) / T)
-                                noise2 = tfp.distributions.Normal(loc = A, scale = s2)
+                s2 = b2 * lda * (np.sqrt(2) / R)
+                noise2 = tfp.distributions.Normal(loc = A, scale = s2)
 
-                                # COMPUTE K3 ESTIMATOR
-                                if trial >= 4:
-                                    uNoise2 = uLogr.exp() + noise2.sample(sample_shape = (1,))
-                                    uRangeEst = (lda * (uNoise2 - 1)) - uNoise1
+                # COMPUTE K3 ESTIMATOR
+                if trial >= 4:
+                    uNoise2 = uLogr.exp() + noise2.sample(sample_shape = (1,))
+                    uRangeEst = (lda * (uNoise2 - 1)) - uNoise1
                                 
-                                # OPTION 2B: NO NOISE UNTIL END
-                                else:
-                                    uRangeEst = lda * (uLogr.exp() - 1) - uLogr
+                # OPTION 2B: NO NOISE UNTIL END
+                else:
+                    uRangeEst = lda * (uLogr.exp() - 1) - uLogr
 
-                                # COMPARE UNKNOWN DISTRIBUTION ESTIMATOR TO KNOWN DISTRIBUTION
-                                uEst[trial, T_FREQ, LDA_FREQ] = abs(uRangeEst - kList[row])
-                                LDA_FREQ = LDA_FREQ + 1 
+                # SHARE UNBIASED ESTIMATOR WITH SERVER
+                uEst[R_FREQ, LDA_FREQ] = uRangeEst
+                LDA_FREQ = LDA_FREQ + 1
 
-            uDict = dict(zip(uList, uCDList))
-            oUDict = OrderedDict(sorted(uDict.items()))
-            
-            # UNKNOWN DISTRIBUTION IS IDENTICAL FOR ALL TS AND TRIALS
-            if T == 280 and trial == 0:
-                orderfile = open("emnist_unknown_dist_in_order.txt", "w", encoding = 'utf-8')
-                orderfile.write("EMNIST: Unknown Distribution In Order\n")
-                orderfile.write("Smaller corresponds to more similar digits\n\n")
+            R_FREQ = R_FREQ + 1
 
-                for i in oUDict:
-                    orderfile.write(f"{i} : {oUDict[i]}\n")
-
-        meanLda = np.zeros((L, ES))
+        meanLda = np.zeros(L)
 
         # COMPUTE MEAN ERROR OF UNBIASED ESTIMATOR FOR EACH LAMBDA
         for l in range(0, rLda + ldaStep, ldaStep):
-            meanLda[l] = np.mean(uEst, axis = (0, 1))
+            meanLda[l] = np.mean(uEst, axis = 0)
 
         # FIND LAMBDA THAT PRODUCES MINIMUM ERROR
-        meanOpt = np.mean(meanLda, axis = 1)
-        meanIndex = np.argmin(meanOpt)
+        meanIndex = np.argmin(meanLda)
         ldaIndex = ldaStep * meanIndex
+        ldaOpt = meanLda[ldaIndex]
 
         # MEAN ACROSS CLIENTS FOR OPTIMUM LAMBDA
-        meanEst = meanLda[ldaIndex]
+        meanEst[trial, T_FREQ] = ldaOpt
 
         # OPTION 2B: SERVER ADDS NOISE TERM TO FINAL RESULT
         if trial < 4:
             
             # OPTION 3A: ADD LAPLACE NOISE
             if trial < 2:    
-                endNoise = tfp.distributions.Laplace(loc = A, scale = s1)
+                endNoise = tfp.distributions.Laplace(loc = A, scale = b1)
             
             # OPTION 3B: ADD GAUSSIAN NOISE
             else:
-                endNoise = tfp.distributions.Normal(loc = A, scale = s1)
+                endNoise = tfp.distributions.Normal(loc = A, scale = b2)
 
-            meanEst = meanEst + endNoise.sample(sample_shape = (1,))
+            meanEst[trial, T_FREQ] = meanEst[trial, T_FREQ] + endNoise.sample(sample_shape = (1,))
 
         statsfile = open(f"emnist_{trialset[trial]}_noise_t_{T}.txt", "w", encoding = 'utf-8')
         statsfile.write(f"EMNIST: T = {T}\n")
