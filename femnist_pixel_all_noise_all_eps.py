@@ -303,6 +303,23 @@ for trial in range(6):
 
         # store for unbiased estimator
         uEst = np.zeros((R, L))
+        R_FREQ = 0
+
+        for row in range(0, R):
+            uLogr = log(rList[row])
+            LDA_FREQ = 0
+
+            # explore lambdas in a range
+            for lda in range(0, rLda + ldaStep, ldaStep):
+
+                # compute k3 estimator
+                uRangeEst = lda * (uLogr.exp() - 1) - uLogr
+
+                # share unbiased estimator with server
+                uEst[R_FREQ, LDA_FREQ] = uRangeEst
+                LDA_FREQ = LDA_FREQ + 1
+            
+            R_FREQ = R_FREQ + 1
 
         # option 1a: baseline case
         if trial % 2 == 0:
@@ -316,46 +333,21 @@ for trial in range(6):
 
         # load Gaussian noise distributions for intermediate server
         if trial >= 4:
-            s1 = b2 * (np.sqrt(2) / E)
-            noise1 = tfp.distributions.Normal(loc = A, scale = s1)
-
-        R_FREQ = 0
-
-        for row in range(0, R):
-            uLogr = log(rList[row])
-
-            # option 2a: intermediate server adds noise terms
-            if trial >= 4:
-                uNoise1 = log(rList[row]) + noise1.sample(sample_shape = (1,))
-                            
-            LDA_FREQ = 0
-
-            # explore lambdas in a range
-            for lda in range(0, rLda + ldaStep, ldaStep):
-
-                s2 = b2 * lda * (np.sqrt(2) / E)
-                noise2 = tfp.distributions.Normal(loc = A, scale = s2)
-
-                # compute k3 estimator
-                if trial >= 4:
-                    uNoise2 = uLogr.exp() + noise2.sample(sample_shape = (1,))
-                    uRangeEst = (lda * (uNoise2 - 1)) - uNoise1
-                                
-                # option 2b: no noise until end
-                else:
-                    uRangeEst = lda * (uLogr.exp() - 1) - uLogr
-
-                # share unbiased estimator with server
-                uEst[R_FREQ, LDA_FREQ] = uRangeEst
-                LDA_FREQ = LDA_FREQ + 1
-            
-            R_FREQ = R_FREQ + 1
-
+            s = b2 * (np.sqrt(2) / R)
+            noise = tfp.distributions.Normal(loc = A, scale = s)
+        
         meanLda = np.zeros(L)
 
         # compute mean error of unbiased estimator for each lambda
         for l in range(0, rLda + ldaStep, ldaStep):
-            meanLda[l] = np.mean(uEst, axis = 0)
+
+            # option 2a: intermediate server adds noise term
+            if trial >= 4:
+                meanLda[l] = np.mean(uEst, axis = 0) + noise.sample(sample_shape = (1,))
+
+            # option 2b: no noise until end
+            else:
+                meanLda[l] = np.mean(uEst, axis = 0)
 
         # find lambda that produces minimum error
         meanIndex = np.argmin(meanLda)
