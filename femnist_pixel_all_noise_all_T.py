@@ -251,10 +251,7 @@ for trial in range(6):
         nDist = np.zeros((10, 10, E))
         uList = []
         uCDList = []         
-
-        # stores for ratio between unknown and known distributions
         rList = []
-        kList = []
 
         # for each comparison digit compute exact unknown distributions for all digits
         for C in range(0, 10):
@@ -278,10 +275,6 @@ for trial in range(6):
                 if ratio != 0.0 and sum(uDist[C, D]) != 0.0:
                     rList.append(ratio)
 
-                    # compute known distribution
-                    kDist = abs(sum(nDist[C, D, j]) * log(ratio))
-                    kList.append(kDist)
-    
         uDict = dict(zip(uList, uCDList))
         oUDict = OrderedDict(sorted(uDict.items()))
 
@@ -336,7 +329,7 @@ for trial in range(6):
         # load Gaussian noise distribution for intermediate server
         if trial >= 4:
             s = b2 * (np.sqrt(2) / R)
-            noise = tfp.distributions.Normal(loc = A, scale = s)
+            midNoise = tfp.distributions.Normal(loc = A, scale = s)
         
         meanLda = np.zeros(L)
 
@@ -345,7 +338,7 @@ for trial in range(6):
             
             # option 2a: intermediate server adds noise term
             if trial >= 4:
-                meanLda[l] = np.mean(uEst, axis = 0) + noise.sample(sample_shape = (1,))
+                meanLda[l] = np.mean(uEst, axis = 0) + midNoise.sample(sample_shape = (1,))
 
             # option 2b: no noise until end
             else:

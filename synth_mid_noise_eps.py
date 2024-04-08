@@ -26,7 +26,6 @@ for trial in range(4):
         p = dis.Laplace(loc = 1, scale = 1)
 
     q = dis.Normal(loc = 0, scale = 1)
-    knownKLD = dis.kl_divergence(p, q)
 
     # sample T points
     T = 500_000
@@ -46,10 +45,9 @@ for trial in range(4):
     qNegativeRound = qOrderedRound[0][0:249151]
     qPositiveRound = qOrderedRound[0][249151:499947]
 
-    # 10-100K clients each with a few hundred points
-    C = 10000
-    N = 500
-    M = (C / N) - 1
+    # 200 clients each with 125 points
+    C = 200
+    N = 125
 
     # parameters for the addition of Laplace and Gaussian noise
     epsset = np.array([0.01, 0.025, 0.05, 0.1, 0.2, 0.4, 0.8, 1, 1.5, 2, 3, 4])
@@ -90,44 +88,25 @@ for trial in range(4):
             qT = torch.numel(qClientSamp)
 
             # each client gets N points in order from ordered pre-processed sample
-            # translated by M = (C / N) - 1 every time to stay below upper bound (C * N) - 1 for client C
-            qOrdClientSamp = qOrderedRound[0][M*j : (M*j) + N]
-            qOrderedT = torch.numel(qOrdClientSamp)
+            qOrdClientSamp = qOrderedRound[0][N*j : N*(j + 1)]
             EPS_COUNT = 0
 
             for eps in epsset:
 
-                sNoiseLda = np.zeros(L)
-                oNoiseLda = np.zeros(L)
-
-                # load Gaussian noise distribution, dependent on eps and dta
-                s1 = (b2 / eps) * (np.sqrt(2) / C)
-                noise1 = dis.Normal(loc = A, scale = s1)
-                
                 sLogr = p.log_prob(qClientSamp) - q.log_prob(qClientSamp)
                 oLogr = p.log_prob(qOrdClientSamp) - q.log_prob(qOrdClientSamp)
-
-                # option 3a: intermediate server adds noise terms
-                sNoise1 = p.log_prob(qClientSamp) - q.log_prob(qClientSamp) + noise1.sample(sample_shape = (qT,))
-                oNoise1 = p.log_prob(qOrdClientSamp) - q.log_prob(qOrdClientSamp) + noise1.sample(sample_shape = (qOrderedT,))
                 LDA_COUNT = 0
 
                 # explore lambdas in a range
                 for lda in range(0, rLda + ldaStep, ldaStep):
 
-                    s2 = (b2 / eps) * ((lda * np.sqrt(2)) / C)
-                    noise2 = dis.Normal(loc = A, scale = s2)
-
                     # compute k3 estimator
-                    sNoise2 = sLogr.exp() + noise2.sample(sample_shape = (qT,))
-                    oNoise2 = oLogr.exp() + noise2.sample(sample_shape = (qOrderedT,))
+                    sRangeEst = (lda * (sLogr.exp() - 1)) - sLogr
+                    oRangeEst = (lda * (oLogr.exp() - 1)) - oLogr
 
-                    sNoiseLda = (lda * (sNoise2 - 1)) - sNoise1
-                    oNoiseLda = (lda * (oNoise2 - 1)) - oNoise1
-
-                    # compare with known KL divergence
-                    sEst[j, EPS_COUNT, LDA_COUNT] = abs(sNoiseLda.mean() - knownKLD)
-                    oEst[j, EPS_COUNT, LDA_COUNT] = abs(oNoiseLda.mean() - knownKLD)
+                    # share unbiased estimator with intermediate server
+                    sEst[j, EPS_COUNT, LDA_COUNT] = sRangeEst.mean()
+                    oEst[j, EPS_COUNT, LDA_COUNT] = oRangeEst.mean()
                     LDA_COUNT = LDA_COUNT + 1
 
                 EPS_COUNT = EPS_COUNT + 1

@@ -26,7 +26,6 @@ for trial in range(4):
         p = dis.Laplace(loc = 1, scale = 1)
 
     q = dis.Normal(loc = 0, scale = 1)
-    knownKLD = dis.kl_divergence(p, q)
 
     # parameters for the addition of Laplace and Gaussian noise
     EPS = 0.1
@@ -48,9 +47,9 @@ for trial in range(4):
     noiseL = dis.Laplace(loc = A, scale = b1)
     noiseN = dis.Normal(loc = A, scale = b2)
 
-    # 10-100K clients each with a few hundred points
-    C = 10000
-    N = 500
+    # 200 clients each with 125 points
+    C = 200
+    N = 125
 
     # numpy arrays
     F = 5_000
@@ -92,8 +91,8 @@ for trial in range(4):
                     qClientSamp = qNegativeRound[indices]
 
                 # each client gets N points in order from ordered pre-processed sample
-                # translated by 1 every time and added mod 4419 to stay below upper bound 4918
-                qOrdClientSamp = qOrderedRound[0][(j % 4419) : (j % 4419) + N]
+                # translated by 5 every time to stay below upper bound 4918
+                qOrdClientSamp = qOrderedRound[0][5*j : (5*j) + N]
 
                 # compute ratio between unknown and known distributions
                 sLogr = p.log_prob(qClientSamp) - q.log_prob(qClientSamp)
@@ -104,12 +103,12 @@ for trial in range(4):
                 for lda in range(0, rLda + ldaStep, ldaStep):
 
                     # compute k3 estimator
-                    sK3noise = (lda * (sLogr.exp() - 1)) - sLogr
-                    oK3noise = (lda * (oLogr.exp() - 1)) - oLogr
+                    sRangeEst = (lda * (sLogr.exp() - 1)) - sLogr
+                    oRangeEst = (lda * (oLogr.exp() - 1)) - oLogr
 
-                    # compare with known KL divergence
-                    sEst[j] = abs(sK3noise.mean() - knownKLD)
-                    oEst[j] = abs(oK3noise.mean() - knownKLD)
+                    # share unbiased estimator with server
+                    sEst[j] = sRangeEst.mean()
+                    oEst[j] = oRangeEst.mean()
                     LDA_COUNT = LDA_COUNT + 1
 
                 bar()
@@ -153,29 +152,29 @@ for trial in range(4):
         oMeanN[T_COUNT] = sMean + noiseN.sample(sample_shape = (1,))
         T_COUNT = T_COUNT + 1
 
-if trial % 4 == 0:
-    sMeanL1 = sMeanL
-    sMeanN1 = sMeanN
-    oMeanL1 = oMeanL
-    oMeanN1 = oMeanL
+    if trial % 4 == 0:
+        sMeanL1 = sMeanL
+        sMeanN1 = sMeanN
+        oMeanL1 = oMeanL
+        oMeanN1 = oMeanL
 
-if trial % 4 == 1:
-    sMeanL2 = sMeanL
-    sMeanN2 = sMeanN
-    oMeanL2 = oMeanL
-    oMeanN2 = oMeanL
+    if trial % 4 == 1:
+        sMeanL2 = sMeanL
+        sMeanN2 = sMeanN
+        oMeanL2 = oMeanL
+        oMeanN2 = oMeanL
 
-if trial % 4 == 2:
-    sMeanL3 = sMeanL
-    sMeanN3 = sMeanN
-    oMeanL3 = oMeanL
-    oMeanN3 = oMeanL
+    if trial % 4 == 2:
+        sMeanL3 = sMeanL
+        sMeanN3 = sMeanN
+        oMeanL3 = oMeanL
+        oMeanN3 = oMeanL
 
-if trial % 4 == 3:
-    sMeanL4 = sMeanL
-    sMeanN4 = sMeanN
-    oMeanL4 = oMeanL
-    oMeanN4 = oMeanL
+    if trial % 4 == 3:
+        sMeanL4 = sMeanL
+        sMeanN4 = sMeanN
+        oMeanL4 = oMeanL
+        oMeanN4 = oMeanL
 
 # separate graphs for Small / Large KL divergence to show trends
 fig = plt.figure(figsize = (12.8, 4.8))
