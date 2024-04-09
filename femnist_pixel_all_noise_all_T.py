@@ -260,20 +260,20 @@ for trial in range(6):
                 for i in range(0, U):
                     uDist[C, D, i] = uProbsSet[D, i] * (np.log((uProbsSet[D, i]) / (uProbsSet[C, i])))
 
-                for j in range(0, E):
-                    nDist[C, D, j] = eProbsSet[D, j] * (np.log((eProbsSet[D, j]) / (eProbsSet[C, j])))
-
                 # eliminate all zero values when digits are identical
                 if sum(uDist[C, D]) != 0.0:
                     uList.append(sum(uDist[C, D]))
                     uCDList.append((C, D))
 
-                # compute ratio between exact unknown distributions
-                ratio = abs(sum(nDist[C, D, j]) / sum(uDist[C, D]))
+                for j in range(0, E):
+                    nDist[C, D, j] = eProbsSet[D, j] * (np.log((eProbsSet[D, j]) / (eProbsSet[C, j])))
 
-                # eliminate all divide by zero errors
-                if ratio != 0.0 and sum(uDist[C, D]) != 0.0:
-                    rList.append(ratio)
+                    # compute ratio between exact unknown distributions
+                    ratio = abs(sum(nDist[C, D, j]) / sum(uDist[C, D]))
+
+                    # eliminate all divide by zero errors
+                    if ratio != 0.0 and sum(uDist[C, D]) != 0.0:
+                        rList.append(ratio)
 
         uDict = dict(zip(uList, uCDList))
         oUDict = OrderedDict(sorted(uDict.items()))
