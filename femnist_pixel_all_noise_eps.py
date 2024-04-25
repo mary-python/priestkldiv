@@ -303,7 +303,7 @@ for trial in range(6):
             LDA_FREQ = 0
 
             # explore lambdas in a range
-            for lda in range(0, rLda + ldaStep, ldaStep):
+            for lda in np.arange(0, rLda + ldaStep, ldaStep):
 
                 # compute k3 estimator
                 uRangeEst = lda * (uLogr.exp() - 1) - uLogr
@@ -332,7 +332,7 @@ for trial in range(6):
         meanLda = np.zeros(L)
 
         # compute mean error of unbiased estimator for each lambda
-        for l in range(0, rLda + ldaStep, ldaStep):
+        for l in np.arange(0, rLda + ldaStep, ldaStep):
 
             # option 2a: intermediate server adds noise term
             if trial >= 4:
