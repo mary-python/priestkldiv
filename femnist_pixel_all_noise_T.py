@@ -294,24 +294,24 @@ for trial in range(6):
         # constants for lambda search
         rLda = 1
         ldaStep = 0.05
-        L = int(rLda / ldaStep)
+        L = int((rLda + ldaStep) / ldaStep)
 
         # store for unbiased estimator
-        uEst = np.zeros((R, L))
+        uEst = np.zeros((L, R))
         R_FREQ = 0
 
         for row in range(0, R):
-            uLogr = log(rList[row])
+            uLogr = np.log(rList[row])
             LDA_FREQ = 0
 
             # explore lambdas in a range
             for lda in np.arange(0, rLda + ldaStep, ldaStep):
 
                 # compute k3 estimator
-                uRangeEst = lda * (uLogr.exp() - 1) - uLogr
+                uRangeEst = lda * (np.exp(uLogr) - 1) - uLogr
 
                 # share unbiased estimator with intermediate server
-                uEst[R_FREQ, LDA_FREQ] = uRangeEst
+                uEst[LDA_FREQ, R_FREQ] = uRangeEst
                 LDA_FREQ = LDA_FREQ + 1
 
             R_FREQ = R_FREQ + 1
@@ -334,19 +334,18 @@ for trial in range(6):
         meanLda = np.zeros(L)
 
         # compute mean error of unbiased estimator for each lambda
-        for l in np.arange(0, rLda + ldaStep, ldaStep):
+        for l in range(0, L):
             
             # option 2a: intermediate server adds noise term
             if trial >= 4:
-                meanLda[l] = np.mean(uEst, axis = 0) + midNoise.sample(sample_shape = (1,))
+                meanLda[l] = np.mean(uEst[l]) + midNoise.sample(sample_shape = (1,))
 
             # option 2b: no noise until end
             else:
-                meanLda[l] = np.mean(uEst, axis = 0)
+                meanLda[l] = np.mean(uEst[l])
 
         # find lambda that produces minimum error
-        meanIndex = np.argmin(meanLda)
-        ldaIndex = ldaStep * meanIndex
+        ldaIndex = np.argmin(meanLda)
         ldaOpt = meanLda[ldaIndex]
 
         # mean across clients for optimum lambda

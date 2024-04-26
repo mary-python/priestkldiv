@@ -74,9 +74,9 @@ for trial in range(8):
     # numpy arrays
     rLda = 1
     ldaStep = 0.05
-    L = int(rLda / ldaStep)
-    sEst = np.zeros((C, L))
-    oEst = np.zeros((C, L))
+    L = int((rLda + ldaStep) / ldaStep)
+    sEst = np.zeros((L, C))
+    oEst = np.zeros((L, C))
     print("Evaluating KL Divergence estimator...\n")
 
     with alive_bar(C) as bar:
@@ -102,12 +102,12 @@ for trial in range(8):
             for lda in np.arange(0, rLda + ldaStep, ldaStep):
 
                 # compute k3 estimator
-                sRangeEst = (lda * (sLogr.exp() - 1)) - sLogr
-                oRangeEst = (lda * (oLogr.exp() - 1)) - oLogr
+                sRangeEst = (lda * (np.exp(sLogr) - 1)) - sLogr
+                oRangeEst = (lda * (np.exp(oLogr) - 1)) - oLogr
 
                 # share unbiased estimator with server
-                sEst[j, LDA_COUNT] = sRangeEst.mean()
-                oEst[j, LDA_COUNT] = oRangeEst.mean()
+                sEst[LDA_COUNT, j] = sRangeEst.mean()
+                oEst[LDA_COUNT, j] = oRangeEst.mean()
                 LDA_COUNT = LDA_COUNT + 1
 
             bar()
@@ -138,12 +138,9 @@ for trial in range(8):
     sIndex = np.argmin(sMeanLda)
     oIndex = np.argmin(oMeanLda)
 
-    sLdaIndex = ldaStep * sIndex
-    oLdaIndex = ldaStep * oIndex
-
     # mean across clients for optimum lambda
-    sMean = sMeanLda[sLdaIndex]
-    oMean = oMeanLda[oLdaIndex]
+    sMean = sMeanLda[sIndex]
+    oMean = oMeanLda[oIndex]
 
     # numpy arrays
     sMeanL = np.zeros(E)

@@ -74,7 +74,7 @@ for trial in range(8):
     # numpy arrays
     rLda = 1
     ldaStep = 0.05
-    L = int(rLda / ldaStep)
+    L = int((rLda + ldaStep) / ldaStep)
     CS = np.size(Cset)
     sMeanL = np.zeros(CS)
     sMeanN = np.zeros(CS)
@@ -86,8 +86,8 @@ for trial in range(8):
 
     for C in Cset:
 
-        sEst = np.zeros((C, L))
-        oEst = np.zeros((C, L))
+        sEst = np.zeros((L, C))
+        oEst = np.zeros((L, C))
 
         with alive_bar(C) as bar:
             for j in range(0, C):
@@ -112,12 +112,12 @@ for trial in range(8):
                 for lda in np.arange(0, rLda + ldaStep, ldaStep):
 
                     # compute k3 estimator
-                    sRangeEst = (lda * (sLogr.exp() - 1)) - sLogr
-                    oRangeEst = (lda * (oLogr.exp() - 1)) - oLogr
+                    sRangeEst = (lda * (np.exp(sLogr) - 1)) - sLogr
+                    oRangeEst = (lda * (np.exp(oLogr) - 1)) - oLogr
 
                     # share unbiased estimator with server
-                    sEst[j, LDA_COUNT] = sRangeEst.mean()
-                    oEst[j, LDA_COUNT] = oRangeEst.mean()
+                    sEst[LDA_COUNT, j] = sRangeEst.mean()
+                    oEst[LDA_COUNT, j] = oRangeEst.mean()
                     LDA_COUNT = LDA_COUNT + 1
 
                 bar()
@@ -131,28 +131,25 @@ for trial in range(8):
         oMeanLda = np.zeros((L, CS))
 
         # compute mean of unbiased estimator across clients
-        for l in np.arange(0, rLda + ldaStep, ldaStep):
+        for l in range(0, L):
 
             # option 3a: intermediate server adds noise term
             if trial >= 4:
-                sMeanLda[l] = np.mean(sEst, axis = 0) + midNoise.sample(sample_shape = (1,))
-                oMeanLda[l] = np.mean(oEst, axis = 0) + midNoise.sample(sample_shape = (1,))
+                sMeanLda[l] = np.mean(sEst[l]) + midNoise.sample(sample_shape = (1,))
+                oMeanLda[l] = np.mean(oEst[l]) + midNoise.sample(sample_shape = (1,))
             
             # option 3b: server add noise term later
             else:
-                sMeanLda[l] = np.mean(sEst, axis = 0)
-                oMeanLda[l] = np.mean(oEst, axis = 0)
+                sMeanLda[l] = np.mean(sEst[l])
+                oMeanLda[l] = np.mean(oEst[l])
 
         # find lambda that produces minimum error
         sIndex = np.argmin(sMeanLda)
         oIndex = np.argmin(oMeanLda)
 
-        sLdaIndex = ldaStep * sIndex
-        oLdaIndex = ldaStep * oIndex
-
         # mean across clients for optimum lambda
-        sMean = sMeanLda[sLdaIndex]
-        oMean = oMeanLda[oLdaIndex]
+        sMean = sMeanLda[sIndex]
+        oMean = oMeanLda[oIndex]
 
         # option 3b: server adds noise term to final result
         if trial < 4:
