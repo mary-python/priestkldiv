@@ -15,6 +15,7 @@ print("\nStarting...")
 torch.manual_seed(12)
 
 for trial in range(8):
+    print(f"\nRunning algorithms 1 and 2 for trial {trial}...")
 
     # p is unknown distribution, q is known
     # option 1a: distributions have small KL divergence
@@ -77,7 +78,6 @@ for trial in range(8):
     L = int((rLda + ldaStep) / ldaStep)
     sEst = np.zeros((L, C))
     oEst = np.zeros((L, C))
-    print("Evaluating KL Divergence estimator...\n")
 
     with alive_bar(C) as bar:
         for j in range(0, C):

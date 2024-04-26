@@ -15,6 +15,7 @@ print("\nStarting...")
 torch.manual_seed(12)
 
 for trial in range(8):
+    print(f"\nRunning algorithms 1 and 2 for trial {trial}...")
 
     # p is unknown distribution, q is known
     # option 1a: distributions have small KL divergence
@@ -81,8 +82,6 @@ for trial in range(8):
     oMeanL = np.zeros(CS)
     oMeanN = np.zeros(CS)
     C_COUNT = 0
-
-    print("Evaluating KL Divergence estimator...\n")
 
     for C in Cset:
 

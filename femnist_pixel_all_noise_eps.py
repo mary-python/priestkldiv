@@ -48,13 +48,13 @@ for trial in range(6):
     EPS_FREQ = 0
 
     for eps in epsset:
+        print(f"\nRunning algorithms 1 and 2 for epsilon = {eps}...")
 
         # randomly sample 5% of writers without replacement
         sampledWriters = np.random.choice(numWriters, T, replace = False)
         totalDigits = np.zeros(10, dtype = int)
 
         # compute the frequency of each digit
-        print("Preprocessing images...")
         for i in sampledWriters:
             tempDataset = file[writers[i]]
 
@@ -183,8 +183,6 @@ for trial in range(6):
         uFreqSet = np.zeros((10, U))
         uProbsSet = np.zeros((10, U))
         T1 = 11*T # change this term so probabilities add up to 1
-
-        print("Creating probability distributions...")
 
         # smoothing parameter: 0.1 and 1 are too large
         ALPHA = 0.01
