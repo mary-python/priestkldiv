@@ -39,8 +39,9 @@ trialset = ["end_lap", "end_lap_mc", "end_gauss", "end_gauss_mc", "mid_gauss", "
 ES = len(epsset)
 TS = len(trialset)
 
-# store for mean of unbiased estimator
+# stores for mean of unbiased estimator and optimum lambda
 meanEst = np.zeros((TS, ES))
+ldaOpt = np.zeros((TS, ES))
 
 for trial in range(6):
 
@@ -275,8 +276,8 @@ for trial in range(6):
         uDict = dict(zip(uList, uCDList))
         oUDict = OrderedDict(sorted(uDict.items()))
 
-        orderfile = open("femnist_unknown_dist_in_order.txt", "w", encoding = 'utf-8')
-        orderfile.write("FEMNIST: Unknown Distribution In Order\n")
+        orderfile = open(f"femnist_{trialset[trial]}_ranking_a_eps_{eps}.txt", "w", encoding = 'utf-8')
+        orderfile.write("FEMNIST: Unknown Distribution In Order (No Noise)\n")
         orderfile.write("Smaller corresponds to more similar digits\n\n")
 
         for i in oUDict:
@@ -342,17 +343,17 @@ for trial in range(6):
 
         # find lambda that produces minimum error
         ldaIndex = np.argmin(meanLda)
-        ldaOpt = meanLda[ldaIndex]
+        minError = meanLda[ldaIndex]
 
         # mean across clients for optimum lambda
-        meanEst[trial, EPS_FREQ] = ldaOpt
+        meanEst[trial, EPS_FREQ] = minError
+        ldaOpt[trial, EPS_FREQ] = ldaIndex * ldaStep
 
         # option 2b: server adds noise term to final result
         if trial < 4:
 
-            for eps in epsset:
-                s1 = b1 / eps
-                s2 = b2 / eps
+            s1 = b1 / eps
+            s2 = b2 / eps
 
             # option 3a: add Laplace noise
             if trial < 2:    
@@ -366,7 +367,7 @@ for trial in range(6):
 
         statsfile = open(f"femnist_{trialset[trial]}_noise_eps_{eps}.txt", "w", encoding = 'utf-8')
         statsfile.write(f"FEMNIST: Eps = {eps}\n")
-        statsfile.write(f"Optimal Lambda {round(meanEst[trial, EPS_FREQ], 4)} for Mean {round(meanEst[trial, EPS_FREQ], 4)}\n\n")
+        statsfile.write(f"Optimal Lambda {round(ldaOpt[trial, EPS_FREQ], 4)} for Mean {round(meanEst[trial, EPS_FREQ], 4)}\n\n")
 
         EPS_FREQ = EPS_FREQ + 1
 
@@ -385,19 +386,19 @@ plt.title("How epsilon affects error of unbiased estimator (mean)")
 plt.savefig("Femnist_pixel_eps_mean.png")
 plt.clf()
 
-# plot lambdas for each epsilon
-print(f"meanLda: {meanLda[0]}")
-plt.errorbar(epsset, meanLda[0], yerr = np.std(meanLda[0], axis = 0), color = 'tab:blue', marker = 'o', label = 'end lap')
-plt.errorbar(epsset, meanLda[1], yerr = np.std(meanLda[1], axis = 0), color = 'tab:cyan', marker = 'x', label = 'end lap mc')
-plt.errorbar(epsset, meanLda[2], yerr = np.std(meanLda[2], axis = 0), color = 'tab:olive', marker = 'o', label = 'end gauss')
-plt.errorbar(epsset, meanLda[3], yerr = np.std(meanLda[3], axis = 0), color = 'tab:green', marker = 'x', label = 'end gauss mc')
-plt.errorbar(epsset, meanLda[4], yerr = np.std(meanLda[4], axis = 0), color = 'tab:red', marker = 'o', label = 'mid lap')
-plt.errorbar(epsset, meanLda[5], yerr = np.std(meanLda[5], axis = 0), color = 'tab:pink', marker = 'x', label = 'mid lap mc')
+# plot optimum lambda for each epsilon
+print(f"\nldaOpt: {ldaOpt[0]}")
+plt.plot(epsset, ldaOpt[0], yerr = np.std(ldaOpt[0], axis = 0), color = 'tab:blue', marker = 'o', label = 'end lap')
+plt.plot(epsset, ldaOpt[1], yerr = np.std(ldaOpt[1], axis = 0),color = 'tab:cyan', marker = 'x', label = 'end lap mc')
+plt.plot(epsset, ldaOpt[2], yerr = np.std(ldaOpt[2], axis = 0),color = 'tab:olive', marker = 'o', label = 'end gauss')
+plt.plot(epsset, ldaOpt[3], yerr = np.std(ldaOpt[3], axis = 0),color = 'tab:green', marker = 'x', label = 'end gauss mc')
+plt.plot(epsset, ldaOpt[4], yerr = np.std(ldaOpt[4], axis = 0),color = 'tab:red', marker = 'o', label = 'mid lap')
+plt.plot(epsset, ldaOpt[5], yerr = np.std(ldaOpt[5], axis = 0),color = 'tab:pink', marker = 'x', label = 'mid lap mc')
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of epsilon")
 plt.ylabel("Lambda to minimise error of unbiased estimator")
-plt.title("How epsilon affects lambda (mean)")
+plt.title("How epsilon affects optimum lambda")
 plt.savefig("Femnist_pixel_eps_lda.png")
 plt.clf()
 
@@ -405,6 +406,6 @@ plt.clf()
 totalTime = time.perf_counter() - startTime
 
 if (totalTime // 60) == 1:
-    print(f"Runtime: {round(totalTime // 60)} minute {round((totalTime % 60), 2)} seconds.\n")
+    print(f"\nRuntime: {round(totalTime // 60)} minute {round((totalTime % 60), 2)} seconds.\n")
 else:
-    print(f"Runtime: {round(totalTime // 60)} minutes {round((totalTime % 60), 2)} seconds.\n")
+    print(f"\nRuntime: {round(totalTime // 60)} minutes {round((totalTime % 60), 2)} seconds.\n")
