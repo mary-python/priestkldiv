@@ -49,7 +49,7 @@ for trial in range(6):
     EPS_FREQ = 0
 
     for eps in epsset:
-        print(f"\nRunning algorithms 1 and 2 for epsilon = {eps}...")
+        print(f"Running algorithms 1 and 2 for epsilon = {eps}...")
 
         # randomly sample 5% of writers without replacement
         sampledWriters = np.random.choice(numWriters, T, replace = False)
