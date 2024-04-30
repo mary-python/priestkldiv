@@ -47,6 +47,7 @@ ldaOpt = np.zeros((TS, ES))
 for trial in range(6):
     
     print(f"\nTrial {trial + 1}: {trialset[trial]}")
+    statsfile = open(f"femnist_{trialset[trial]}_noise.txt", "w", encoding = 'utf-8')
     T_FREQ = 0
 
     for T in Tset:
@@ -364,7 +365,6 @@ for trial in range(6):
 
             meanEst[trial, T_FREQ] = meanEst[trial, T_FREQ] + endNoise.sample(sample_shape = (1,))
 
-        statsfile = open(f"femnist_{trialset[trial]}_noise_t_{T}.txt", "w", encoding = 'utf-8')
         statsfile.write(f"FEMNIST: T = {T}\n")
         statsfile.write(f"Optimal Lambda {round(ldaOpt[trial, T_FREQ], 4)} for Mean {round(meanEst[trial, T_FREQ], 4)}\n\n")
 
@@ -379,6 +379,7 @@ plt.errorbar(Tset, meanEst[3], yerr = np.std(meanEst[3], axis = 0), color = 'tab
 plt.errorbar(Tset, meanEst[4], yerr = np.std(meanEst[4], axis = 0), color = 'tab:red', marker = 'o', label = 'mid gauss')
 plt.errorbar(Tset, meanEst[5], yerr = np.std(meanEst[5], axis = 0), color = 'tab:pink', marker = 'x', label = 'mid gauss mc')
 plt.legend(loc = 'best')
+plt.yscale('log')
 plt.xlabel("Value of T")
 plt.ylabel("Error of unbiased estimator (mean)")
 plt.title("How T affects error of unbiased estimator (mean)")
@@ -394,7 +395,6 @@ plt.errorbar(Tset, ldaOpt[3], yerr = np.std(ldaOpt[3], axis = 0), color = 'tab:g
 plt.errorbar(Tset, ldaOpt[4], yerr = np.std(ldaOpt[4], axis = 0), color = 'tab:red', marker = 'o', label = 'mid gauss')
 plt.errorbar(Tset, ldaOpt[5], yerr = np.std(ldaOpt[5], axis = 0), color = 'tab:pink', marker = 'x', label = 'mid gauss mc')
 plt.legend(loc = 'best')
-plt.yscale('log')
 plt.xlabel("Value of T")
 plt.ylabel("Lambda to minimise error of unbiased estimator")
 plt.title("How T affects optimum lambda")

@@ -283,7 +283,7 @@ ax4.set_yscale("log")
 ax4.legend(loc = "best")
 
 plt.tight_layout()
-plt.savefig("plot_all_noise_eps.png")
+plt.savefig("Synth_all_noise_eps.png")
 
 # compute total runtime in minutes and seconds
 totalTime = time.perf_counter() - startTime

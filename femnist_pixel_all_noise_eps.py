@@ -46,6 +46,7 @@ ldaOpt = np.zeros((TS, ES))
 for trial in range(6):
 
     print(f"\nTrial {trial + 1}: {trialset[trial]}")
+    statsfile = open(f"femnist_{trialset[trial]}_noise.txt", "w", encoding = 'utf-8')
     EPS_FREQ = 0
 
     for eps in epsset:
@@ -365,7 +366,6 @@ for trial in range(6):
 
             meanEst[trial, EPS_FREQ] = meanEst[trial, EPS_FREQ] + endNoise.sample(sample_shape = (1,))
 
-        statsfile = open(f"femnist_{trialset[trial]}_noise_eps_{eps}.txt", "w", encoding = 'utf-8')
         statsfile.write(f"FEMNIST: Eps = {eps}\n")
         statsfile.write(f"Optimal Lambda {round(ldaOpt[trial, EPS_FREQ], 4)} for Mean {round(meanEst[trial, EPS_FREQ], 4)}\n\n")
 
@@ -380,6 +380,7 @@ plt.errorbar(epsset, meanEst[3], yerr = np.std(meanEst[3], axis = 0), color = 't
 plt.errorbar(epsset, meanEst[4], yerr = np.std(meanEst[4], axis = 0), color = 'tab:red', marker = 'o', label = 'mid lap')
 plt.errorbar(epsset, meanEst[5], yerr = np.std(meanEst[5], axis = 0), color = 'tab:pink', marker = 'x', label = 'mid lap mc')
 plt.legend(loc = 'best')
+plt.yscale('log')
 plt.xlabel("Value of epsilon")
 plt.ylabel("Error of unbiased estimator (mean)")
 plt.title("How epsilon affects error of unbiased estimator (mean)")
@@ -395,7 +396,6 @@ plt.errorbar(epsset, ldaOpt[3], yerr = np.std(ldaOpt[3], axis = 0),color = 'tab:
 plt.errorbar(epsset, ldaOpt[4], yerr = np.std(ldaOpt[4], axis = 0),color = 'tab:red', marker = 'o', label = 'mid lap')
 plt.errorbar(epsset, ldaOpt[5], yerr = np.std(ldaOpt[5], axis = 0),color = 'tab:pink', marker = 'x', label = 'mid lap mc')
 plt.legend(loc = 'best')
-plt.yscale('log')
 plt.xlabel("Value of epsilon")
 plt.ylabel("Lambda to minimise error of unbiased estimator")
 plt.title("How epsilon affects optimum lambda")
