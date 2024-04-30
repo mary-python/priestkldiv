@@ -476,7 +476,7 @@ plt.savefig("Femnist_pixel_eps_max.png")
 plt.clf()
 
 # plot optimum lambda for each epsilon (max pair)
-print(f"\nminLdaOpt: {maxLdaOpt[0]}")
+print(f"\nmaxLdaOpt: {maxLdaOpt[0]}")
 plt.errorbar(epsset, maxLdaOpt[0], yerr = np.std(maxLdaOpt[0], axis = 0), color = 'tab:blue', marker = 'o', label = 'end lap')
 plt.errorbar(epsset, maxLdaOpt[1], yerr = np.std(maxLdaOpt[1], axis = 0),color = 'tab:cyan', marker = 'x', label = 'end lap mc')
 plt.errorbar(epsset, maxLdaOpt[2], yerr = np.std(maxLdaOpt[2], axis = 0),color = 'tab:olive', marker = 'o', label = 'end gauss')
