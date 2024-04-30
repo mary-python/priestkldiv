@@ -57,7 +57,7 @@ for trial in range(6):
     T_FREQ = 0
 
     for T in Tset:
-        print(f"Running algorithms 1 and 2 for T = {T}...")
+        print(f"Trial {trial + 1}: T = {T}...")
 
         # store T images corresponding to each digit
         sampledWriters = np.random.choice(numWriters, T, replace = False)

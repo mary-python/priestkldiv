@@ -15,7 +15,7 @@ print("\nStarting...")
 torch.manual_seed(12)
 
 for trial in range(8):
-    print(f"Running algorithms 1 and 2 for trial {trial}...")
+    print(f"Trial {trial}...")
 
     # p is unknown distribution, q is known
     # option 1a: distributions have small KL divergence
