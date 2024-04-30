@@ -34,7 +34,7 @@ numWriters = len(writers)
 T = int(numWriters / 20)
 
 # lists of the values of epsilon and trials that will be run
-epsset = [0.001, 0.025, 0.05, 0.1, 0.2, 0.4, 0.8, 1, 1.5, 2, 3, 4]
+epsset = [0.001, 0.0025, 0.005, 0.01, 0.025, 0.05, 0.1, 0.2, 0.4, 1, 2, 4]
 trialset = ["end_lap", "end_lap_mc", "end_gauss", "end_gauss_mc", "mid_gauss", "mid_gauss_mc"]
 ES = len(epsset)
 TS = len(trialset)
@@ -406,6 +406,7 @@ plt.errorbar(epsset, meanEst[3], yerr = np.std(meanEst[3], axis = 0), color = 't
 plt.errorbar(epsset, meanEst[4], yerr = np.std(meanEst[4], axis = 0), color = 'tab:red', marker = 'o', label = 'mid lap')
 plt.errorbar(epsset, meanEst[5], yerr = np.std(meanEst[5], axis = 0), color = 'tab:pink', marker = 'x', label = 'mid lap mc')
 plt.legend(loc = 'best')
+plt.xscale('log')
 plt.yscale('log')
 plt.xlabel("Value of epsilon")
 plt.ylabel("Error of unbiased estimator (mean)")
@@ -422,6 +423,7 @@ plt.errorbar(epsset, meanLdaOpt[3], yerr = np.std(meanLdaOpt[3], axis = 0),color
 plt.errorbar(epsset, meanLdaOpt[4], yerr = np.std(meanLdaOpt[4], axis = 0),color = 'tab:red', marker = 'o', label = 'mid lap')
 plt.errorbar(epsset, meanLdaOpt[5], yerr = np.std(meanLdaOpt[5], axis = 0),color = 'tab:pink', marker = 'x', label = 'mid lap mc')
 plt.legend(loc = 'best')
+plt.xscale('log')
 plt.xlabel("Value of epsilon")
 plt.ylabel("Lambda to minimise error of unbiased estimator (mean)")
 plt.title("How epsilon affects optimum lambda (mean)")
@@ -437,6 +439,7 @@ plt.errorbar(epsset, minEst[3], yerr = np.std(minEst[3], axis = 0), color = 'tab
 plt.errorbar(epsset, minEst[4], yerr = np.std(minEst[4], axis = 0), color = 'tab:red', marker = 'o', label = 'mid lap')
 plt.errorbar(epsset, minEst[5], yerr = np.std(minEst[5], axis = 0), color = 'tab:pink', marker = 'x', label = 'mid lap mc')
 plt.legend(loc = 'best')
+plt.xscale('log')
 plt.yscale('log')
 plt.xlabel("Value of epsilon")
 plt.ylabel("Error of unbiased estimator (min pair)")
@@ -453,6 +456,7 @@ plt.errorbar(epsset, minLdaOpt[3], yerr = np.std(minLdaOpt[3], axis = 0),color =
 plt.errorbar(epsset, minLdaOpt[4], yerr = np.std(minLdaOpt[4], axis = 0),color = 'tab:red', marker = 'o', label = 'mid lap')
 plt.errorbar(epsset, minLdaOpt[5], yerr = np.std(minLdaOpt[5], axis = 0),color = 'tab:pink', marker = 'x', label = 'mid lap mc')
 plt.legend(loc = 'best')
+plt.xscale('log')
 plt.xlabel("Value of epsilon")
 plt.ylabel("Lambda to minimise error of unbiased estimator (min pair)")
 plt.title("How epsilon affects optimum lambda (min pair)")
@@ -468,6 +472,7 @@ plt.errorbar(epsset, maxEst[3], yerr = np.std(maxEst[3], axis = 0), color = 'tab
 plt.errorbar(epsset, maxEst[4], yerr = np.std(maxEst[4], axis = 0), color = 'tab:red', marker = 'o', label = 'mid lap')
 plt.errorbar(epsset, maxEst[5], yerr = np.std(maxEst[5], axis = 0), color = 'tab:pink', marker = 'x', label = 'mid lap mc')
 plt.legend(loc = 'best')
+plt.xscale('log')
 plt.yscale('log')
 plt.xlabel("Value of epsilon")
 plt.ylabel("Error of unbiased estimator (max pair)")
@@ -484,6 +489,7 @@ plt.errorbar(epsset, maxLdaOpt[3], yerr = np.std(maxLdaOpt[3], axis = 0),color =
 plt.errorbar(epsset, maxLdaOpt[4], yerr = np.std(maxLdaOpt[4], axis = 0),color = 'tab:red', marker = 'o', label = 'mid lap')
 plt.errorbar(epsset, maxLdaOpt[5], yerr = np.std(maxLdaOpt[5], axis = 0),color = 'tab:pink', marker = 'x', label = 'mid lap mc')
 plt.legend(loc = 'best')
+plt.xscale('log')
 plt.xlabel("Value of epsilon")
 plt.ylabel("Lambda to minimise error of unbiased estimator (max pair)")
 plt.title("How epsilon affects optimum lambda (max pair)")
