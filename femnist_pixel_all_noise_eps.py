@@ -41,7 +41,13 @@ TS = len(trialset)
 
 # stores for mean of unbiased estimator and optimum lambda
 meanEst = np.zeros((TS, ES))
-ldaOpt = np.zeros((TS, ES))
+meanLdaOpt = np.zeros((TS, ES))
+
+# for min and max pairs
+minEst = np.zeros((TS, ES))
+minLdaOpt = np.zeros((TS, ES))
+maxEst = np.zeros((TS, ES))
+maxLdaOpt = np.zeros((TS, ES))
 
 for trial in range(6):
 
@@ -274,16 +280,6 @@ for trial in range(6):
                 if ratio != 0.0 and sum(uDist[C, D]) != 0.0:
                     rList.append(ratio)
 
-        uDict = dict(zip(uList, uCDList))
-        oUDict = OrderedDict(sorted(uDict.items()))
-
-        orderfile = open(f"femnist_{trialset[trial]}_ranking_a_eps_{eps}.txt", "w", encoding = 'utf-8')
-        orderfile.write("FEMNIST: Unknown Distribution In Order (No Noise)\n")
-        orderfile.write("Smaller corresponds to more similar digits\n\n")
-
-        for i in oUDict:
-            orderfile.write(f"{i} : {oUDict[i]}\n")
-
         # parameters for the addition of Laplace and Gaussian noise
         DTA = 0.1
         A = 0
@@ -329,7 +325,15 @@ for trial in range(6):
             s = b2 * (np.sqrt(2) / R)
             midNoise = tfp.distributions.Normal(loc = A, scale = s)
         
+        # extract position and identity of max and min pairs
+        minIndex = np.argmin(uList)
+        maxIndex = np.argmax(uList)
+        minPair = uCDList[minIndex]
+        maxPair = uCDList[maxIndex]
+
         meanLda = np.zeros(L)
+        minLda = np.zeros(L)
+        maxLda = np.zeros(L)
 
         # compute mean error of unbiased estimator for each lambda
         for l in range(0, L):
@@ -338,17 +342,35 @@ for trial in range(6):
             if trial >= 4:
                 meanLda[l] = np.mean(uEst[l]) + midNoise.sample(sample_shape = (1,))
 
+                # extract error for max and min pairs
+                minLda[l] = uEst[l, minIndex] + midNoise.sample(sample_shape = (1,))
+                maxLda[l] = uEst[l, maxIndex] + midNoise.sample(sample_shape = (1,))
+
             # option 2b: no noise until end
             else:
                 meanLda[l] = np.mean(uEst[l])
 
+                # extract error for max and min pairs
+                minLda[l] = uEst[l, minIndex]
+                maxLda[l] = uEst[l, maxIndex]
+
         # find lambda that produces minimum error
-        ldaIndex = np.argmin(meanLda)
-        minError = meanLda[ldaIndex]
+        meanLdaIndex = np.argmin(meanLda)
+        minLdaIndex = np.argmin(minLda)
+        maxLdaIndex = np.argmin(maxLda)
+
+        meanMinError = meanLda[meanLdaIndex]
+        minMinError = minLda[minLdaIndex]
+        maxMinError = maxLda[maxLdaIndex]
 
         # mean across clients for optimum lambda
-        meanEst[trial, EPS_FREQ] = minError
-        ldaOpt[trial, EPS_FREQ] = ldaIndex * ldaStep
+        meanEst[trial, EPS_FREQ] = meanMinError
+        minEst[trial, EPS_FREQ] = minMinError
+        maxEst[trial, EPS_FREQ] = maxMinError
+
+        meanLdaOpt[trial, EPS_FREQ] = meanLdaIndex * ldaStep
+        minLdaOpt[trial, EPS_FREQ] = minLdaIndex * ldaStep
+        maxLdaOpt[trial, EPS_FREQ] = maxLdaIndex * ldaStep
 
         # option 2b: server adds noise term to final result
         if trial < 4:
@@ -365,13 +387,17 @@ for trial in range(6):
                 endNoise = tfp.distributions.Normal(loc = A, scale = b2)
 
             meanEst[trial, EPS_FREQ] = meanEst[trial, EPS_FREQ] + endNoise.sample(sample_shape = (1,))
+            minEst[trial, EPS_FREQ] = minEst[trial, EPS_FREQ] + endNoise.sample(sample_shape = (1,))
+            maxEst[trial, EPS_FREQ] = maxEst[trial, EPS_FREQ] + endNoise.sample(sample_shape = (1,))
 
         statsfile.write(f"FEMNIST: Eps = {eps}\n")
-        statsfile.write(f"Optimal Lambda {round(ldaOpt[trial, EPS_FREQ], 4)} for Mean {round(meanEst[trial, EPS_FREQ], 4)}\n\n")
+        statsfile.write(f"Optimal Lambda {round(meanLdaOpt[trial, EPS_FREQ], 4)} for Mean Error {round(meanEst[trial, EPS_FREQ], 4)}\n")
+        statsfile.write(f"Optimal Lambda {round(minLdaOpt[trial, EPS_FREQ], 4)} for Error {round(minEst[trial, EPS_FREQ], 4)} for Min Pair {minPair}\n")
+        statsfile.write(f"Optimal Lambda {round(maxLdaOpt[trial, EPS_FREQ], 4)} for Error {round(maxEst[trial, EPS_FREQ], 4)} for Max Pair {maxPair}\n\n")
 
         EPS_FREQ = EPS_FREQ + 1
 
-# plot mean error of unbiased estimator for each epsilon
+# plot error of unbiased estimator for each epsilon (mean)
 print(f"\nmeanEst: {meanEst[0]}")
 plt.errorbar(epsset, meanEst[0], yerr = np.std(meanEst[0], axis = 0), color = 'tab:blue', marker = 'o', label = 'end lap')
 plt.errorbar(epsset, meanEst[1], yerr = np.std(meanEst[1], axis = 0), color = 'tab:cyan', marker = 'x', label = 'end lap mc')
@@ -387,19 +413,81 @@ plt.title("How epsilon affects error of unbiased estimator (mean)")
 plt.savefig("Femnist_pixel_eps_mean.png")
 plt.clf()
 
-# plot optimum lambda for each epsilon
-print(f"\nldaOpt: {ldaOpt[0]}")
-plt.errorbar(epsset, ldaOpt[0], yerr = np.std(ldaOpt[0], axis = 0), color = 'tab:blue', marker = 'o', label = 'end lap')
-plt.errorbar(epsset, ldaOpt[1], yerr = np.std(ldaOpt[1], axis = 0),color = 'tab:cyan', marker = 'x', label = 'end lap mc')
-plt.errorbar(epsset, ldaOpt[2], yerr = np.std(ldaOpt[2], axis = 0),color = 'tab:olive', marker = 'o', label = 'end gauss')
-plt.errorbar(epsset, ldaOpt[3], yerr = np.std(ldaOpt[3], axis = 0),color = 'tab:green', marker = 'x', label = 'end gauss mc')
-plt.errorbar(epsset, ldaOpt[4], yerr = np.std(ldaOpt[4], axis = 0),color = 'tab:red', marker = 'o', label = 'mid lap')
-plt.errorbar(epsset, ldaOpt[5], yerr = np.std(ldaOpt[5], axis = 0),color = 'tab:pink', marker = 'x', label = 'mid lap mc')
+# plot optimum lambda for each epsilon (mean)
+print(f"meanLdaOpt: {meanLdaOpt[0]}")
+plt.errorbar(epsset, meanLdaOpt[0], yerr = np.std(meanLdaOpt[0], axis = 0), color = 'tab:blue', marker = 'o', label = 'end lap')
+plt.errorbar(epsset, meanLdaOpt[1], yerr = np.std(meanLdaOpt[1], axis = 0),color = 'tab:cyan', marker = 'x', label = 'end lap mc')
+plt.errorbar(epsset, meanLdaOpt[2], yerr = np.std(meanLdaOpt[2], axis = 0),color = 'tab:olive', marker = 'o', label = 'end gauss')
+plt.errorbar(epsset, meanLdaOpt[3], yerr = np.std(meanLdaOpt[3], axis = 0),color = 'tab:green', marker = 'x', label = 'end gauss mc')
+plt.errorbar(epsset, meanLdaOpt[4], yerr = np.std(meanLdaOpt[4], axis = 0),color = 'tab:red', marker = 'o', label = 'mid lap')
+plt.errorbar(epsset, meanLdaOpt[5], yerr = np.std(meanLdaOpt[5], axis = 0),color = 'tab:pink', marker = 'x', label = 'mid lap mc')
 plt.legend(loc = 'best')
 plt.xlabel("Value of epsilon")
-plt.ylabel("Lambda to minimise error of unbiased estimator")
-plt.title("How epsilon affects optimum lambda")
-plt.savefig("Femnist_pixel_eps_lda.png")
+plt.ylabel("Lambda to minimise error of unbiased estimator (mean)")
+plt.title("How epsilon affects optimum lambda (mean)")
+plt.savefig("Femnist_pixel_eps_mean_lda.png")
+plt.clf()
+
+# plot error of unbiased estimator for each epsilon (min pair)
+print(f"minEst: {minEst[0]}")
+plt.errorbar(epsset, minEst[0], yerr = np.std(minEst[0], axis = 0), color = 'tab:blue', marker = 'o', label = 'end lap')
+plt.errorbar(epsset, minEst[1], yerr = np.std(minEst[1], axis = 0), color = 'tab:cyan', marker = 'x', label = 'end lap mc')
+plt.errorbar(epsset, minEst[2], yerr = np.std(minEst[2], axis = 0), color = 'tab:olive', marker = 'o', label = 'end gauss')
+plt.errorbar(epsset, minEst[3], yerr = np.std(minEst[3], axis = 0), color = 'tab:green', marker = 'x', label = 'end gauss mc')
+plt.errorbar(epsset, minEst[4], yerr = np.std(minEst[4], axis = 0), color = 'tab:red', marker = 'o', label = 'mid lap')
+plt.errorbar(epsset, minEst[5], yerr = np.std(minEst[5], axis = 0), color = 'tab:pink', marker = 'x', label = 'mid lap mc')
+plt.legend(loc = 'best')
+plt.yscale('log')
+plt.xlabel("Value of epsilon")
+plt.ylabel("Error of unbiased estimator (min pair)")
+plt.title("How epsilon affects error of unbiased estimator (min pair)")
+plt.savefig("Femnist_pixel_eps_min.png")
+plt.clf()
+
+# plot optimum lambda for each epsilon (min pair)
+print(f"minLdaOpt: {minLdaOpt[0]}")
+plt.errorbar(epsset, minLdaOpt[0], yerr = np.std(minLdaOpt[0], axis = 0), color = 'tab:blue', marker = 'o', label = 'end lap')
+plt.errorbar(epsset, minLdaOpt[1], yerr = np.std(minLdaOpt[1], axis = 0),color = 'tab:cyan', marker = 'x', label = 'end lap mc')
+plt.errorbar(epsset, minLdaOpt[2], yerr = np.std(minLdaOpt[2], axis = 0),color = 'tab:olive', marker = 'o', label = 'end gauss')
+plt.errorbar(epsset, minLdaOpt[3], yerr = np.std(minLdaOpt[3], axis = 0),color = 'tab:green', marker = 'x', label = 'end gauss mc')
+plt.errorbar(epsset, minLdaOpt[4], yerr = np.std(minLdaOpt[4], axis = 0),color = 'tab:red', marker = 'o', label = 'mid lap')
+plt.errorbar(epsset, minLdaOpt[5], yerr = np.std(minLdaOpt[5], axis = 0),color = 'tab:pink', marker = 'x', label = 'mid lap mc')
+plt.legend(loc = 'best')
+plt.xlabel("Value of epsilon")
+plt.ylabel("Lambda to minimise error of unbiased estimator (min pair)")
+plt.title("How epsilon affects optimum lambda (min pair)")
+plt.savefig("Femnist_pixel_eps_min_lda.png")
+plt.clf()
+
+# plot error of unbiased estimator for each epsilon (max pair)
+print(f"maxEst: {maxEst[0]}")
+plt.errorbar(epsset, maxEst[0], yerr = np.std(maxEst[0], axis = 0), color = 'tab:blue', marker = 'o', label = 'end lap')
+plt.errorbar(epsset, maxEst[1], yerr = np.std(maxEst[1], axis = 0), color = 'tab:cyan', marker = 'x', label = 'end lap mc')
+plt.errorbar(epsset, maxEst[2], yerr = np.std(maxEst[2], axis = 0), color = 'tab:olive', marker = 'o', label = 'end gauss')
+plt.errorbar(epsset, maxEst[3], yerr = np.std(maxEst[3], axis = 0), color = 'tab:green', marker = 'x', label = 'end gauss mc')
+plt.errorbar(epsset, maxEst[4], yerr = np.std(maxEst[4], axis = 0), color = 'tab:red', marker = 'o', label = 'mid lap')
+plt.errorbar(epsset, maxEst[5], yerr = np.std(maxEst[5], axis = 0), color = 'tab:pink', marker = 'x', label = 'mid lap mc')
+plt.legend(loc = 'best')
+plt.yscale('log')
+plt.xlabel("Value of epsilon")
+plt.ylabel("Error of unbiased estimator (max pair)")
+plt.title("How epsilon affects error of unbiased estimator (max pair)")
+plt.savefig("Femnist_pixel_eps_max.png")
+plt.clf()
+
+# plot optimum lambda for each epsilon (max pair)
+print(f"minLdaOpt: {maxLdaOpt[0]}")
+plt.errorbar(epsset, maxLdaOpt[0], yerr = np.std(maxLdaOpt[0], axis = 0), color = 'tab:blue', marker = 'o', label = 'end lap')
+plt.errorbar(epsset, maxLdaOpt[1], yerr = np.std(maxLdaOpt[1], axis = 0),color = 'tab:cyan', marker = 'x', label = 'end lap mc')
+plt.errorbar(epsset, maxLdaOpt[2], yerr = np.std(maxLdaOpt[2], axis = 0),color = 'tab:olive', marker = 'o', label = 'end gauss')
+plt.errorbar(epsset, maxLdaOpt[3], yerr = np.std(maxLdaOpt[3], axis = 0),color = 'tab:green', marker = 'x', label = 'end gauss mc')
+plt.errorbar(epsset, maxLdaOpt[4], yerr = np.std(maxLdaOpt[4], axis = 0),color = 'tab:red', marker = 'o', label = 'mid lap')
+plt.errorbar(epsset, maxLdaOpt[5], yerr = np.std(maxLdaOpt[5], axis = 0),color = 'tab:pink', marker = 'x', label = 'mid lap mc')
+plt.legend(loc = 'best')
+plt.xlabel("Value of epsilon")
+plt.ylabel("Lambda to minimise error of unbiased estimator (max pair)")
+plt.title("How epsilon affects optimum lambda (max pair)")
+plt.savefig("Femnist_pixel_eps_max_lda.png")
 plt.clf()
 
 # compute total runtime in minutes and seconds
