@@ -1,12 +1,9 @@
-"""Modules provide various time-related functions, compute the natural logarithm of a number, 
-remember the order in which items are added, create static, animated, and interactive visualisations,
-compute the mean of a list quickly and accurately, provide both a high- and low-level interface to
-the HDF5 library, work with arrays, and carry out fast numerical computations in Python."""
+"""Modules provide various time-related functions, compute the natural logarithm of a number,
+create static, animated, and interactive visualisations, provide both a high- and low-level interface
+to the HDF5 library, work with arrays, and carry out fast numerical computations in Python."""
 import time
 from math import log
-from collections import OrderedDict
 import matplotlib.pyplot as plt
-from statistics import fmean
 import h5py
 import numpy as np
 import tensorflow as tf
