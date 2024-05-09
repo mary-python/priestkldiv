@@ -28,6 +28,9 @@ for trial in range(8):
 
     q = dis.Normal(loc = 0, scale = 1)
 
+    # error at end = (output of algorithm - ground truth) squared
+    groundTruth = torch.distributions.kl.kl_divergence(p, q)
+
     # sample T points
     T = 500_000
 
@@ -152,17 +155,17 @@ for trial in range(8):
 
         # option 3b: server adds noise term to final result
         if trial < 4:
-            sMeanL[C_COUNT] = sMean + noiseL.sample(sample_shape = (1,))
-            sMeanN[C_COUNT] = sMean + noiseN.sample(sample_shape = (1,))
-            oMeanL[C_COUNT] = oMean + noiseL.sample(sample_shape = (1,))
-            oMeanN[C_COUNT] = oMean + noiseN.sample(sample_shape = (1,))
+            sMeanL[C_COUNT] = (sMean + noiseL.sample(sample_shape = (1,)) - groundTruth)**2
+            sMeanN[C_COUNT] = (sMean + noiseN.sample(sample_shape = (1,)) - groundTruth)**2
+            oMeanL[C_COUNT] = (oMean + noiseL.sample(sample_shape = (1,)) - groundTruth)**2
+            oMeanN[C_COUNT] = (oMean + noiseN.sample(sample_shape = (1,)) - groundTruth)**2
 
         # option 3a: intermediate server has already added noise term
         else:
-            sMeanL[C_COUNT] = sMean
-            sMeanN[C_COUNT] = sMean
-            oMeanL[C_COUNT] = oMean
-            oMeanN[C_COUNT] = oMean
+            sMeanL[C_COUNT] = (sMean - groundTruth)**2
+            sMeanN[C_COUNT] = (sMean - groundTruth)**2
+            oMeanL[C_COUNT] = (oMean - groundTruth)**2
+            oMeanN[C_COUNT] = (oMean - groundTruth)**2
 
         C_COUNT = C_COUNT + 1
 

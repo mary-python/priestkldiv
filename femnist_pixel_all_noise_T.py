@@ -385,9 +385,10 @@ for trial in range(6):
             else:
                 endNoise = tfp.distributions.Normal(loc = A, scale = b2)
 
-            meanEst[trial, T_FREQ] = meanEst[trial, T_FREQ] + endNoise.sample(sample_shape = (1,))
-            minEst[trial, T_FREQ] = minEst[trial, T_FREQ] + endNoise.sample(sample_shape = (1,))
-            maxEst[trial, T_FREQ] = maxEst[trial, T_FREQ] + endNoise.sample(sample_shape = (1,))
+            # define error = squared difference between estimator and ground truth
+            meanEst[trial, T_FREQ] = (meanEst[trial, T_FREQ] + endNoise.sample(sample_shape = (1,)) - np.mean(uList))**2
+            minEst[trial, T_FREQ] = (minEst[trial, T_FREQ] + endNoise.sample(sample_shape = (1,)) - uList[minIndex])**2
+            maxEst[trial, T_FREQ] = (maxEst[trial, T_FREQ] + endNoise.sample(sample_shape = (1,)) - uList[maxIndex])**2
 
         statsfile.write(f"FEMNIST: T = {T}\n")
         statsfile.write(f"Optimal Lambda {round(meanLdaOpt[trial, T_FREQ], 4)} for Mean {round(meanEst[trial, T_FREQ], 4)}\n")
