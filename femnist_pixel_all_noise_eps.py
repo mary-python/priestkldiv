@@ -39,12 +39,20 @@ TS = len(trialset)
 # stores for mean of unbiased estimator and optimum lambda
 meanEst = np.zeros((TS, ES))
 meanLdaOpt = np.zeros((TS, ES))
+meanUpper = np.zeros((TS, ES))
+meanLower = np.zeros((TS, ES))
 
-# for min and max pairs
+# for min pairs
 minEst = np.zeros((TS, ES))
 minLdaOpt = np.zeros((TS, ES))
+minUpper = np.zeros((TS, ES))
+minLower = np.zeros((TS, ES))
+
+# for max pairs
 maxEst = np.zeros((TS, ES))
 maxLdaOpt = np.zeros((TS, ES))
+maxUpper = np.zeros((TS, ES))
+maxLower = np.zeros((TS, ES))
 
 for trial in range(6):
 
@@ -369,6 +377,51 @@ for trial in range(6):
         minLdaOpt[trial, EPS_FREQ] = minLdaIndex * ldaStep
         maxLdaOpt[trial, EPS_FREQ] = maxLdaIndex * ldaStep
 
+        # no upper error bars when lda equals 0
+        if meanLdaOpt[trial, EPS_FREQ] == 0:
+            meanUpper[trial, EPS_FREQ] == 0
+            meanLower[trial, EPS_FREQ] == 1
+
+        # no lower error bars when lda equals 1
+        elif meanLdaOpt[trial, EPS_FREQ] == 1:
+            meanLower[trial, EPS_FREQ] == 0
+            meanUpper[trial, EPS_FREQ] == 1
+
+        # both error bars in all other cases
+        else:
+            meanLower[trial, EPS_FREQ] == 1
+            meanUpper[trial, EPS_FREQ] == 1
+
+        # no upper error bars when lda equals 0
+        if minLdaOpt[trial, EPS_FREQ] == 0:
+            minUpper[trial, EPS_FREQ] == 0
+            minLower[trial, EPS_FREQ] == 1
+
+        # no lower error bars when lda equals 1
+        elif minLdaOpt[trial, EPS_FREQ] == 1:
+            minLower[trial, EPS_FREQ] == 0
+            minUpper[trial, EPS_FREQ] == 1
+
+        # both error bars in all other cases
+        else:
+            minLower[trial, EPS_FREQ] == 1
+            minUpper[trial, EPS_FREQ] == 1
+
+        # no upper error bars when lda equals 0
+        if maxLdaOpt[trial, EPS_FREQ] == 0:
+            maxUpper[trial, EPS_FREQ] == 0
+            maxLower[trial, EPS_FREQ] == 1
+
+        # no lower error bars when lda equals 1
+        elif maxLdaOpt[trial, EPS_FREQ] == 1:
+            maxLower[trial, EPS_FREQ] == 0
+            maxUpper[trial, EPS_FREQ] == 1
+
+        # both error bars in all other cases
+        else:
+            maxLower[trial, EPS_FREQ] == 1
+            maxUpper[trial, EPS_FREQ] == 1
+
         # option 2b: server adds noise term to final result
         if trial < 4:
 
@@ -395,20 +448,20 @@ for trial in range(6):
             maxEst[trial, EPS_FREQ] = (maxEst[trial, EPS_FREQ] - uList[maxIndex])**2
 
         statsfile.write(f"FEMNIST: Eps = {eps}\n")
-        statsfile.write(f"Optimal Lambda {round(meanLdaOpt[trial, EPS_FREQ], 4)} for Mean Error {round(meanEst[trial, EPS_FREQ], 4)}\n")
-        statsfile.write(f"Optimal Lambda {round(minLdaOpt[trial, EPS_FREQ], 4)} for Error {round(minEst[trial, EPS_FREQ], 4)} for Min Pair {minPair}\n")
-        statsfile.write(f"Optimal Lambda {round(maxLdaOpt[trial, EPS_FREQ], 4)} for Error {round(maxEst[trial, EPS_FREQ], 4)} for Max Pair {maxPair}\n\n")
+        statsfile.write(f"Optimal Lambda {round(meanLdaOpt[trial, EPS_FREQ], 2)} for Mean Error {round(meanEst[trial, EPS_FREQ], 2)}\n")
+        statsfile.write(f"Optimal Lambda {round(minLdaOpt[trial, EPS_FREQ], 2)} for Error {round(minEst[trial, EPS_FREQ], 2)} for Min Pair {minPair}\n")
+        statsfile.write(f"Optimal Lambda {round(maxLdaOpt[trial, EPS_FREQ], 2)} for Error {round(maxEst[trial, EPS_FREQ], 2)} for Max Pair {maxPair}\n\n")
 
         EPS_FREQ = EPS_FREQ + 1
 
 # plot error of unbiased estimator for each epsilon (mean)
 print(f"\nmeanEst: {meanEst[0]}")
-plt.errorbar(epsset, meanEst[0], yerr = np.sqrt(meanEst[0]), color = 'tab:blue', marker = 'o', label = 'end lap')
-plt.errorbar(epsset, meanEst[1], yerr = np.sqrt(meanEst[1]), color = 'tab:cyan', marker = 'x', label = 'end lap mc')
-plt.errorbar(epsset, meanEst[2], yerr = np.sqrt(meanEst[2]), color = 'tab:olive', marker = 'o', label = 'end gauss')
-plt.errorbar(epsset, meanEst[3], yerr = np.sqrt(meanEst[3]), color = 'tab:green', marker = 'x', label = 'end gauss mc')
-plt.errorbar(epsset, meanEst[4], yerr = np.sqrt(meanEst[4]), color = 'tab:red', marker = 'o', label = 'mid gauss')
-plt.errorbar(epsset, meanEst[5], yerr = np.sqrt(meanEst[5]), color = 'tab:pink', marker = 'x', label = 'mid gauss mc')
+plt.errorbar(epsset, meanEst[0], yerr = np.minimum(np.sqrt(meanEst[0]), np.divide(meanEst[0], 2)), color = 'tab:blue', marker = 'o', label = 'end lap')
+plt.errorbar(epsset, meanEst[1], yerr = np.minimum(np.sqrt(meanEst[1]), np.divide(meanEst[1], 2)), color = 'tab:cyan', marker = 'x', label = 'end lap mc')
+plt.errorbar(epsset, meanEst[2], yerr = np.minimum(np.sqrt(meanEst[2]), np.divide(meanEst[2], 2)), color = 'tab:olive', marker = 'o', label = 'end gauss')
+plt.errorbar(epsset, meanEst[3], yerr = np.minimum(np.sqrt(meanEst[3]), np.divide(meanEst[3], 2)), color = 'tab:green', marker = 'x', label = 'end gauss mc')
+plt.errorbar(epsset, meanEst[4], yerr = np.minimum(np.sqrt(meanEst[4]), np.divide(meanEst[4], 2)), color = 'tab:red', marker = 'o', label = 'mid gauss')
+plt.errorbar(epsset, meanEst[5], yerr = np.minimum(np.sqrt(meanEst[5]), np.divide(meanEst[5], 2)), color = 'tab:pink', marker = 'x', label = 'mid gauss mc')
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of epsilon")
@@ -419,12 +472,12 @@ plt.clf()
 
 # plot optimum lambda for each epsilon (mean)
 print(f"\nmeanLdaOpt: {meanLdaOpt[0]}")
-plt.errorbar(epsset, meanLdaOpt[0], yerr = (np.minimum(meanLdaOpt[0], ldaStep),), color = 'tab:blue', marker = 'o', label = 'end lap')
-plt.errorbar(epsset, meanLdaOpt[1], yerr = (np.minimum(meanLdaOpt[1], ldaStep),), color = 'tab:cyan', marker = 'x', label = 'end lap mc')
-plt.errorbar(epsset, meanLdaOpt[2], yerr = (np.minimum(meanLdaOpt[2], ldaStep),), color = 'tab:olive', marker = 'o', label = 'end gauss')
-plt.errorbar(epsset, meanLdaOpt[3], yerr = (np.minimum(meanLdaOpt[3], ldaStep),), color = 'tab:green', marker = 'x', label = 'end gauss mc')
-plt.errorbar(epsset, meanLdaOpt[4], yerr = (np.minimum(meanLdaOpt[4], ldaStep),), color = 'tab:red', marker = 'o', label = 'mid gauss')
-plt.errorbar(epsset, meanLdaOpt[5], yerr = (np.minimum(meanLdaOpt[5], ldaStep),), color = 'tab:pink', marker = 'x', label = 'mid gauss mc')
+plt.errorbar(epsset, meanLdaOpt[0], yerr = ldaStep, uplims = meanUpper[0], lolims = meanLower[0], color = 'tab:blue', marker = 'o', label = 'end lap')
+plt.errorbar(epsset, meanLdaOpt[1], yerr = ldaStep, uplims = meanUpper[1], lolims = meanLower[1], color = 'tab:cyan', marker = 'x', label = 'end lap mc')
+plt.errorbar(epsset, meanLdaOpt[2], yerr = ldaStep, uplims = meanUpper[2], lolims = meanLower[2], color = 'tab:olive', marker = 'o', label = 'end gauss')
+plt.errorbar(epsset, meanLdaOpt[3], yerr = ldaStep, uplims = meanUpper[3], lolims = meanLower[3], color = 'tab:green', marker = 'x', label = 'end gauss mc')
+plt.errorbar(epsset, meanLdaOpt[4], yerr = ldaStep, uplims = meanUpper[4], lolims = meanLower[4], color = 'tab:red', marker = 'o', label = 'mid gauss')
+plt.errorbar(epsset, meanLdaOpt[5], yerr = ldaStep, uplims = meanUpper[5], lolims = meanLower[5], color = 'tab:pink', marker = 'x', label = 'mid gauss mc')
 plt.legend(loc = 'best')
 plt.xlabel("Value of epsilon")
 plt.ylabel("Lambda to minimise error of unbiased estimator (mean)")
@@ -434,12 +487,12 @@ plt.clf()
 
 # plot error of unbiased estimator for each epsilon (min pair)
 print(f"\nminEst: {minEst[0]}")
-plt.errorbar(epsset, minEst[0], yerr = np.sqrt(minEst[0]), color = 'tab:blue', marker = 'o', label = 'end lap')
-plt.errorbar(epsset, minEst[1], yerr = np.sqrt(minEst[1]), color = 'tab:cyan', marker = 'x', label = 'end lap mc')
-plt.errorbar(epsset, minEst[2], yerr = np.sqrt(minEst[2]), color = 'tab:olive', marker = 'o', label = 'end gauss')
-plt.errorbar(epsset, minEst[3], yerr = np.sqrt(minEst[3]), color = 'tab:green', marker = 'x', label = 'end gauss mc')
-plt.errorbar(epsset, minEst[4], yerr = np.sqrt(minEst[4]), color = 'tab:red', marker = 'o', label = 'mid gauss')
-plt.errorbar(epsset, minEst[5], yerr = np.sqrt(minEst[5]), color = 'tab:pink', marker = 'x', label = 'mid gauss mc')
+plt.errorbar(epsset, minEst[0], yerr = np.minimum(np.sqrt(minEst[0]), np.divide(minEst[0], 2)), color = 'tab:blue', marker = 'o', label = 'end lap')
+plt.errorbar(epsset, minEst[1], yerr = np.minimum(np.sqrt(minEst[1]), np.divide(minEst[1], 2)), color = 'tab:cyan', marker = 'x', label = 'end lap mc')
+plt.errorbar(epsset, minEst[2], yerr = np.minimum(np.sqrt(minEst[2]), np.divide(minEst[2], 2)), color = 'tab:olive', marker = 'o', label = 'end gauss')
+plt.errorbar(epsset, minEst[3], yerr = np.minimum(np.sqrt(minEst[3]), np.divide(minEst[3], 2)), color = 'tab:green', marker = 'x', label = 'end gauss mc')
+plt.errorbar(epsset, minEst[4], yerr = np.minimum(np.sqrt(minEst[4]), np.divide(minEst[4], 2)), color = 'tab:red', marker = 'o', label = 'mid gauss')
+plt.errorbar(epsset, minEst[5], yerr = np.minimum(np.sqrt(minEst[5]), np.divide(minEst[5], 2)), color = 'tab:pink', marker = 'x', label = 'mid gauss mc')
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of epsilon")
@@ -450,12 +503,12 @@ plt.clf()
 
 # plot optimum lambda for each epsilon (min pair)
 print(f"\nminLdaOpt: {minLdaOpt[0]}")
-plt.errorbar(epsset, minLdaOpt[0], yerr = (np.minimum(minLdaOpt[0], ldaStep),), color = 'tab:blue', marker = 'o', label = 'end lap')
-plt.errorbar(epsset, minLdaOpt[1], yerr = (np.minimum(minLdaOpt[1], ldaStep),), color = 'tab:cyan', marker = 'x', label = 'end lap mc')
-plt.errorbar(epsset, minLdaOpt[2], yerr = (np.minimum(minLdaOpt[2], ldaStep),), color = 'tab:olive', marker = 'o', label = 'end gauss')
-plt.errorbar(epsset, minLdaOpt[3], yerr = (np.minimum(minLdaOpt[3], ldaStep),), color = 'tab:green', marker = 'x', label = 'end gauss mc')
-plt.errorbar(epsset, minLdaOpt[4], yerr = (np.minimum(minLdaOpt[4], ldaStep),), color = 'tab:red', marker = 'o', label = 'mid gauss')
-plt.errorbar(epsset, minLdaOpt[5], yerr = (np.minimum(minLdaOpt[5], ldaStep),), color = 'tab:pink', marker = 'x', label = 'mid gauss mc')
+plt.errorbar(epsset, minLdaOpt[0], yerr = ldaStep, uplims = minUpper[0], lolims = minLower[0], color = 'tab:blue', marker = 'o', label = 'end lap')
+plt.errorbar(epsset, minLdaOpt[1], yerr = ldaStep, uplims = minUpper[1], lolims = minLower[1], color = 'tab:cyan', marker = 'x', label = 'end lap mc')
+plt.errorbar(epsset, minLdaOpt[2], yerr = ldaStep, uplims = minUpper[2], lolims = minLower[2], color = 'tab:olive', marker = 'o', label = 'end gauss')
+plt.errorbar(epsset, minLdaOpt[3], yerr = ldaStep, uplims = minUpper[3], lolims = minLower[3], color = 'tab:green', marker = 'x', label = 'end gauss mc')
+plt.errorbar(epsset, minLdaOpt[4], yerr = ldaStep, uplims = minUpper[4], lolims = minLower[4], color = 'tab:red', marker = 'o', label = 'mid gauss')
+plt.errorbar(epsset, minLdaOpt[5], yerr = ldaStep, uplims = minUpper[5], lolims = minLower[5], color = 'tab:pink', marker = 'x', label = 'mid gauss mc')
 plt.legend(loc = 'best')
 plt.xlabel("Value of epsilon")
 plt.ylabel("Lambda to minimise error of unbiased estimator (min pair)")
@@ -465,12 +518,12 @@ plt.clf()
 
 # plot error of unbiased estimator for each epsilon (max pair)
 print(f"\nmaxEst: {maxEst[0]}")
-plt.errorbar(epsset, maxEst[0], yerr = np.sqrt(maxEst[0]), color = 'tab:blue', marker = 'o', label = 'end lap')
-plt.errorbar(epsset, maxEst[1], yerr = np.sqrt(maxEst[1]), color = 'tab:cyan', marker = 'x', label = 'end lap mc')
-plt.errorbar(epsset, maxEst[2], yerr = np.sqrt(maxEst[2]), color = 'tab:olive', marker = 'o', label = 'end gauss')
-plt.errorbar(epsset, maxEst[3], yerr = np.sqrt(maxEst[3]), color = 'tab:green', marker = 'x', label = 'end gauss mc')
-plt.errorbar(epsset, maxEst[4], yerr = np.sqrt(maxEst[4]), color = 'tab:red', marker = 'o', label = 'mid gauss')
-plt.errorbar(epsset, maxEst[5], yerr = np.sqrt(maxEst[5]), color = 'tab:pink', marker = 'x', label = 'mid gauss mc')
+plt.errorbar(epsset, maxEst[0], yerr = np.minimum(np.sqrt(maxEst[0]), np.divide(maxEst[0], 2)), color = 'tab:blue', marker = 'o', label = 'end lap')
+plt.errorbar(epsset, maxEst[1], yerr = np.minimum(np.sqrt(maxEst[1]), np.divide(maxEst[1], 2)), color = 'tab:cyan', marker = 'x', label = 'end lap mc')
+plt.errorbar(epsset, maxEst[2], yerr = np.minimum(np.sqrt(maxEst[2]), np.divide(maxEst[2], 2)), color = 'tab:olive', marker = 'o', label = 'end gauss')
+plt.errorbar(epsset, maxEst[3], yerr = np.minimum(np.sqrt(maxEst[3]), np.divide(maxEst[3], 2)), color = 'tab:green', marker = 'x', label = 'end gauss mc')
+plt.errorbar(epsset, maxEst[4], yerr = np.minimum(np.sqrt(maxEst[4]), np.divide(maxEst[4], 2)), color = 'tab:red', marker = 'o', label = 'mid gauss')
+plt.errorbar(epsset, maxEst[5], yerr = np.minimum(np.sqrt(maxEst[5]), np.divide(maxEst[5], 2)), color = 'tab:pink', marker = 'x', label = 'mid gauss mc')
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of epsilon")
@@ -481,12 +534,12 @@ plt.clf()
 
 # plot optimum lambda for each epsilon (max pair)
 print(f"\nmaxLdaOpt: {maxLdaOpt[0]}")
-plt.errorbar(epsset, maxLdaOpt[0], yerr = (np.minimum(maxLdaOpt[0], ldaStep),), color = 'tab:blue', marker = 'o', label = 'end lap')
-plt.errorbar(epsset, maxLdaOpt[1], yerr = (np.minimum(maxLdaOpt[1], ldaStep),), color = 'tab:cyan', marker = 'x', label = 'end lap mc')
-plt.errorbar(epsset, maxLdaOpt[2], yerr = (np.minimum(maxLdaOpt[2], ldaStep),), color = 'tab:olive', marker = 'o', label = 'end gauss')
-plt.errorbar(epsset, maxLdaOpt[3], yerr = (np.minimum(maxLdaOpt[3], ldaStep),), color = 'tab:green', marker = 'x', label = 'end gauss mc')
-plt.errorbar(epsset, maxLdaOpt[4], yerr = (np.minimum(maxLdaOpt[4], ldaStep),), color = 'tab:red', marker = 'o', label = 'mid gauss')
-plt.errorbar(epsset, maxLdaOpt[5], yerr = (np.minimum(maxLdaOpt[5], ldaStep),), color = 'tab:pink', marker = 'x', label = 'mid gauss mc')
+plt.errorbar(epsset, maxLdaOpt[0], yerr = ldaStep, uplims = maxUpper[0], lolims = maxLower[0], color = 'tab:blue', marker = 'o', label = 'end lap')
+plt.errorbar(epsset, maxLdaOpt[1], yerr = ldaStep, uplims = maxUpper[1], lolims = maxLower[1], color = 'tab:cyan', marker = 'x', label = 'end lap mc')
+plt.errorbar(epsset, maxLdaOpt[2], yerr = ldaStep, uplims = maxUpper[2], lolims = maxLower[2], color = 'tab:olive', marker = 'o', label = 'end gauss')
+plt.errorbar(epsset, maxLdaOpt[3], yerr = ldaStep, uplims = maxUpper[3], lolims = maxLower[3], color = 'tab:green', marker = 'x', label = 'end gauss mc')
+plt.errorbar(epsset, maxLdaOpt[4], yerr = ldaStep, uplims = maxUpper[4], lolims = maxLower[4], color = 'tab:red', marker = 'o', label = 'mid gauss')
+plt.errorbar(epsset, maxLdaOpt[5], yerr = ldaStep, uplims = maxUpper[5], lolims = maxLower[5], color = 'tab:pink', marker = 'x', label = 'mid gauss mc')
 plt.legend(loc = 'best')
 plt.xlabel("Value of epsilon")
 plt.ylabel("Lambda to minimise error of unbiased estimator (max pair)")
