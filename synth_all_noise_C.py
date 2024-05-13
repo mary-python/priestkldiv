@@ -54,7 +54,7 @@ for trial in range(8):
     N = 125
 
     # parameters for the addition of Laplace and Gaussian noise
-    EPS = 0.1
+    EPS = 0.5
     DTA = 0.1
     A = 0
     R = 10
