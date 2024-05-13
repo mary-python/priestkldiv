@@ -31,7 +31,7 @@ numWriters = len(writers)
 T = int(numWriters / 20)
 
 # lists of the values of epsilon and trials that will be run
-epsset = [0, 0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4]
+epsset = [0.0000000001, 0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4]
 trialset = ["end_lap", "end_lap_mc", "end_gauss", "end_gauss_mc", "mid_gauss", "mid_gauss_mc"]
 ES = len(epsset)
 TS = len(trialset)

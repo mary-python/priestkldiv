@@ -54,7 +54,7 @@ for trial in range(8):
     N = 125
 
     # parameters for the addition of Laplace and Gaussian noise
-    epsset = np.array([0, 0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4])
+    epsset = np.array([0.0000000001, 0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4])
     DTA = 0.1
     A = 0
     R = 10
