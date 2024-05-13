@@ -54,7 +54,7 @@ for trial in range(8):
     N = 125
 
     # parameters for the addition of Laplace and Gaussian noise
-    epsset = np.array([0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 1, 1.5, 2, 2.5, 3, 4])
+    epsset = np.array([0, 0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4])
     DTA = 0.1
     A = 0
     R = 10
@@ -234,6 +234,7 @@ ax1.plot(epsset, oMeanN2, label = "Small KLD + Gauss (ord) mc")
 ax1.set_title("Effect of epsilon on error of unbiased estimator")
 ax1.set_xlabel("Value of epsilon")
 ax1.set_ylabel("Error of unbiased estimator (end noise)")
+ax1.set_xscale("log")
 ax1.set_yscale("log")
 ax1.legend(loc = "best")
 
@@ -250,6 +251,7 @@ ax2.plot(epsset, oMeanN4, label = "Large KLD + Gauss (ord) mc")
 ax2.set_title("Effect of epsilon on error of unbiased estimator")
 ax2.set_xlabel("Value of epsilon")
 ax2.set_ylabel("Error of unbiased estimator (end noise)")
+ax2.set_xscale("log")
 ax2.set_yscale("log")
 ax2.legend(loc = "best")
 
@@ -266,6 +268,7 @@ ax3.plot(epsset, oMeanN6, label = "Small KLD + Gauss (ord) mc")
 ax3.set_title("Effect of epsilon on error of unbiased estimator")
 ax3.set_xlabel("Value of epsilon")
 ax3.set_ylabel("Error of unbiased estimator (mid noise)")
+ax3.set_xscale("log")
 ax3.set_yscale("log")
 ax3.legend(loc = "best")
 
@@ -282,6 +285,7 @@ ax4.plot(epsset, oMeanN8, label = "Large KLD + Gauss (ord) mc")
 ax4.set_title("Effect of epsilon on error of unbiased estimator")
 ax4.set_xlabel("Value of epsilon")
 ax4.set_ylabel("Error of unbiased estimator (mid noise)")
+ax4.set_xscale("log")
 ax4.set_yscale("log")
 ax4.legend(loc = "best")
 

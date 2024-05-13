@@ -31,7 +31,7 @@ numWriters = len(writers)
 T = int(numWriters / 20)
 
 # lists of the values of epsilon and trials that will be run
-epsset = [0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 1, 1.5, 2, 2.5, 3, 4]
+epsset = [0, 0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4]
 trialset = ["end_lap", "end_lap_mc", "end_gauss", "end_gauss_mc", "mid_gauss", "mid_gauss_mc"]
 ES = len(epsset)
 TS = len(trialset)
@@ -462,6 +462,7 @@ plt.errorbar(epsset, meanEst[3], yerr = np.minimum(np.sqrt(meanEst[3]), np.divid
 plt.errorbar(epsset, meanEst[4], yerr = np.minimum(np.sqrt(meanEst[4]), np.divide(meanEst[4], 2)), color = 'tab:red', marker = 'o', label = 'mid gauss')
 plt.errorbar(epsset, meanEst[5], yerr = np.minimum(np.sqrt(meanEst[5]), np.divide(meanEst[5], 2)), color = 'tab:pink', marker = 'x', label = 'mid gauss mc')
 plt.legend(loc = 'best')
+plt.xscale('log')
 plt.yscale('log')
 plt.xlabel("Value of epsilon")
 plt.ylabel("Error of unbiased estimator (mean)")
@@ -480,6 +481,7 @@ plt.errorbar(epsset, meanLdaOpt[3], yerr = ldaStep, uplims = meanUpper[3], lolim
 plt.errorbar(epsset, meanLdaOpt[4], yerr = ldaStep, uplims = meanUpper[4], lolims = meanLower[4], color = 'tab:red', marker = 'o', label = 'mid gauss')
 plt.errorbar(epsset, meanLdaOpt[5], yerr = ldaStep, uplims = meanUpper[5], lolims = meanLower[5], color = 'tab:pink', marker = 'x', label = 'mid gauss mc')
 plt.legend(loc = 'best')
+plt.xscale('log')
 plt.xlabel("Value of epsilon")
 plt.ylabel("Lambda to minimise error of unbiased estimator (mean)")
 plt.title("How epsilon affects optimum lambda (mean)")
@@ -494,6 +496,7 @@ plt.errorbar(epsset, minEst[3], yerr = np.minimum(np.sqrt(minEst[3]), np.divide(
 plt.errorbar(epsset, minEst[4], yerr = np.minimum(np.sqrt(minEst[4]), np.divide(minEst[4], 2)), color = 'tab:red', marker = 'o', label = 'mid gauss')
 plt.errorbar(epsset, minEst[5], yerr = np.minimum(np.sqrt(minEst[5]), np.divide(minEst[5], 2)), color = 'tab:pink', marker = 'x', label = 'mid gauss mc')
 plt.legend(loc = 'best')
+plt.xscale('log')
 plt.yscale('log')
 plt.xlabel("Value of epsilon")
 plt.ylabel("Error of unbiased estimator (min pair)")
@@ -512,6 +515,7 @@ plt.errorbar(epsset, minLdaOpt[3], yerr = ldaStep, uplims = minUpper[3], lolims 
 plt.errorbar(epsset, minLdaOpt[4], yerr = ldaStep, uplims = minUpper[4], lolims = minLower[4], color = 'tab:red', marker = 'o', label = 'mid gauss')
 plt.errorbar(epsset, minLdaOpt[5], yerr = ldaStep, uplims = minUpper[5], lolims = minLower[5], color = 'tab:pink', marker = 'x', label = 'mid gauss mc')
 plt.legend(loc = 'best')
+plt.xscale('log')
 plt.xlabel("Value of epsilon")
 plt.ylabel("Lambda to minimise error of unbiased estimator (min pair)")
 plt.title("How epsilon affects optimum lambda (min pair)")
@@ -526,6 +530,7 @@ plt.errorbar(epsset, maxEst[3], yerr = np.minimum(np.sqrt(maxEst[3]), np.divide(
 plt.errorbar(epsset, maxEst[4], yerr = np.minimum(np.sqrt(maxEst[4]), np.divide(maxEst[4], 2)), color = 'tab:red', marker = 'o', label = 'mid gauss')
 plt.errorbar(epsset, maxEst[5], yerr = np.minimum(np.sqrt(maxEst[5]), np.divide(maxEst[5], 2)), color = 'tab:pink', marker = 'x', label = 'mid gauss mc')
 plt.legend(loc = 'best')
+plt.xscale('log')
 plt.yscale('log')
 plt.xlabel("Value of epsilon")
 plt.ylabel("Error of unbiased estimator (max pair)")
@@ -544,6 +549,7 @@ plt.errorbar(epsset, maxLdaOpt[3], yerr = ldaStep, uplims = maxUpper[3], lolims 
 plt.errorbar(epsset, maxLdaOpt[4], yerr = ldaStep, uplims = maxUpper[4], lolims = maxLower[4], color = 'tab:red', marker = 'o', label = 'mid gauss')
 plt.errorbar(epsset, maxLdaOpt[5], yerr = ldaStep, uplims = maxUpper[5], lolims = maxLower[5], color = 'tab:pink', marker = 'x', label = 'mid gauss mc')
 plt.legend(loc = 'best')
+plt.xscale('log')
 plt.xlabel("Value of epsilon")
 plt.ylabel("Lambda to minimise error of unbiased estimator (max pair)")
 plt.title("How epsilon affects optimum lambda (max pair)")
