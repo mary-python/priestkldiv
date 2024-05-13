@@ -30,7 +30,7 @@ writers = sorted(file.keys())
 numWriters = len(writers)
 
 # list of the trials that will be run
-trialset = ["end_lap", "end_lap_mc", "end_gauss", "end_gauss_mc", "mid_gauss", "mid_gauss_mc"]
+trialset = ["end_lap", "end_lap_mc", "end_gauss", "end_gauss_mc", "mid_gauss", "mid_gauss_mc", "no_privacy"]
 TS = len(trialset)
 
 # investigate samples from approx 1% to approx 20% of writers
@@ -55,7 +55,7 @@ maxLdaOpt = np.zeros((TS, ES))
 maxUpper = np.zeros((TS, ES))
 maxLower = np.zeros((TS, ES))
 
-for trial in range(6):
+for trial in range(7):
     
     print(f"\nTrial {trial + 1}: {trialset[trial]}")
     statsfile = open(f"femnist_{trialset[trial]}_noise.txt", "w", encoding = 'utf-8')
@@ -328,7 +328,7 @@ for trial in range(6):
         b2 = (2*((log(1.25))/DTA)*b1) / EPS
 
         # load Gaussian noise distribution for intermediate server
-        if trial >= 4:
+        if trial >= 4 and trial <= 6:
             s = b2 * (np.sqrt(2) / R)
             midNoise = tfp.distributions.Normal(loc = A, scale = s)
         
@@ -346,7 +346,7 @@ for trial in range(6):
         for l in range(0, L):
             
             # option 2a: intermediate server adds noise term
-            if trial >= 4:
+            if trial >= 4 and trial <= 6:
                 meanLda[l] = np.mean(uEst[l]) + midNoise.sample(sample_shape = (1,))
 
                 # extract error for max and min pairs
@@ -381,48 +381,48 @@ for trial in range(6):
 
         # no upper error bars when lda equals 0
         if meanLdaOpt[trial, T_FREQ] == 0:
-            meanUpper[trial, T_FREQ] == 0
-            meanLower[trial, T_FREQ] == 1
+            meanUpper[trial, T_FREQ] = 0
+            meanLower[trial, T_FREQ] = 1
 
         # no lower error bars when lda equals 1
         elif meanLdaOpt[trial, T_FREQ] == 1:
-            meanLower[trial, T_FREQ] == 0
-            meanUpper[trial, T_FREQ] == 1
+            meanLower[trial, T_FREQ] = 0
+            meanUpper[trial, T_FREQ] = 1
 
         # both error bars in all other cases
         else:
-            meanLower[trial, T_FREQ] == 1
-            meanUpper[trial, T_FREQ] == 1
+            meanLower[trial, T_FREQ] = 1
+            meanUpper[trial, T_FREQ] = 1
 
         # no upper error bars when lda equals 0
         if minLdaOpt[trial, T_FREQ] == 0:
-            minUpper[trial, T_FREQ] == 0
-            minLower[trial, T_FREQ] == 1
+            minUpper[trial, T_FREQ] = 0
+            minLower[trial, T_FREQ] = 1
 
         # no lower error bars when lda equals 1
         elif minLdaOpt[trial, T_FREQ] == 1:
-            minLower[trial, T_FREQ] == 0
-            minUpper[trial, T_FREQ] == 1
+            minLower[trial, T_FREQ] = 0
+            minUpper[trial, T_FREQ] = 1
 
         # both error bars in all other cases
         else:
-            minLower[trial, T_FREQ] == 1
-            minUpper[trial, T_FREQ] == 1
+            minLower[trial, T_FREQ] = 1
+            minUpper[trial, T_FREQ] = 1
 
         # no upper error bars when lda equals 0
         if maxLdaOpt[trial, T_FREQ] == 0:
-            maxUpper[trial, T_FREQ] == 0
-            maxLower[trial, T_FREQ] == 1
+            maxUpper[trial, T_FREQ] = 0
+            maxLower[trial, T_FREQ] = 1
 
         # no lower error bars when lda equals 1
         elif maxLdaOpt[trial, T_FREQ] == 1:
-            maxLower[trial, T_FREQ] == 0
-            maxUpper[trial, T_FREQ] == 1
+            maxLower[trial, T_FREQ] = 0
+            maxUpper[trial, T_FREQ] = 1
 
         # both error bars in all other cases
         else:
-            maxLower[trial, T_FREQ] == 1
-            maxUpper[trial, T_FREQ] == 1
+            maxLower[trial, T_FREQ] = 1
+            maxUpper[trial, T_FREQ] = 1
 
         # option 2b: server adds noise term to final result
         if trial < 4:
@@ -454,12 +454,13 @@ for trial in range(6):
         T_FREQ = T_FREQ + 1
 
 # plot error of unbiased estimator for each T (mean)
-plt.errorbar(Tset, meanEst[0], yerr = np.minimum(np.sqrt(meanEst[0]), np.divide(meanEst[0], 2)), color = 'tab:blue', marker = 'o', label = 'end lap')
-plt.errorbar(Tset, meanEst[1], yerr = np.minimum(np.sqrt(meanEst[1]), np.divide(meanEst[1], 2)), color = 'tab:cyan', marker = 'x', label = 'end lap mc')
-plt.errorbar(Tset, meanEst[2], yerr = np.minimum(np.sqrt(meanEst[2]), np.divide(meanEst[2], 2)), color = 'tab:olive', marker = 'o', label = 'end gauss')
-plt.errorbar(Tset, meanEst[3], yerr = np.minimum(np.sqrt(meanEst[3]), np.divide(meanEst[3], 2)), color = 'tab:green', marker = 'x', label = 'end gauss mc')
-plt.errorbar(Tset, meanEst[4], yerr = np.minimum(np.sqrt(meanEst[4]), np.divide(meanEst[4], 2)), color = 'tab:red', marker = 'o', label = 'mid gauss')
-plt.errorbar(Tset, meanEst[5], yerr = np.minimum(np.sqrt(meanEst[5]), np.divide(meanEst[5], 2)), color = 'tab:pink', marker = 'x', label = 'mid gauss mc')
+plt.errorbar(Tset, meanEst[0], yerr = np.minimum(np.sqrt(meanEst[0]), np.divide(meanEst[0], 2)), color = 'blue', marker = 'o', label = 'end lap')
+plt.errorbar(Tset, meanEst[1], yerr = np.minimum(np.sqrt(meanEst[1]), np.divide(meanEst[1], 2)), color = 'blueviolet', marker = 'x', label = 'end lap mc')
+plt.errorbar(Tset, meanEst[2], yerr = np.minimum(np.sqrt(meanEst[2]), np.divide(meanEst[2], 2)), color = 'green', marker = 'o', label = 'end gauss')
+plt.errorbar(Tset, meanEst[3], yerr = np.minimum(np.sqrt(meanEst[3]), np.divide(meanEst[3], 2)), color = 'lime', marker = 'x', label = 'end gauss mc')
+plt.errorbar(Tset, meanEst[4], yerr = np.minimum(np.sqrt(meanEst[4]), np.divide(meanEst[4], 2)), color = 'orange', marker = 'o', label = 'mid gauss')
+plt.errorbar(Tset, meanEst[5], yerr = np.minimum(np.sqrt(meanEst[5]), np.divide(meanEst[5], 2)), color = 'gold', marker = 'x', label = 'mid gauss mc')
+plt.errorbar(Tset, meanEst[6], yerr = np.minimum(np.sqrt(meanEst[6]), np.divide(meanEst[6], 2)), color = 'red', marker = '*', label = 'no noise')
 plt.legend(loc = 'best')
 plt.xscale('log')
 plt.yscale('log')
@@ -473,12 +474,13 @@ plt.clf()
 print(f"\nmeanLdaOpt[0]: {meanLdaOpt[0]}")
 print(f"\nmeanUpper[0]: {meanUpper[0]}")
 print(f"\nmeanLower[0]: {meanLower[0]}")
-plt.errorbar(Tset, meanLdaOpt[0], yerr = ldaStep, uplims = meanUpper[0], lolims = meanLower[0], color = 'tab:blue', marker = 'o', label = 'end lap')
-plt.errorbar(Tset, meanLdaOpt[1], yerr = ldaStep, uplims = meanUpper[1], lolims = meanLower[1], color = 'tab:cyan', marker = 'x', label = 'end lap mc')
-plt.errorbar(Tset, meanLdaOpt[2], yerr = ldaStep, uplims = meanUpper[2], lolims = meanLower[2], color = 'tab:olive', marker = 'o', label = 'end gauss')
-plt.errorbar(Tset, meanLdaOpt[3], yerr = ldaStep, uplims = meanUpper[3], lolims = meanLower[3], color = 'tab:green', marker = 'x', label = 'end gauss mc')
-plt.errorbar(Tset, meanLdaOpt[4], yerr = ldaStep, uplims = meanUpper[4], lolims = meanLower[4], color = 'tab:red', marker = 'o', label = 'mid gauss')
-plt.errorbar(Tset, meanLdaOpt[5], yerr = ldaStep, uplims = meanUpper[5], lolims = meanLower[5], color = 'tab:pink', marker = 'x', label = 'mid gauss mc')
+plt.errorbar(Tset, meanLdaOpt[0], yerr = ldaStep, uplims = meanUpper[0], lolims = meanLower[0], color = 'blue', marker = 'o', label = 'end lap')
+plt.errorbar(Tset, meanLdaOpt[1], yerr = ldaStep, uplims = meanUpper[1], lolims = meanLower[1], color = 'blueviolet', marker = 'x', label = 'end lap mc')
+plt.errorbar(Tset, meanLdaOpt[2], yerr = ldaStep, uplims = meanUpper[2], lolims = meanLower[2], color = 'green', marker = 'o', label = 'end gauss')
+plt.errorbar(Tset, meanLdaOpt[3], yerr = ldaStep, uplims = meanUpper[3], lolims = meanLower[3], color = 'lime', marker = 'x', label = 'end gauss mc')
+plt.errorbar(Tset, meanLdaOpt[4], yerr = ldaStep, uplims = meanUpper[4], lolims = meanLower[4], color = 'orange', marker = 'o', label = 'mid gauss')
+plt.errorbar(Tset, meanLdaOpt[5], yerr = ldaStep, uplims = meanUpper[5], lolims = meanLower[5], color = 'gold', marker = 'x', label = 'mid gauss mc')
+plt.errorbar(Tset, meanLdaOpt[6], yerr = ldaStep, uplims = meanUpper[6], lolims = meanLower[6], color = 'red', marker = '*', label = 'no noise')
 plt.legend(loc = 'best')
 plt.xscale('log')
 plt.xlabel("Value of T")
@@ -488,12 +490,13 @@ plt.savefig("Femnist_pixel_T_mean_lda.png")
 plt.clf()
 
 # plot error of unbiased estimator for each T (min pair)
-plt.errorbar(Tset, minEst[0], yerr = np.minimum(np.sqrt(minEst[0]), np.divide(minEst[0], 2)), color = 'tab:blue', marker = 'o', label = 'end lap')
-plt.errorbar(Tset, minEst[1], yerr = np.minimum(np.sqrt(minEst[1]), np.divide(minEst[1], 2)), color = 'tab:cyan', marker = 'x', label = 'end lap mc')
-plt.errorbar(Tset, minEst[2], yerr = np.minimum(np.sqrt(minEst[2]), np.divide(minEst[2], 2)), color = 'tab:olive', marker = 'o', label = 'end gauss')
-plt.errorbar(Tset, minEst[3], yerr = np.minimum(np.sqrt(minEst[3]), np.divide(minEst[3], 2)), color = 'tab:green', marker = 'x', label = 'end gauss mc')
-plt.errorbar(Tset, minEst[4], yerr = np.minimum(np.sqrt(minEst[4]), np.divide(minEst[4], 2)), color = 'tab:red', marker = 'o', label = 'mid gauss')
-plt.errorbar(Tset, minEst[5], yerr = np.minimum(np.sqrt(minEst[5]), np.divide(minEst[5], 2)), color = 'tab:pink', marker = 'x', label = 'mid gauss mc')
+plt.errorbar(Tset, minEst[0], yerr = np.minimum(np.sqrt(minEst[0]), np.divide(minEst[0], 2)), color = 'blue', marker = 'o', label = 'end lap')
+plt.errorbar(Tset, minEst[1], yerr = np.minimum(np.sqrt(minEst[1]), np.divide(minEst[1], 2)), color = 'blueviolet', marker = 'x', label = 'end lap mc')
+plt.errorbar(Tset, minEst[2], yerr = np.minimum(np.sqrt(minEst[2]), np.divide(minEst[2], 2)), color = 'green', marker = 'o', label = 'end gauss')
+plt.errorbar(Tset, minEst[3], yerr = np.minimum(np.sqrt(minEst[3]), np.divide(minEst[3], 2)), color = 'lime', marker = 'x', label = 'end gauss mc')
+plt.errorbar(Tset, minEst[4], yerr = np.minimum(np.sqrt(minEst[4]), np.divide(minEst[4], 2)), color = 'orange', marker = 'o', label = 'mid gauss')
+plt.errorbar(Tset, minEst[5], yerr = np.minimum(np.sqrt(minEst[5]), np.divide(minEst[5], 2)), color = 'gold', marker = 'x', label = 'mid gauss mc')
+plt.errorbar(Tset, minEst[6], yerr = np.minimum(np.sqrt(minEst[6]), np.divide(minEst[6], 2)), color = 'red', marker = '*', label = 'no noise')
 plt.legend(loc = 'best')
 plt.xscale('log')
 plt.yscale('log')
@@ -507,12 +510,13 @@ plt.clf()
 print(f"\nminLdaOpt[0]: {minLdaOpt[0]}")
 print(f"\nminUpper[0]: {minUpper[0]}")
 print(f"\nminLower[0]: {minLower[0]}")
-plt.errorbar(Tset, minLdaOpt[0], yerr = ldaStep, uplims = minUpper[0], lolims = minLower[0], color = 'tab:blue', marker = 'o', label = 'end lap')
-plt.errorbar(Tset, minLdaOpt[1], yerr = ldaStep, uplims = minUpper[1], lolims = minLower[1], color = 'tab:cyan', marker = 'x', label = 'end lap mc')
-plt.errorbar(Tset, minLdaOpt[2], yerr = ldaStep, uplims = minUpper[2], lolims = minLower[2], color = 'tab:olive', marker = 'o', label = 'end gauss')
-plt.errorbar(Tset, minLdaOpt[3], yerr = ldaStep, uplims = minUpper[3], lolims = minLower[3], color = 'tab:green', marker = 'x', label = 'end gauss mc')
-plt.errorbar(Tset, minLdaOpt[4], yerr = ldaStep, uplims = minUpper[4], lolims = minLower[4], color = 'tab:red', marker = 'o', label = 'mid gauss')
-plt.errorbar(Tset, minLdaOpt[5], yerr = ldaStep, uplims = minUpper[5], lolims = minLower[5], color = 'tab:pink', marker = 'x', label = 'mid gauss mc')
+plt.errorbar(Tset, minLdaOpt[0], yerr = ldaStep, uplims = minUpper[0], lolims = minLower[0], color = 'blue', marker = 'o', label = 'end lap')
+plt.errorbar(Tset, minLdaOpt[1], yerr = ldaStep, uplims = minUpper[1], lolims = minLower[1], color = 'blueviolet', marker = 'x', label = 'end lap mc')
+plt.errorbar(Tset, minLdaOpt[2], yerr = ldaStep, uplims = minUpper[2], lolims = minLower[2], color = 'green', marker = 'o', label = 'end gauss')
+plt.errorbar(Tset, minLdaOpt[3], yerr = ldaStep, uplims = minUpper[3], lolims = minLower[3], color = 'lime', marker = 'x', label = 'end gauss mc')
+plt.errorbar(Tset, minLdaOpt[4], yerr = ldaStep, uplims = minUpper[4], lolims = minLower[4], color = 'orange', marker = 'o', label = 'mid gauss')
+plt.errorbar(Tset, minLdaOpt[5], yerr = ldaStep, uplims = minUpper[5], lolims = minLower[5], color = 'gold', marker = 'x', label = 'mid gauss mc')
+plt.errorbar(Tset, minLdaOpt[6], yerr = ldaStep, uplims = minUpper[6], lolims = minLower[6], color = 'red', marker = '*', label = 'no noise')
 plt.legend(loc = 'best')
 plt.xscale('log')
 plt.xlabel("Value of T")
@@ -522,12 +526,13 @@ plt.savefig("Femnist_pixel_T_min_lda.png")
 plt.clf()
 
 # plot error of unbiased estimator for each T (max pair)
-plt.errorbar(Tset, maxEst[0], yerr = np.minimum(np.sqrt(maxEst[0]), np.divide(maxEst[0], 2)), color = 'tab:blue', marker = 'o', label = 'end lap')
-plt.errorbar(Tset, maxEst[1], yerr = np.minimum(np.sqrt(maxEst[1]), np.divide(maxEst[1], 2)), color = 'tab:cyan', marker = 'x', label = 'end lap mc')
-plt.errorbar(Tset, maxEst[2], yerr = np.minimum(np.sqrt(maxEst[2]), np.divide(maxEst[2], 2)), color = 'tab:olive', marker = 'o', label = 'end gauss')
-plt.errorbar(Tset, maxEst[3], yerr = np.minimum(np.sqrt(maxEst[3]), np.divide(maxEst[3], 2)), color = 'tab:green', marker = 'x', label = 'end gauss mc')
-plt.errorbar(Tset, maxEst[4], yerr = np.minimum(np.sqrt(maxEst[4]), np.divide(maxEst[4], 2)), color = 'tab:red', marker = 'o', label = 'mid gauss')
-plt.errorbar(Tset, maxEst[5], yerr = np.minimum(np.sqrt(maxEst[5]), np.divide(maxEst[5], 2)), color = 'tab:pink', marker = 'x', label = 'mid gauss mc')
+plt.errorbar(Tset, maxEst[0], yerr = np.minimum(np.sqrt(maxEst[0]), np.divide(maxEst[0], 2)), color = 'blue', marker = 'o', label = 'end lap')
+plt.errorbar(Tset, maxEst[1], yerr = np.minimum(np.sqrt(maxEst[1]), np.divide(maxEst[1], 2)), color = 'blueviolet', marker = 'x', label = 'end lap mc')
+plt.errorbar(Tset, maxEst[2], yerr = np.minimum(np.sqrt(maxEst[2]), np.divide(maxEst[2], 2)), color = 'green', marker = 'o', label = 'end gauss')
+plt.errorbar(Tset, maxEst[3], yerr = np.minimum(np.sqrt(maxEst[3]), np.divide(maxEst[3], 2)), color = 'lime', marker = 'x', label = 'end gauss mc')
+plt.errorbar(Tset, maxEst[4], yerr = np.minimum(np.sqrt(maxEst[4]), np.divide(maxEst[4], 2)), color = 'orange', marker = 'o', label = 'mid gauss')
+plt.errorbar(Tset, maxEst[5], yerr = np.minimum(np.sqrt(maxEst[5]), np.divide(maxEst[5], 2)), color = 'gold', marker = 'x', label = 'mid gauss mc')
+plt.errorbar(Tset, maxEst[6], yerr = np.minimum(np.sqrt(maxEst[6]), np.divide(maxEst[6], 2)), color = 'red', marker = '*', label = 'no noise')
 plt.legend(loc = 'best')
 plt.xscale('log')
 plt.yscale('log')
@@ -541,12 +546,13 @@ plt.clf()
 print(f"\nmaxLdaOpt[0]: {maxLdaOpt[0]}")
 print(f"\nmaxUpper[0]: {maxUpper[0]}")
 print(f"\nmaxLower[0]: {maxLower[0]}")
-plt.errorbar(Tset, maxLdaOpt[0], yerr = ldaStep, uplims = maxUpper[0], lolims = maxLower[0], color = 'tab:blue', marker = 'o', label = 'end lap')
-plt.errorbar(Tset, maxLdaOpt[1], yerr = ldaStep, uplims = maxUpper[1], lolims = maxLower[1], color = 'tab:cyan', marker = 'x', label = 'end lap mc')
-plt.errorbar(Tset, maxLdaOpt[2], yerr = ldaStep, uplims = maxUpper[2], lolims = maxLower[2], color = 'tab:olive', marker = 'o', label = 'end gauss')
-plt.errorbar(Tset, maxLdaOpt[3], yerr = ldaStep, uplims = maxUpper[3], lolims = maxLower[3], color = 'tab:green', marker = 'x', label = 'end gauss mc')
-plt.errorbar(Tset, maxLdaOpt[4], yerr = ldaStep, uplims = maxUpper[4], lolims = maxLower[4], color = 'tab:red', marker = 'o', label = 'mid gauss')
-plt.errorbar(Tset, maxLdaOpt[5], yerr = ldaStep, uplims = maxUpper[5], lolims = maxLower[5], color = 'tab:pink', marker = 'x', label = 'mid gauss mc')
+plt.errorbar(Tset, maxLdaOpt[0], yerr = ldaStep, uplims = maxUpper[0], lolims = maxLower[0], color = 'blue', marker = 'o', label = 'end lap')
+plt.errorbar(Tset, maxLdaOpt[1], yerr = ldaStep, uplims = maxUpper[1], lolims = maxLower[1], color = 'blueviolet', marker = 'x', label = 'end lap mc')
+plt.errorbar(Tset, maxLdaOpt[2], yerr = ldaStep, uplims = maxUpper[2], lolims = maxLower[2], color = 'green', marker = 'o', label = 'end gauss')
+plt.errorbar(Tset, maxLdaOpt[3], yerr = ldaStep, uplims = maxUpper[3], lolims = maxLower[3], color = 'lime', marker = 'x', label = 'end gauss mc')
+plt.errorbar(Tset, maxLdaOpt[4], yerr = ldaStep, uplims = maxUpper[4], lolims = maxLower[4], color = 'orange', marker = 'o', label = 'mid gauss')
+plt.errorbar(Tset, maxLdaOpt[5], yerr = ldaStep, uplims = maxUpper[5], lolims = maxLower[5], color = 'gold', marker = 'x', label = 'mid gauss mc')
+plt.errorbar(Tset, maxLdaOpt[6], yerr = ldaStep, uplims = maxUpper[6], lolims = maxLower[6], color = 'red', marker = '*', label = 'no noise')
 plt.legend(loc = 'best')
 plt.xscale('log')
 plt.xlabel("Value of T")
