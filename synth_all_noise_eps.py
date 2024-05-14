@@ -72,7 +72,7 @@ for trial in range(8):
     # load Laplace and Normal noise distributions, dependent on eps
     s1 = b1 / eps
     s2 = b2 / eps
-    noiseL = dis.Laplace(loc = A, scale = s1)
+    lapNoise = dis.Laplace(loc = A, scale = s1)
 
     # numpy arrays
     rLda = 1
@@ -117,7 +117,7 @@ for trial in range(8):
     # load Gaussian noise distribution for intermediate server
         if trial < 4:
             s3 = s2 * (np.sqrt(2) / R)
-            midNoise = dis.Normal(loc = A, scale = s3)
+            gaussNoise = dis.Normal(loc = A, scale = s3)
 
     E = np.size(epsset)
     sMeanLda = np.zeros((L, E))
@@ -126,12 +126,12 @@ for trial in range(8):
     # compute mean of unbiased estimator across clients
     for l in np.arange(0, rLda + ldaStep, ldaStep):
         
-        # option 3a: intermediate server adds noise term
+        # option 3a: intermediate server adds Gaussian noise term
         if trial < 4:
-            sMeanLda[l] = np.mean(sEst, axis = 0) + midNoise.sample(sample_shape = (1,))
-            oMeanLda[l] = np.mean(oEst, axis = 0) + midNoise.sample(sample_shape = (1,))
+            sMeanLda[l] = np.mean(sEst, axis = 0) + gaussNoise.sample(sample_shape = (1,))
+            oMeanLda[l] = np.mean(oEst, axis = 0) + gaussNoise.sample(sample_shape = (1,))
             
-        # option 3b: server add noise term later
+        # option 3b: server add Laplace noise term later
         else:
             sMeanLda[l] = np.mean(sEst, axis = 0)
             oMeanLda[l] = np.mean(oEst, axis = 0)
@@ -151,12 +151,12 @@ for trial in range(8):
 
     for eps in epsset:
 
-        # option 3b: server adds noise term to final result
+        # option 3b: server adds Laplace noise term to final result
         if trial >= 4:
-            sMeanA[EPS_COUNT] = (sMean + noiseL.sample(sample_shape = (1,)) - groundTruth)**2
-            oMeanA[EPS_COUNT] = (oMean + noiseL.sample(sample_shape = (1,)) - groundTruth)**2
+            sMeanA[EPS_COUNT] = (sMean + lapNoise.sample(sample_shape = (1,)) - groundTruth)**2
+            oMeanA[EPS_COUNT] = (oMean + lapNoise.sample(sample_shape = (1,)) - groundTruth)**2
 
-        # option 3a: intermediate server has already added noise term
+        # option 3a: intermediate server has already added Gaussian noise term
         else:
             sMeanA[EPS_COUNT] = (sMean - groundTruth)**2
             oMeanA[EPS_COUNT] = (oMean - groundTruth)**2
