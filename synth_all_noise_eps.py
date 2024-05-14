@@ -73,7 +73,6 @@ for trial in range(8):
     s1 = b1 / eps
     s2 = b2 / eps
     noiseL = dis.Laplace(loc = A, scale = s1)
-    noiseN = dis.Normal(loc = A, scale = s2)
 
     # numpy arrays
     rLda = 1
@@ -116,7 +115,7 @@ for trial in range(8):
             bar()
 
     # load Gaussian noise distribution for intermediate server
-        if trial >= 4:
+        if trial < 4:
             s3 = s2 * (np.sqrt(2) / R)
             midNoise = dis.Normal(loc = A, scale = s3)
 
@@ -128,7 +127,7 @@ for trial in range(8):
     for l in np.arange(0, rLda + ldaStep, ldaStep):
         
         # option 3a: intermediate server adds noise term
-        if trial >= 4:
+        if trial < 4:
             sMeanLda[l] = np.mean(sEst, axis = 0) + midNoise.sample(sample_shape = (1,))
             oMeanLda[l] = np.mean(oEst, axis = 0) + midNoise.sample(sample_shape = (1,))
             
@@ -146,145 +145,107 @@ for trial in range(8):
     oMean = oMeanLda[oIndex]
 
     # numpy arrays
-    sMeanL = np.zeros(E)
-    sMeanN = np.zeros(E)
-    oMeanL = np.zeros(E)
-    oMeanN = np.zeros(E)
+    sMeanA = np.zeros(E)
+    oMeanA = np.zeros(E)
     EPS_COUNT = 0
 
     for eps in epsset:
 
         # option 3b: server adds noise term to final result
-        if trial < 4:
-            sMeanL[EPS_COUNT] = (sMean + noiseL.sample(sample_shape = (1,)) - groundTruth)**2
-            sMeanN[EPS_COUNT] = (sMean + noiseN.sample(sample_shape = (1,)) - groundTruth)**2
-            oMeanL[EPS_COUNT] = (oMean + noiseL.sample(sample_shape = (1,)) - groundTruth)**2
-            oMeanN[EPS_COUNT] = (oMean + noiseN.sample(sample_shape = (1,)) - groundTruth)**2
+        if trial >= 4:
+            sMeanA[EPS_COUNT] = (sMean + noiseL.sample(sample_shape = (1,)) - groundTruth)**2
+            oMeanA[EPS_COUNT] = (oMean + noiseL.sample(sample_shape = (1,)) - groundTruth)**2
 
         # option 3a: intermediate server has already added noise term
         else:
-            sMeanL[EPS_COUNT] = (sMean - groundTruth)**2
-            sMeanN[EPS_COUNT] = (sMean - groundTruth)**2
-            oMeanL[EPS_COUNT] = (oMean - groundTruth)**2
-            oMeanN[EPS_COUNT] = (oMean - groundTruth)**2
+            sMeanA[EPS_COUNT] = (sMean - groundTruth)**2
+            oMeanA[EPS_COUNT] = (oMean - groundTruth)**2
 
         EPS_COUNT = EPS_COUNT + 1
 
     if trial % 8 == 0:
-        sMeanL1 = sMeanL
-        sMeanN1 = sMeanN
-        oMeanL1 = oMeanL
-        oMeanN1 = oMeanL
+        sMean1 = sMeanA
+        oMean1 = oMeanA
 
     if trial % 8 == 1:
-        sMeanL2 = sMeanL
-        sMeanN2 = sMeanN
-        oMeanL2 = oMeanL
-        oMeanN2 = oMeanL
+        sMean2 = sMeanA
+        oMean2 = oMeanA
 
     if trial % 8 == 2:
-        sMeanL3 = sMeanL
-        sMeanN3 = sMeanN
-        oMeanL3 = oMeanL
-        oMeanN3 = oMeanL
+        sMean3 = sMeanA
+        oMean3 = oMeanA
 
     if trial % 8 == 3:
-        sMeanL4 = sMeanL
-        sMeanN4 = sMeanN
-        oMeanL4 = oMeanL
-        oMeanN4 = oMeanL
+        sMean4 = sMeanA
+        oMean4 = oMeanA
 
     if trial % 8 == 4:
-        sMeanL5 = sMeanL
-        sMeanN5 = sMeanN
-        oMeanL5 = oMeanL
-        oMeanN5 = oMeanL
+        sMean5 = sMeanA
+        oMean5 = oMeanA
     
     if trial % 8 == 5:
-        sMeanL6 = sMeanL
-        sMeanN6 = sMeanN
-        oMeanL6 = oMeanL
-        oMeanN6 = oMeanL
+        sMean6 = sMeanA
+        oMean6 = oMeanA
     
     if trial % 8 == 6:
-        sMeanL7 = sMeanL
-        sMeanN7 = sMeanN
-        oMeanL7 = oMeanL
-        oMeanN7 = oMeanL
+        sMean7 = sMeanA
+        oMean7 = oMeanA
 
     if trial % 8 == 7:
-        sMeanL8 = sMeanL
-        sMeanN8 = sMeanN
-        oMeanL8 = oMeanL
-        oMeanN8 = oMeanL
+        sMean8 = sMeanA
+        oMean8 = oMeanA
 
 # separate graphs for Small / Large KL divergence and end / mid noise to show trends
 fig = plt.figure(figsize = (12.8, 9.6))
 
 ax1 = plt.subplot(121)
-ax1.plot(epsset, sMeanL1, label = "Small KLD + Lap (samp)")
-ax1.plot(epsset, sMeanN1, label = "Small KLD + Gauss (samp)")
-ax1.plot(epsset, oMeanL1, label = "Small KLD + Lap (ord)")
-ax1.plot(epsset, oMeanN1, label = "Small KLD + Gauss (ord)")
-ax1.plot(epsset, sMeanL2, label = "Small KLD + Lap (samp) mc")
-ax1.plot(epsset, sMeanN2, label = "Small KLD + Gauss (samp) mc")
-ax1.plot(epsset, oMeanL2, label = "Small KLD + Lap (ord) mc")
-ax1.plot(epsset, oMeanN2, label = "Small KLD + Gauss (ord) mc")
+ax1.plot(epsset, sMean1, label = "Small KLD + Gauss (samp)")
+ax1.plot(epsset, oMean1, label = "Small KLD + Gauss (ord)")
+ax1.plot(epsset, sMean2, label = "Small KLD + Gauss (samp) mc")
+ax1.plot(epsset, oMean2, label = "Small KLD + Gauss (ord) mc")
 
 ax1.set_title("Effect of epsilon on error of unbiased estimator")
 ax1.set_xlabel("Value of epsilon")
-ax1.set_ylabel("Error of unbiased estimator (end noise)")
+ax1.set_ylabel("Error of unbiased estimator (mid noise)")
 ax1.set_xscale("log")
 ax1.set_yscale("log")
 ax1.legend(loc = "best")
 
 ax2 = plt.subplot(122)
-ax2.plot(epsset, sMeanL3, label = "Large KLD + Lap (samp)")
-ax2.plot(epsset, sMeanN3, label = "Large KLD + Gauss (samp)")
-ax2.plot(epsset, oMeanL3, label = "Large KLD + Lap (ord)")
-ax2.plot(epsset, oMeanN3, label = "Large KLD + Gauss (ord)")
-ax2.plot(epsset, sMeanL4, label = "Large KLD + Lap (samp) mc")
-ax2.plot(epsset, sMeanN4, label = "Large KLD + Gauss (samp) mc")
-ax2.plot(epsset, oMeanL4, label = "Large KLD + Lap (ord) mc")
-ax2.plot(epsset, oMeanN4, label = "Large KLD + Gauss (ord) mc")
+ax2.plot(epsset, sMean3, label = "Large KLD + Gauss (samp)")
+ax2.plot(epsset, oMean3, label = "Large KLD + Gauss (ord)")
+ax2.plot(epsset, sMean4, label = "Large KLD + Gauss (samp) mc")
+ax2.plot(epsset, oMean4, label = "Large KLD + Gauss (ord) mc")
 
 ax2.set_title("Effect of epsilon on error of unbiased estimator")
 ax2.set_xlabel("Value of epsilon")
-ax2.set_ylabel("Error of unbiased estimator (end noise)")
+ax2.set_ylabel("Error of unbiased estimator (mid noise)")
 ax2.set_xscale("log")
 ax2.set_yscale("log")
 ax2.legend(loc = "best")
 
 ax3 = plt.subplot(221)
-ax3.plot(epsset, sMeanL5, label = "Small KLD + Lap (samp)")
-ax3.plot(epsset, sMeanN5, label = "Small KLD + Gauss (samp)")
-ax3.plot(epsset, oMeanL5, label = "Small KLD + Lap (ord)")
-ax3.plot(epsset, oMeanN5, label = "Small KLD + Gauss (ord)")
-ax3.plot(epsset, sMeanL6, label = "Small KLD + Lap (samp) mc")
-ax3.plot(epsset, sMeanN6, label = "Small KLD + Gauss (samp) mc")
-ax3.plot(epsset, oMeanL6, label = "Small KLD + Lap (ord) mc")
-ax3.plot(epsset, oMeanN6, label = "Small KLD + Gauss (ord) mc")
+ax3.plot(epsset, sMean5, label = "Small KLD + Lap (samp)")
+ax3.plot(epsset, oMean5, label = "Small KLD + Lap (ord)")
+ax3.plot(epsset, sMean6, label = "Small KLD + Lap (samp) mc")
+ax3.plot(epsset, oMean6, label = "Small KLD + Lap (ord) mc")
 
 ax3.set_title("Effect of epsilon on error of unbiased estimator")
 ax3.set_xlabel("Value of epsilon")
-ax3.set_ylabel("Error of unbiased estimator (mid noise)")
+ax3.set_ylabel("Error of unbiased estimator (end noise)")
 ax3.set_xscale("log")
 ax3.set_yscale("log")
 ax3.legend(loc = "best")
 
 ax4 = plt.subplot(222)
-ax4.plot(epsset, sMeanL7, label = "Large KLD + Lap (samp)")
-ax4.plot(epsset, sMeanN7, label = "Large KLD + Gauss (samp)")
-ax4.plot(epsset, oMeanL7, label = "Large KLD + Lap (ord)")
-ax4.plot(epsset, oMeanN7, label = "Large KLD + Gauss (ord)")
-ax4.plot(epsset, sMeanL8, label = "Large KLD + Lap (samp) mc")
-ax4.plot(epsset, sMeanN8, label = "Large KLD + Gauss (samp) mc")
-ax4.plot(epsset, oMeanL8, label = "Large KLD + Lap (ord) mc")
-ax4.plot(epsset, oMeanN8, label = "Large KLD + Gauss (ord) mc")
+ax4.plot(epsset, sMean7, label = "Large KLD + Lap (samp)")
+ax4.plot(epsset, oMean7, label = "Large KLD + Lap (ord)")
+ax4.plot(epsset, sMean8, label = "Large KLD + Lap (samp) mc")
+ax4.plot(epsset, oMean8, label = "Large KLD + Lap (ord) mc")
 
 ax4.set_title("Effect of epsilon on error of unbiased estimator")
 ax4.set_xlabel("Value of epsilon")
-ax4.set_ylabel("Error of unbiased estimator (mid noise)")
+ax4.set_ylabel("Error of unbiased estimator (end noise)")
 ax4.set_xscale("log")
 ax4.set_yscale("log")
 ax4.legend(loc = "best")
