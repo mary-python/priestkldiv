@@ -14,8 +14,8 @@ startTime = time.perf_counter()
 print("\nStarting...")
 torch.manual_seed(12)
 
-for trial in range(8):
-    print(f"Trial {trial}...")
+for trial in range(12):
+    print(f"Trial {trial + 1}...")
 
     # p is unknown distribution, q is known
     # option 1a: distributions have small KL divergence
@@ -68,91 +68,93 @@ for trial in range(8):
         b1 = 1 + log(2)
 
     b2 = 2*((log(1.25))/DTA)*b1
-
-    # load Laplace and Normal noise distributions, dependent on eps
-    s1 = b1 / eps
-    s2 = b2 / eps
-    lapNoise = dis.Laplace(loc = A, scale = s1)
-
-    # numpy arrays
-    rLda = 1
-    ldaStep = 0.05
-    L = int((rLda + ldaStep) / ldaStep)
-    sEst = np.zeros((L, C))
-    oEst = np.zeros((L, C))
-
-    with alive_bar(C) as bar:
-        for j in range(0, C):
-
-            # even clients get positive values, odd clients get negative values
-            if (j % 2) == 0:
-                indices = torch.randperm(len(qPositiveRound))[:N]
-                qClientSamp = qPositiveRound[indices]
-            else:
-                indices = torch.randperm(len(qNegativeRound))[:N]
-                qClientSamp = qNegativeRound[indices]
-
-            # each client gets N points in order from ordered pre-processed sample
-            qOrdClientSamp = qOrderedRound[0][N*j : N*(j + 1)]
-
-            # compute ratio between unknown and known distributions
-            sLogr = p.log_prob(qClientSamp) - q.log_prob(qClientSamp)
-            oLogr = p.log_prob(qOrdClientSamp) - q.log_prob(qOrdClientSamp)
-            LDA_COUNT = 0
-
-            # explore lambdas in a range
-            for lda in np.arange(0, rLda + ldaStep, ldaStep):
-
-                # compute k3 estimator
-                sRangeEst = (lda * (np.exp(sLogr) - 1)) - sLogr
-                oRangeEst = (lda * (np.exp(oLogr) - 1)) - oLogr
-
-                # share unbiased estimator with server
-                sEst[LDA_COUNT, j] = sRangeEst.mean()
-                oEst[LDA_COUNT, j] = oRangeEst.mean()
-                LDA_COUNT = LDA_COUNT + 1
-
-            bar()
-
-    # load Gaussian noise distribution for intermediate server
-        if trial < 4:
-            s3 = s2 * (np.sqrt(2) / R)
-            gaussNoise = dis.Normal(loc = A, scale = s3)
-
-    E = np.size(epsset)
-    sMeanLda = np.zeros((L, E))
-    oMeanLda = np.zeros((L, E))
-
-    # compute mean of unbiased estimator across clients
-    for l in np.arange(0, rLda + ldaStep, ldaStep):
-        
-        # option 3a: intermediate server adds Gaussian noise term
-        if trial < 4:
-            sMeanLda[l] = np.mean(sEst, axis = 0) + gaussNoise.sample(sample_shape = (1,))
-            oMeanLda[l] = np.mean(oEst, axis = 0) + gaussNoise.sample(sample_shape = (1,))
-            
-        # option 3b: server add Laplace noise term later
-        else:
-            sMeanLda[l] = np.mean(sEst, axis = 0)
-            oMeanLda[l] = np.mean(oEst, axis = 0)
-
-    # find lambda that produces minimum error
-    sIndex = np.argmin(sMeanLda)
-    oIndex = np.argmin(oMeanLda)
-
-    # mean across clients for optimum lambda
-    sMean = sMeanLda[sIndex]
-    oMean = oMeanLda[oIndex]
-
-    # numpy arrays
-    sMeanA = np.zeros(E)
-    oMeanA = np.zeros(E)
     EPS_COUNT = 0
 
     for eps in epsset:
 
+        # load Gaussian and Laplace noise distributions, dependent on eps
+        s1 = b1 / eps
+        s2 = b2 / eps
+
+        if trial < 8:
+            s3 = s2 * (np.sqrt(2) / R)
+            gaussNoise = dis.Normal(loc = A, scale = s3)
+        
+        else:
+            lapNoise = dis.Laplace(loc = A, scale = s1)
+
+        # numpy arrays
+        rLda = 1
+        ldaStep = 0.05
+        L = int((rLda + ldaStep) / ldaStep)
+        sEst = np.zeros((L, C))
+        oEst = np.zeros((L, C))
+
+        with alive_bar(C) as bar:
+            for j in range(C):
+
+                # even clients get positive values, odd clients get negative values
+                if (j % 2) == 0:
+                    indices = torch.randperm(len(qPositiveRound))[:N]
+                    qClientSamp = qPositiveRound[indices]
+                else:
+                    indices = torch.randperm(len(qNegativeRound))[:N]
+                    qClientSamp = qNegativeRound[indices]
+
+                # each client gets N points in order from ordered pre-processed sample
+                qOrdClientSamp = qOrderedRound[0][N*j : N*(j + 1)]
+
+                # option 3a: each client adds Gaussian noise term
+                if trial < 4:
+                    qOrdClientSamp = qOrdClientSamp + gaussNoise.sample(sample_shape = (1,))
+
+                # compute ratio between unknown and known distributions
+                sLogr = p.log_prob(qClientSamp) - q.log_prob(qClientSamp)
+                oLogr = p.log_prob(qOrdClientSamp) - q.log_prob(qOrdClientSamp)
+                LDA_COUNT = 0
+
+                # explore lambdas in a range
+                for lda in np.arange(0, rLda + ldaStep, ldaStep):
+
+                    # compute k3 estimator
+                    sRangeEst = (lda * (np.exp(sLogr) - 1)) - sLogr
+                    oRangeEst = (lda * (np.exp(oLogr) - 1)) - oLogr
+
+                    # share unbiased estimator with server
+                    sEst[LDA_COUNT, j] = sRangeEst.mean()
+                    oEst[LDA_COUNT, j] = oRangeEst.mean()
+                    LDA_COUNT = LDA_COUNT + 1
+
+                bar()
+
+        E = np.size(epsset)
+        sMeanLda = np.zeros((E, L))
+        oMeanLda = np.zeros((E, L))
+
+        # compute mean of unbiased estimator across clients
+        for l in range(L):
+            sMeanLda[l] = np.mean(sEst, axis = 1)
+            oMeanLda[l] = np.mean(oEst, axis = 1)
+        
+            # option 3a: intermediate server adds Gaussian noise term
+            if 4 <= trial < 8:
+                sMeanLda[l] = sMeanLda[l] + gaussNoise.sample(sample_shape = (1,))
+                oMeanLda[l] = oMeanLda[l] + gaussNoise.sample(sample_shape = (1,))
+
+        # find lambda that produces minimum error
+        sIndex = np.argmin(sMeanLda)
+        oIndex = np.argmin(oMeanLda)
+
+        # mean across clients for optimum lambda
+        sMean = sMeanLda[sIndex]
+        oMean = oMeanLda[oIndex]
+
+        # numpy arrays
+        sMeanA = np.zeros(E)
+        oMeanA = np.zeros(E)
+
         # option 3b: server adds Laplace noise term to final result
-        if trial >= 4:
+        if trial >= 8:
             sMeanA[EPS_COUNT] = (sMean + lapNoise.sample(sample_shape = (1,)) - groundTruth)**2
             oMeanA[EPS_COUNT] = (oMean + lapNoise.sample(sample_shape = (1,)) - groundTruth)**2
 
@@ -163,40 +165,56 @@ for trial in range(8):
 
         EPS_COUNT = EPS_COUNT + 1
 
-    if trial % 8 == 0:
+    if trial % 12 == 0:
         sMean1 = sMeanA
         oMean1 = oMeanA
 
-    if trial % 8 == 1:
+    if trial % 12 == 1:
         sMean2 = sMeanA
         oMean2 = oMeanA
 
-    if trial % 8 == 2:
+    if trial % 12 == 2:
         sMean3 = sMeanA
         oMean3 = oMeanA
 
-    if trial % 8 == 3:
+    if trial % 12 == 3:
         sMean4 = sMeanA
         oMean4 = oMeanA
 
-    if trial % 8 == 4:
+    if trial % 12 == 4:
         sMean5 = sMeanA
         oMean5 = oMeanA
     
-    if trial % 8 == 5:
+    if trial % 12 == 5:
         sMean6 = sMeanA
         oMean6 = oMeanA
     
-    if trial % 8 == 6:
+    if trial % 12 == 6:
         sMean7 = sMeanA
         oMean7 = oMeanA
 
-    if trial % 8 == 7:
+    if trial % 12 == 7:
         sMean8 = sMeanA
         oMean8 = oMeanA
 
-# separate graphs for Small / Large KL divergence and end / mid noise to show trends
-fig = plt.figure(figsize = (12.8, 9.6))
+    if trial % 12 == 8:
+        sMean9 = sMeanA
+        oMean9 = oMeanA
+    
+    if trial % 12 == 9:
+        sMean10 = sMeanA
+        oMean10 = oMeanA
+    
+    if trial % 12 == 10:
+        sMean11 = sMeanA
+        oMean11 = oMeanA
+
+    if trial % 12 == 11:
+        sMean12 = sMeanA
+        oMean12 = oMeanA
+
+# separate graphs for Small / Large KL divergence and start / mid / end noise to show trends
+fig = plt.figure(figsize = (12.8, 14.4))
 
 ax1 = plt.subplot(121)
 ax1.plot(epsset, sMean1, label = "Small KLD + Gauss (samp)")
@@ -206,7 +224,7 @@ ax1.plot(epsset, oMean2, label = "Small KLD + Gauss (ord) mc")
 
 ax1.set_title("Effect of epsilon on error of unbiased estimator")
 ax1.set_xlabel("Value of epsilon")
-ax1.set_ylabel("Error of unbiased estimator (mid noise)")
+ax1.set_ylabel("Error of unbiased estimator (start noise)")
 ax1.set_xscale("log")
 ax1.set_yscale("log")
 ax1.legend(loc = "best")
@@ -219,36 +237,62 @@ ax2.plot(epsset, oMean4, label = "Large KLD + Gauss (ord) mc")
 
 ax2.set_title("Effect of epsilon on error of unbiased estimator")
 ax2.set_xlabel("Value of epsilon")
-ax2.set_ylabel("Error of unbiased estimator (mid noise)")
+ax2.set_ylabel("Error of unbiased estimator (start noise)")
 ax2.set_xscale("log")
 ax2.set_yscale("log")
 ax2.legend(loc = "best")
 
 ax3 = plt.subplot(221)
-ax3.plot(epsset, sMean5, label = "Small KLD + Lap (samp)")
-ax3.plot(epsset, oMean5, label = "Small KLD + Lap (ord)")
-ax3.plot(epsset, sMean6, label = "Small KLD + Lap (samp) mc")
-ax3.plot(epsset, oMean6, label = "Small KLD + Lap (ord) mc")
+ax3.plot(epsset, sMean1, label = "Small KLD + Gauss (samp)")
+ax3.plot(epsset, oMean1, label = "Small KLD + Gauss (ord)")
+ax3.plot(epsset, sMean2, label = "Small KLD + Gauss (samp) mc")
+ax3.plot(epsset, oMean2, label = "Small KLD + Gauss (ord) mc")
 
 ax3.set_title("Effect of epsilon on error of unbiased estimator")
 ax3.set_xlabel("Value of epsilon")
-ax3.set_ylabel("Error of unbiased estimator (end noise)")
+ax3.set_ylabel("Error of unbiased estimator (mid noise)")
 ax3.set_xscale("log")
 ax3.set_yscale("log")
 ax3.legend(loc = "best")
 
 ax4 = plt.subplot(222)
-ax4.plot(epsset, sMean7, label = "Large KLD + Lap (samp)")
-ax4.plot(epsset, oMean7, label = "Large KLD + Lap (ord)")
-ax4.plot(epsset, sMean8, label = "Large KLD + Lap (samp) mc")
-ax4.plot(epsset, oMean8, label = "Large KLD + Lap (ord) mc")
+ax4.plot(epsset, sMean3, label = "Large KLD + Gauss (samp)")
+ax4.plot(epsset, oMean3, label = "Large KLD + Gauss (ord)")
+ax4.plot(epsset, sMean4, label = "Large KLD + Gauss (samp) mc")
+ax4.plot(epsset, oMean4, label = "Large KLD + Gauss (ord) mc")
 
 ax4.set_title("Effect of epsilon on error of unbiased estimator")
 ax4.set_xlabel("Value of epsilon")
-ax4.set_ylabel("Error of unbiased estimator (end noise)")
+ax4.set_ylabel("Error of unbiased estimator (mid noise)")
 ax4.set_xscale("log")
 ax4.set_yscale("log")
 ax4.legend(loc = "best")
+
+ax5 = plt.subplot(321)
+ax5.plot(epsset, sMean5, label = "Small KLD + Lap (samp)")
+ax5.plot(epsset, oMean5, label = "Small KLD + Lap (ord)")
+ax5.plot(epsset, sMean6, label = "Small KLD + Lap (samp) mc")
+ax5.plot(epsset, oMean6, label = "Small KLD + Lap (ord) mc")
+
+ax5.set_title("Effect of epsilon on error of unbiased estimator")
+ax5.set_xlabel("Value of epsilon")
+ax5.set_ylabel("Error of unbiased estimator (end noise)")
+ax5.set_xscale("log")
+ax5.set_yscale("log")
+ax5.legend(loc = "best")
+
+ax6 = plt.subplot(322)
+ax6.plot(epsset, sMean7, label = "Large KLD + Lap (samp)")
+ax6.plot(epsset, oMean7, label = "Large KLD + Lap (ord)")
+ax6.plot(epsset, sMean8, label = "Large KLD + Lap (samp) mc")
+ax6.plot(epsset, oMean8, label = "Large KLD + Lap (ord) mc")
+
+ax6.set_title("Effect of epsilon on error of unbiased estimator")
+ax6.set_xlabel("Value of epsilon")
+ax6.set_ylabel("Error of unbiased estimator (end noise)")
+ax6.set_xscale("log")
+ax6.set_yscale("log")
+ax6.legend(loc = "best")
 
 plt.tight_layout()
 plt.savefig("Synth_all_noise_eps.png")
