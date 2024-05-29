@@ -209,7 +209,8 @@ for trial in range(7):
         # load Gaussian noise distributions for clients and intermediate server
         if trial < 4:
             s = b2 * (np.sqrt(2) / R1)
-            gaussNoise = tfp.distributions.Normal(loc = A, scale = s / 100)
+            probGaussNoise = tfp.distributions.Normal(loc = A, scale = s / 100)
+            gaussNoise = tfp.distributions.Normal(loc = A, scale = s)
 
         # smoothing parameter: 0.1 and 1 are too large
         ALPHA = 0.01
@@ -224,7 +225,7 @@ for trial in range(7):
        
             # option 2a: each client adds Gaussian noise term
             if trial == 0 or trial == 1:
-                startNoise = gaussNoise.sample(sample_shape = (1,))
+                startNoise = probGaussNoise.sample(sample_shape = (1,))
 
                 if startNoise < 0:
                     uProbsSet[dig, ufreq] = uProbsSet[dig, ufreq] - startNoise
