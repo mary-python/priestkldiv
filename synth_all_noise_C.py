@@ -15,7 +15,7 @@ print("\nStarting...")
 torch.manual_seed(12)
 
 for trial in range(12):
-    print(f"Trial {trial + 1}...")
+    print(f"\nTrial {trial + 1}...")
 
     # p is unknown distribution, q is known
     # option 1a: distributions have small KL divergence
@@ -88,57 +88,52 @@ for trial in range(12):
     C_COUNT = 0
 
     for C in Cset:
+        print(f"Trial {trial + 1}: C = {C}...")
 
         sEst = np.zeros((L, C))
         oEst = np.zeros((L, C))
 
-        with alive_bar(C) as bar:
-            for j in range(C):
+        for j in range(C):
 
-                # even clients get positive values, odd clients get negative values
-                if (j % 2) == 0:
-                    indices = torch.randperm(len(qPositiveRound))[:N]
-                    qClientSamp = qPositiveRound[indices]
-                else:
-                    indices = torch.randperm(len(qNegativeRound))[:N]
-                    qClientSamp = qNegativeRound[indices]
+            # even clients get positive values, odd clients get negative values
+            if (j % 2) == 0:
+                indices = torch.randperm(len(qPositiveRound))[:N]
+                qClientSamp = qPositiveRound[indices]
+            else:
+                indices = torch.randperm(len(qNegativeRound))[:N]
+                qClientSamp = qNegativeRound[indices]
 
-                # each client gets N points in order from ordered pre-processed sample
-                qOrdClientSamp = qOrderedRound[0][N*j : N*(j + 1)]
+            # each client gets N points in order from ordered pre-processed sample
+            qOrdClientSamp = qOrderedRound[0][N*j : N*(j + 1)]
 
-                # option 3a: each client adds Gaussian noise term
-                if trial < 4:
-                    qOrdClientSamp = qOrdClientSamp + gaussNoise.sample(sample_shape = (1,))
+            # option 3a: each client adds Gaussian noise term
+            if trial < 4:
+                qOrdClientSamp = qOrdClientSamp + gaussNoise.sample(sample_shape = (1,))
 
-                # compute ratio between unknown and known distributions
-                sLogr = p.log_prob(qClientSamp) - q.log_prob(qClientSamp)
-                oLogr = p.log_prob(qOrdClientSamp) - q.log_prob(qOrdClientSamp)
-                LDA_COUNT = 0
+            # compute ratio between unknown and known distributions
+            sLogr = p.log_prob(qClientSamp) - q.log_prob(qClientSamp)
+            oLogr = p.log_prob(qOrdClientSamp) - q.log_prob(qOrdClientSamp)
+            LDA_COUNT = 0
 
-                # explore lambdas in a range
-                for lda in np.arange(0, rLda + ldaStep, ldaStep):
+            # explore lambdas in a range
+            for lda in np.arange(0, rLda + ldaStep, ldaStep):
 
-                    # compute k3 estimator
-                    sRangeEst = (lda * (np.exp(sLogr) - 1)) - sLogr
-                    oRangeEst = (lda * (np.exp(oLogr) - 1)) - oLogr
+                # compute k3 estimator
+                sRangeEst = (lda * (np.exp(sLogr) - 1)) - sLogr
+                oRangeEst = (lda * (np.exp(oLogr) - 1)) - oLogr
 
-                    # share unbiased estimator with server
-                    sEst[LDA_COUNT, j] = sRangeEst.mean()
-                    oEst[LDA_COUNT, j] = oRangeEst.mean()
-                    LDA_COUNT = LDA_COUNT + 1
-
-                bar()
-
-        sMeanLda = np.zeros((CS, L))
-        oMeanLda = np.zeros((CS, L))
+                # share unbiased estimator with server
+                sEst[LDA_COUNT, j] = sRangeEst.mean()
+                oEst[LDA_COUNT, j] = oRangeEst.mean()
+                LDA_COUNT = LDA_COUNT + 1
 
         # compute mean of unbiased estimator across clients
-        for l in range(L):
-            sMeanLda[l] = np.mean(sEst, axis = 1)
-            oMeanLda[l] = np.mean(oEst, axis = 1)
+        sMeanLda = np.mean(sEst, axis = 1)
+        oMeanLda = np.mean(oEst, axis = 1)
         
-            # option 3b: intermediate server adds Gaussian noise term
-            if 4 <= trial < 8:
+        # option 3b: intermediate server adds Gaussian noise term
+        if 4 <= trial < 8:
+            for l in range(L):
                 sMeanLda[l] = sMeanLda[l] + gaussNoise.sample(sample_shape = (1,))
                 oMeanLda[l] = oMeanLda[l] + gaussNoise.sample(sample_shape = (1,))
 
@@ -211,88 +206,83 @@ for trial in range(12):
         oMean12 = oMeanA
 
 # separate graphs for Small / Large KL divergence and end / mid noise to show trends
-fig = plt.figure(figsize = (12.8, 14.4))
+plt.plot(Cset, sMean1, label = "Small KLD + Gauss (samp)")
+plt.plot(Cset, oMean1, label = "Small KLD + Gauss (ord)")
+plt.plot(Cset, sMean2, label = "Small KLD + Gauss (samp) mc")
+plt.plot(Cset, oMean2, label = "Small KLD + Gauss (ord) mc")
+plt.legend(loc = "best")
+plt.xscale("log")
+plt.yscale("log")
+plt.xlabel("Value of C")
+plt.ylabel("Error of unbiased estimator (start noise)")
+plt.title("Effect of C on error of unbiased estimator")
+plt.savefig("Synth_C_small_start_noise.png")
+plt.clf()
 
-ax1 = plt.subplot(121)
-ax1.plot(Cset, sMean1, label = "Small KLD + Gauss (samp)")
-ax1.plot(Cset, oMean1, label = "Small KLD + Gauss (ord)")
-ax1.plot(Cset, sMean2, label = "Small KLD + Gauss (samp) mc")
-ax1.plot(Cset, oMean2, label = "Small KLD + Gauss (ord) mc")
+plt.plot(Cset, sMean3, label = "Large KLD + Gauss (samp)")
+plt.plot(Cset, oMean3, label = "Large KLD + Gauss (ord)")
+plt.plot(Cset, sMean4, label = "Large KLD + Gauss (samp) mc")
+plt.plot(Cset, oMean4, label = "Large KLD + Gauss (ord) mc")
+plt.legend(loc = "best")
+plt.xscale("log")
+plt.yscale("log")
+plt.xlabel("Value of C")
+plt.ylabel("Error of unbiased estimator (start noise)")
+plt.title("Effect of C on error of unbiased estimator")
+plt.savefig("Synth_C_large_start_noise.png")
+plt.clf()
 
-ax1.set_title("Effect of C on error of unbiased estimator")
-ax1.set_xlabel("Value of C")
-ax1.set_ylabel("Error of unbiased estimator (start noise)")
-ax1.set_xscale("log")
-ax1.set_yscale("log")
-ax1.legend(loc = "best")
+plt.plot(Cset, sMean1, label = "Small KLD + Gauss (samp)")
+plt.plot(Cset, oMean1, label = "Small KLD + Gauss (ord)")
+plt.plot(Cset, sMean2, label = "Small KLD + Gauss (samp) mc")
+plt.plot(Cset, oMean2, label = "Small KLD + Gauss (ord) mc")
+plt.legend(loc = "best")
+plt.xscale("log")
+plt.yscale("log")
+plt.xlabel("Value of C")
+plt.ylabel("Error of unbiased estimator (mid noise)")
+plt.title("Effect of C on error of unbiased estimator")
+plt.savefig("Synth_C_small_mid_noise.png")
+plt.clf()
 
-ax2 = plt.subplot(122)
-ax2.plot(Cset, sMean3, label = "Large KLD + Gauss (samp)")
-ax2.plot(Cset, oMean3, label = "Large KLD + Gauss (ord)")
-ax2.plot(Cset, sMean4, label = "Large KLD + Gauss (samp) mc")
-ax2.plot(Cset, oMean4, label = "Large KLD + Gauss (ord) mc")
+plt.plot(Cset, sMean3, label = "Large KLD + Gauss (samp)")
+plt.plot(Cset, oMean3, label = "Large KLD + Gauss (ord)")
+plt.plot(Cset, sMean4, label = "Large KLD + Gauss (samp) mc")
+plt.plot(Cset, oMean4, label = "Large KLD + Gauss (ord) mc")
+plt.legend(loc = "best")
+plt.xscale("log")
+plt.yscale("log")
+plt.xlabel("Value of C")
+plt.ylabel("Error of unbiased estimator (mid noise)")
+plt.title("Effect of C on error of unbiased estimator")
+plt.savefig("Synth_C_large_mid_noise.png")
+plt.clf()
 
-ax2.set_title("Effect of C on error of unbiased estimator")
-ax2.set_xlabel("Value of C")
-ax2.set_ylabel("Error of unbiased estimator (start noise)")
-ax2.set_xscale("log")
-ax2.set_yscale("log")
-ax2.legend(loc = "best")
+plt.plot(Cset, sMean5, label = "Small KLD + Lap (samp)")
+plt.plot(Cset, oMean5, label = "Small KLD + Lap (ord)")
+plt.plot(Cset, sMean6, label = "Small KLD + Lap (samp) mc")
+plt.plot(Cset, oMean6, label = "Small KLD + Lap (ord) mc")
+plt.legend(loc = "best")
+plt.xscale("log")
+plt.yscale("log")
+plt.xlabel("Value of C")
+plt.ylabel("Error of unbiased estimator (end noise)")
+plt.title("Effect of C on error of unbiased estimator")
+plt.savefig("Synth_C_small_end_noise.png")
+plt.clf()
 
-ax3 = plt.subplot(221)
-ax3.plot(Cset, sMean1, label = "Small KLD + Gauss (samp)")
-ax3.plot(Cset, oMean1, label = "Small KLD + Gauss (ord)")
-ax3.plot(Cset, sMean2, label = "Small KLD + Gauss (samp) mc")
-ax3.plot(Cset, oMean2, label = "Small KLD + Gauss (ord) mc")
-
-ax3.set_title("Effect of C on error of unbiased estimator")
-ax3.set_xlabel("Value of C")
-ax3.set_ylabel("Error of unbiased estimator (mid noise)")
-ax3.set_xscale("log")
-ax3.set_yscale("log")
-ax3.legend(loc = "best")
-
-ax4 = plt.subplot(222)
-ax4.plot(Cset, sMean3, label = "Large KLD + Gauss (samp)")
-ax4.plot(Cset, oMean3, label = "Large KLD + Gauss (ord)")
-ax4.plot(Cset, sMean4, label = "Large KLD + Gauss (samp) mc")
-ax4.plot(Cset, oMean4, label = "Large KLD + Gauss (ord) mc")
-
-ax4.set_title("Effect of C on error of unbiased estimator")
-ax4.set_xlabel("Value of C")
-ax4.set_ylabel("Error of unbiased estimator (mid noise)")
-ax4.set_xscale("log")
-ax4.set_yscale("log")
-ax4.legend(loc = "best")
-
-ax5 = plt.subplot(321)
-ax5.plot(Cset, sMean5, label = "Small KLD + Lap (samp)")
-ax5.plot(Cset, oMean5, label = "Small KLD + Lap (ord)")
-ax5.plot(Cset, sMean6, label = "Small KLD + Lap (samp) mc")
-ax5.plot(Cset, oMean6, label = "Small KLD + Lap (ord) mc")
-
-ax5.set_title("Effect of C on error of unbiased estimator")
-ax5.set_xlabel("Value of C")
-ax5.set_ylabel("Error of unbiased estimator (end noise)")
-ax5.set_xscale("log")
-ax5.set_yscale("log")
-ax5.legend(loc = "best")
-
-ax6 = plt.subplot(322)
-ax6.plot(Cset, sMean7, label = "Large KLD + Lap (samp)")
-ax6.plot(Cset, oMean7, label = "Large KLD + Lap (ord)")
-ax6.plot(Cset, sMean8, label = "Large KLD + Lap (samp) mc")
-ax6.plot(Cset, oMean8, label = "Large KLD + Lap (ord) mc")
-
-ax6.set_title("Effect of C on error of unbiased estimator")
-ax6.set_xlabel("Value of C")
-ax6.set_ylabel("Error of unbiased estimator (end noise)")
-ax6.set_xscale("log")
-ax6.set_yscale("log")
-ax6.legend(loc = "best")
-
-plt.tight_layout()
-plt.savefig("Synth_all_noise_C.png")
+plt.plot(Cset, sMean7, label = "Large KLD + Lap (samp)")
+plt.plot(Cset, oMean7, label = "Large KLD + Lap (ord)")
+plt.plot(Cset, sMean8, label = "Large KLD + Lap (samp) mc")
+plt.plot(Cset, oMean8, label = "Large KLD + Lap (ord) mc")
+plt.legend(loc = "best")
+plt.xscale("log")
+plt.yscale("log")
+plt.xlabel("Value of C")
+plt.ylabel("Error of unbiased estimator (end noise)")
+plt.title("Effect of C on error of unbiased estimator")
+plt.savefig("Synth_C_large_end_noise.png")
+plt.clf()
 
 # compute total runtime in minutes and seconds
 totalTime = time.perf_counter() - startTime
