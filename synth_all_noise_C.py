@@ -186,9 +186,9 @@ for trial in range(12):
             sMeanEst[trial, C_COUNT] = (sMeanEst[trial, C_COUNT] - groundTruth)**2
             oMeanEst[trial, C_COUNT] = (oMeanEst[trial, C_COUNT] - groundTruth)**2
 
-        statsfile.write(f"FEMNIST: C = {C}\n")
+        statsfile.write(f"SYNTHETIC: C = {C}\n")
         statsfile.write(f"Sampled: Optimal Lambda {round(sLdaOpt[trial, C_COUNT], 2)} for Mean Error {round(sMeanEst[trial, C_COUNT], 2)}\n")
-        statsfile.write(f"Ordered: Optimal Lambda {round(oLdaOpt[trial, C_COUNT], 2)} for Mean Error {round(oMeanEst[trial, C_COUNT], 2)}\n")
+        statsfile.write(f"Ordered: Optimal Lambda {round(oLdaOpt[trial, C_COUNT], 2)} for Mean Error {round(oMeanEst[trial, C_COUNT], 2)}\n\n")
 
         C_COUNT = C_COUNT + 1
 
