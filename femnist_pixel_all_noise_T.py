@@ -52,7 +52,7 @@ maxLdaOpt = np.zeros((TS, ES))
 for trial in range(7):
     
     print(f"\nTrial {trial + 1}: {trialset[trial]}")
-    statsfile = open(f"femnist_{trialset[trial]}_noise.txt", "w", encoding = 'utf-8')
+    statsfile = open(f"femnist_T_{trialset[trial]}_noise.txt", "w", encoding = 'utf-8')
     T_FREQ = 0
 
     for T in Tset:

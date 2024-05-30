@@ -27,7 +27,7 @@ oLdaOpt = np.zeros((TS, CS))
 
 for trial in range(12):
     print(f"\nTrial {trial + 1}: {trialset[trial]}")
-    statsfile = open(f"synth_{trialset[trial]}.txt", "w", encoding = 'utf-8')
+    statsfile = open(f"synth_C_{trialset[trial]}.txt", "w", encoding = 'utf-8')
 
     # p is unknown distribution, q is known
     # option 1a: distributions have small KL divergence
