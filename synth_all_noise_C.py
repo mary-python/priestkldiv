@@ -1,9 +1,7 @@
-"""Modules provide various time-related functions as well as progress updates,
-compute the natural logarithm of a number, parameterise probability distributions,
-create static, animated, and interactive visualisations, and work with arrays."""
+"""Modules provide various time-related functions, compute the natural logarithm of a number, parameterise
+probability distributions, create static, animated, and interactive visualisations, and work with arrays."""
 import time
 from math import log
-from alive_progress import alive_bar
 import torch
 import torch.distributions as dis
 import matplotlib.pyplot as plt
@@ -14,12 +12,26 @@ startTime = time.perf_counter()
 print("\nStarting...")
 torch.manual_seed(12)
 
+# lists of the values of C and trials that will be run
+Cset = [40, 80, 120, 160, 200, 260, 320, 400, 480, 560, 620, 680]
+trialset = ["small_start_gauss", "small_start_gauss_mc", "small_mid_gauss", "small_mid_gauss_mc", "small_end_lap", "small_end_lap_mc",
+            "large_start_gauss", "large_start_gauss_mc", "large_mid_gauss", "large_mid_gauss_mc", "large_end_lap", "large_end_lap_mc"]
+CS = len(Cset)
+TS = len(trialset)
+
+# stores for mean of unbiased estimator and optimum lambda
+sMeanEst = np.zeros((TS, CS))
+sLdaOpt = np.zeros((TS, CS))
+oMeanEst = np.zeros((TS, CS))
+oLdaOpt = np.zeros((TS, CS))
+
 for trial in range(12):
-    print(f"\nTrial {trial + 1}...")
+    print(f"\nTrial {trial + 1}: {trialset[trial]}")
+    statsfile = open(f"synth_{trialset[trial]}.txt", "w", encoding = 'utf-8')
 
     # p is unknown distribution, q is known
     # option 1a: distributions have small KL divergence
-    if trial % 4 == 0 or trial % 4 == 1:
+    if trial < 6:
         p = dis.Laplace(loc = 0.1, scale = 1)
 
     # option 1b: distributions have large KL divergence
@@ -49,8 +61,7 @@ for trial in range(12):
     qNegativeRound = qOrderedRound[0][0:249151]
     qPositiveRound = qOrderedRound[0][249151:499947]
 
-    # sample different proportions of clients (1%-20%) each with 125 points
-    Cset = np.array([40, 80, 120, 160, 200, 260, 320, 400, 480, 560, 620, 680])
+    # each client has 125 points
     N = 125
 
     # parameters for the addition of Laplace and Gaussian noise
@@ -72,19 +83,22 @@ for trial in range(12):
     # load Laplace and Gaussian noise distributions, dependent on eps
     s1 = b1 / EPS
     s2 = b2 / EPS
-    lapNoise = dis.Laplace(loc = A, scale = s1)
 
-    if trial < 8:
+    if trial % 3 == 0 or trial % 3 == 1:
         s3 = s2 * (np.sqrt(2) / R)
-        gaussNoise = dis.Normal(loc = A, scale = s3)
+
+        if trial % 3 == 0:
+            probGaussNoise = dis.Normal(loc = A, scale = s3 / 100)
+        else:
+            gaussNoise = dis.Normal(loc = A, scale = s3)
+    
+    else:
+        lapNoise = dis.Laplace(loc = A, scale = s1)
 
     # numpy arrays
     rLda = 1
     ldaStep = 0.05
     L = int((rLda + ldaStep) / ldaStep)
-    CS = np.size(Cset)
-    sMeanA = np.zeros(CS)
-    oMeanA = np.zeros(CS)
     C_COUNT = 0
 
     for C in Cset:
@@ -95,7 +109,7 @@ for trial in range(12):
 
         for j in range(C):
 
-            # even clients get positive values, odd clients get negative values
+            # "SAMPLED": even clients get positive values, odd clients get negative values
             if (j % 2) == 0:
                 indices = torch.randperm(len(qPositiveRound))[:N]
                 qClientSamp = qPositiveRound[indices]
@@ -103,12 +117,23 @@ for trial in range(12):
                 indices = torch.randperm(len(qNegativeRound))[:N]
                 qClientSamp = qNegativeRound[indices]
 
-            # each client gets N points in order from ordered pre-processed sample
+            # "ORDERED": each client gets N points in order from ordered pre-processed sample
             qOrdClientSamp = qOrderedRound[0][N*j : N*(j + 1)]
 
             # option 3a: each client adds Gaussian noise term
-            if trial < 4:
-                qOrdClientSamp = qOrdClientSamp + gaussNoise.sample(sample_shape = (1,))
+            if trial % 3 == 0:
+                sStartNoise = probGaussNoise.sample(sample_shape = (1,))
+                oStartNoise = probGaussNoise.sample(sample_shape = (1,))
+
+                if sStartNoise < 0:
+                    qClientSamp = qClientSamp - sStartNoise
+                else:
+                    qClientSamp = qClientSamp + sStartNoise
+
+                if oStartNoise < 0:
+                    qClientSamp = qClientSamp - oStartNoise
+                else:
+                    qClientSamp = qClientSamp + oStartNoise
 
             # compute ratio between unknown and known distributions
             sLogr = p.log_prob(qClientSamp) - q.log_prob(qClientSamp)
@@ -132,144 +157,151 @@ for trial in range(12):
         oMeanLda = np.mean(oEst, axis = 1)
         
         # option 3b: intermediate server adds Gaussian noise term
-        if 4 <= trial < 8:
+        if trial % 3 == 1:
             for l in range(L):
                 sMeanLda[l] = sMeanLda[l] + gaussNoise.sample(sample_shape = (1,))
                 oMeanLda[l] = oMeanLda[l] + gaussNoise.sample(sample_shape = (1,))
 
         # find lambda that produces minimum error
-        sIndex = np.argmin(sMeanLda)
-        oIndex = np.argmin(oMeanLda)
+        sLdaIndex = np.argmin(sMeanLda)
+        oLdaIndex = np.argmin(oMeanLda)
+
+        sMinMeanError = sMeanLda[sLdaIndex]
+        oMinMeanError = oMeanLda[oLdaIndex]
 
         # mean across clients for optimum lambda
-        sMean = sMeanLda[sIndex]
-        oMean = oMeanLda[oIndex]
+        sMeanEst[trial, C_COUNT] = sMinMeanError
+        oMeanEst[trial, C_COUNT] = oMinMeanError
+
+        sLdaOpt[trial, C_COUNT] = sLdaIndex * ldaStep
+        oLdaOpt[trial, C_COUNT] = oLdaIndex * ldaStep
 
         # option 3c: server adds Laplace noise term to final result
-        if trial >= 8:
-            sMeanA[C_COUNT] = (sMean + lapNoise.sample(sample_shape = (1,)) - groundTruth)**2
-            oMeanA[C_COUNT] = (oMean + lapNoise.sample(sample_shape = (1,)) - groundTruth)**2
+        if trial % 3 == 2:
+            sMeanEst[trial, C_COUNT] = (sMeanEst[trial, C_COUNT] + lapNoise.sample(sample_shape = (1,)) - groundTruth)**2
+            oMeanEst[trial, C_COUNT] = (oMeanEst[trial, C_COUNT] + lapNoise.sample(sample_shape = (1,)) - groundTruth)**2
 
         # option 3a/b: clients or intermediate server already added Gaussian noise term
         else:
-            sMeanA[C_COUNT] = (sMean - groundTruth)**2
-            oMeanA[C_COUNT] = (oMean - groundTruth)**2
+            sMeanEst[trial, C_COUNT] = (sMeanEst[trial, C_COUNT] - groundTruth)**2
+            oMeanEst[trial, C_COUNT] = (oMeanEst[trial, C_COUNT] - groundTruth)**2
+
+        statsfile.write(f"FEMNIST: C = {C}\n")
+        statsfile.write(f"Sampled: Optimal Lambda {round(sLdaOpt[trial, C_COUNT], 2)} for Mean Error {round(sMeanEst[trial, C_COUNT], 2)}\n")
+        statsfile.write(f"Ordered: Optimal Lambda {round(oLdaOpt[trial, C_COUNT], 2)} for Mean Error {round(oMeanEst[trial, C_COUNT], 2)}\n")
 
         C_COUNT = C_COUNT + 1
 
-    if trial % 12 == 0:
-        sMean1 = sMeanA
-        oMean1 = oMeanA
-
-    if trial % 12 == 1:
-        sMean2 = sMeanA
-        oMean2 = oMeanA
-
-    if trial % 12 == 2:
-        sMean3 = sMeanA
-        oMean3 = oMeanA
-
-    if trial % 12 == 3:
-        sMean4 = sMeanA
-        oMean4 = oMeanA
-
-    if trial % 12 == 4:
-        sMean5 = sMeanA
-        oMean5 = oMeanA
-    
-    if trial % 12 == 5:
-        sMean6 = sMeanA
-        oMean6 = oMeanA
-    
-    if trial % 12 == 6:
-        sMean7 = sMeanA
-        oMean7 = oMeanA
-
-    if trial % 12 == 7:
-        sMean8 = sMeanA
-        oMean8 = oMeanA
-
-    if trial % 12 == 8:
-        sMean9 = sMeanA
-        oMean9 = oMeanA
-    
-    if trial % 12 == 9:
-        sMean10 = sMeanA
-        oMean10 = oMeanA
-    
-    if trial % 12 == 10:
-        sMean11 = sMeanA
-        oMean11 = oMeanA
-
-    if trial % 12 == 11:
-        sMean12 = sMeanA
-        oMean12 = oMeanA
-
-# separate graphs for Small / Large KL divergence and end / mid noise to show trends
-plt.errorbar(Cset, sMean1, yerr = np.minimum(np.sqrt(sMean1), np.divide(sMean1, 2)), color = 'blue', marker = 'o', label = "Small KLD + Gauss (samp)")
-plt.errorbar(Cset, oMean1, yerr = np.minimum(np.sqrt(oMean1), np.divide(oMean1, 2)), color = 'green', marker = 'x', label = "Small KLD + Gauss (ord)")
-plt.errorbar(Cset, sMean2, yerr = np.minimum(np.sqrt(sMean2), np.divide(sMean2, 2)), color = 'orange', marker = 'o', label = "Small KLD + Gauss (samp) mc")
-plt.errorbar(Cset, oMean2, yerr = np.minimum(np.sqrt(oMean2), np.divide(oMean2, 2)), color = 'red', marker = 'x', label = "Small KLD + Gauss (ord) mc")
+# Small KLD, sampled
+plt.errorbar(Cset, sMeanEst[0], yerr = np.minimum(np.sqrt(sMeanEst[0]), np.divide(sMeanEst[0], 2)), color = 'blue', marker = 'o', label = "start gauss")
+plt.errorbar(Cset, sMeanEst[1], yerr = np.minimum(np.sqrt(sMeanEst[1]), np.divide(sMeanEst[1], 2)), color = 'blueviolet', marker = 'x', label = "start gauss mc")
+plt.errorbar(Cset, sMeanEst[2], yerr = np.minimum(np.sqrt(sMeanEst[2]), np.divide(sMeanEst[2], 2)), color = 'green', marker = 'o', label = "mid gauss")
+plt.errorbar(Cset, sMeanEst[3], yerr = np.minimum(np.sqrt(sMeanEst[3]), np.divide(sMeanEst[3], 2)), color = 'lime', marker = 'x', label = "mid gauss mc")
+plt.errorbar(Cset, sMeanEst[4], yerr = np.minimum(np.sqrt(sMeanEst[4]), np.divide(sMeanEst[4], 2)), color = 'orange', marker = 'o', label = "end lap")
+plt.errorbar(Cset, sMeanEst[5], yerr = np.minimum(np.sqrt(sMeanEst[5]), np.divide(sMeanEst[5], 2)), color = 'gold', marker = 'x', label = "end lap mc")
 plt.legend(loc = "best")
+plt.yscale('log')
 plt.xlabel("Value of C")
-plt.ylabel("Error of unbiased estimator (start noise)")
-plt.title("Effect of C on error of unbiased estimator")
-plt.savefig("Synth_C_small_start_noise.png")
+plt.ylabel("Error of unbiased estimator (small KLD, samp)")
+plt.title("Effect of C on error of unbiased estimator (small KLD, samp)")
+plt.savefig("Synth_C_small_samp.png")
 plt.clf()
 
-plt.errorbar(Cset, sMean3, yerr = np.minimum(np.sqrt(sMean3), np.divide(sMean3, 2)), color = 'blueviolet', marker = 'o', label = "Large KLD + Gauss (samp)")
-plt.errorbar(Cset, oMean3, yerr = np.minimum(np.sqrt(oMean3), np.divide(oMean3, 2)), color = 'lime', marker = 'x', label = "Large KLD + Gauss (ord)")
-plt.errorbar(Cset, sMean4, yerr = np.minimum(np.sqrt(sMean4), np.divide(sMean4, 2)), color = 'gold', marker = 'o', label = "Large KLD + Gauss (samp) mc")
-plt.errorbar(Cset, oMean4, yerr = np.minimum(np.sqrt(oMean4), np.divide(oMean4, 2)), color = 'pink', marker = 'x', label = "Large KLD + Gauss (ord) mc")
-plt.legend(loc = "best")
+plt.plot(Cset, sLdaOpt[0], color = 'blue', marker = 'o', label = 'start gauss')
+plt.plot(Cset, sLdaOpt[1], color = 'blueviolet', marker = 'x', label = 'start gauss mc')
+plt.plot(Cset, sLdaOpt[2], color = 'green', marker = 'o', label = 'mid gauss')
+plt.plot(Cset, sLdaOpt[3], color = 'lime', marker = 'x', label = 'mid gauss mc')
+plt.plot(Cset, sLdaOpt[4], color = 'orange', marker = 'o', label = 'end lap')
+plt.plot(Cset, sLdaOpt[5], color = 'gold', marker = 'x', label = 'end lap mc')
+plt.legend(loc = 'best')
 plt.xlabel("Value of C")
-plt.ylabel("Error of unbiased estimator (start noise)")
-plt.title("Effect of C on error of unbiased estimator")
-plt.savefig("Synth_C_large_start_noise.png")
+plt.ylabel("Lambda to minimise error of unbiased estimator (small KLD, samp)")
+plt.title("How C affects optimum lambda (small KLD, samp)")
+plt.savefig("Synth_C_small_samp_lda.png")
 plt.clf()
 
-plt.errorbar(Cset, sMean5, yerr = np.minimum(np.sqrt(sMean5), np.divide(sMean5, 2)), color = 'blue', marker = 'o', label = "Small KLD + Gauss (samp)")
-plt.errorbar(Cset, oMean5, yerr = np.minimum(np.sqrt(oMean5), np.divide(oMean5, 2)), color = 'green', marker = 'x', label = "Small KLD + Gauss (ord)")
-plt.errorbar(Cset, sMean6, yerr = np.minimum(np.sqrt(sMean6), np.divide(sMean6, 2)), color = 'orange', marker = 'o', label = "Small KLD + Gauss (samp) mc")
-plt.errorbar(Cset, oMean6, yerr = np.minimum(np.sqrt(oMean6), np.divide(oMean6, 2)), color = 'red', marker = 'x', label = "Small KLD + Gauss (ord) mc")
+# Small KLD, ordered
+plt.errorbar(Cset, oMeanEst[0], yerr = np.minimum(np.sqrt(oMeanEst[0]), np.divide(oMeanEst[0], 2)), color = 'blue', marker = 'o', label = "start gauss")
+plt.errorbar(Cset, oMeanEst[1], yerr = np.minimum(np.sqrt(oMeanEst[1]), np.divide(oMeanEst[1], 2)), color = 'blueviolet', marker = 'x', label = "start gauss mc")
+plt.errorbar(Cset, oMeanEst[2], yerr = np.minimum(np.sqrt(oMeanEst[2]), np.divide(oMeanEst[2], 2)), color = 'green', marker = 'o', label = "mid gauss")
+plt.errorbar(Cset, oMeanEst[3], yerr = np.minimum(np.sqrt(oMeanEst[3]), np.divide(oMeanEst[3], 2)), color = 'lime', marker = 'x', label = "mid gauss mc")
+plt.errorbar(Cset, oMeanEst[4], yerr = np.minimum(np.sqrt(oMeanEst[4]), np.divide(oMeanEst[4], 2)), color = 'orange', marker = 'o', label = "end lap")
+plt.errorbar(Cset, oMeanEst[5], yerr = np.minimum(np.sqrt(oMeanEst[5]), np.divide(oMeanEst[5], 2)), color = 'gold', marker = 'x', label = "end lap mc")
 plt.legend(loc = "best")
+plt.yscale('log')
 plt.xlabel("Value of C")
-plt.ylabel("Error of unbiased estimator (mid noise)")
-plt.title("Effect of C on error of unbiased estimator")
-plt.savefig("Synth_C_small_mid_noise.png")
+plt.ylabel("Error of unbiased estimator (small KLD, ord)")
+plt.title("Effect of C on error of unbiased estimator (small KLD, ord)")
+plt.savefig("Synth_C_small_ord.png")
 plt.clf()
 
-plt.errorbar(Cset, sMean7, yerr = np.minimum(np.sqrt(sMean7), np.divide(sMean7, 2)), color = 'blueviolet', marker = 'o', label = "Large KLD + Gauss (samp)")
-plt.errorbar(Cset, oMean7, yerr = np.minimum(np.sqrt(oMean7), np.divide(oMean7, 2)), color = 'lime', marker = 'x', label = "Large KLD + Gauss (ord)")
-plt.errorbar(Cset, sMean8, yerr = np.minimum(np.sqrt(sMean8), np.divide(sMean8, 2)), color = 'gold', marker = 'o', label = "Large KLD + Gauss (samp) mc")
-plt.errorbar(Cset, oMean8, yerr = np.minimum(np.sqrt(oMean8), np.divide(oMean8, 2)), color = 'pink', marker = 'x', label = "Large KLD + Gauss (ord) mc")
-plt.legend(loc = "best")
+plt.plot(Cset, oLdaOpt[0], color = 'blue', marker = 'o', label = 'start gauss')
+plt.plot(Cset, oLdaOpt[1], color = 'blueviolet', marker = 'x', label = 'start gauss mc')
+plt.plot(Cset, oLdaOpt[2], color = 'green', marker = 'o', label = 'mid gauss')
+plt.plot(Cset, oLdaOpt[3], color = 'lime', marker = 'x', label = 'mid gauss mc')
+plt.plot(Cset, oLdaOpt[4], color = 'orange', marker = 'o', label = 'end lap')
+plt.plot(Cset, oLdaOpt[5], color = 'gold', marker = 'x', label = 'end lap mc')
+plt.legend(loc = 'best')
 plt.xlabel("Value of C")
-plt.ylabel("Error of unbiased estimator (mid noise)")
-plt.title("Effect of C on error of unbiased estimator")
-plt.savefig("Synth_C_large_mid_noise.png")
+plt.ylabel("Lambda to minimise error of unbiased estimator (small KLD, ord)")
+plt.title("How C affects optimum lambda (small KLD, ord)")
+plt.savefig("Synth_C_small_ord_lda.png")
 plt.clf()
 
-plt.errorbar(Cset, sMean9, yerr = np.minimum(np.sqrt(sMean9), np.divide(sMean9, 2)), color = 'blue', marker = 'o', label = "Small KLD + Lap (samp)")
-plt.errorbar(Cset, oMean9, yerr = np.minimum(np.sqrt(oMean9), np.divide(oMean9, 2)), color = 'green', marker = 'x', label = "Small KLD + Lap (ord)")
-plt.errorbar(Cset, sMean10, yerr = np.minimum(np.sqrt(sMean10), np.divide(sMean10, 2)), color = 'orange', marker = 'o', label = "Small KLD + Lap (samp) mc")
-plt.errorbar(Cset, oMean10, yerr = np.minimum(np.sqrt(oMean10), np.divide(oMean10, 2)), color = 'red', marker = 'x', label = "Small KLD + Lap (ord) mc")
+# Large KLD, sampled
+plt.errorbar(Cset, sMeanEst[6], yerr = np.minimum(np.sqrt(sMeanEst[6]), np.divide(sMeanEst[6], 2)), color = 'blue', marker = 'o', label = "start gauss")
+plt.errorbar(Cset, sMeanEst[7], yerr = np.minimum(np.sqrt(sMeanEst[7]), np.divide(sMeanEst[7], 2)), color = 'blueviolet', marker = 'x', label = "start gauss mc")
+plt.errorbar(Cset, sMeanEst[8], yerr = np.minimum(np.sqrt(sMeanEst[8]), np.divide(sMeanEst[8], 2)), color = 'green', marker = 'o', label = "mid gauss")
+plt.errorbar(Cset, sMeanEst[9], yerr = np.minimum(np.sqrt(sMeanEst[9]), np.divide(sMeanEst[9], 2)), color = 'lime', marker = 'x', label = "mid gauss mc")
+plt.errorbar(Cset, sMeanEst[10], yerr = np.minimum(np.sqrt(sMeanEst[10]), np.divide(sMeanEst[10], 2)), color = 'orange', marker = 'o', label = "end lap")
+plt.errorbar(Cset, sMeanEst[11], yerr = np.minimum(np.sqrt(sMeanEst[11]), np.divide(sMeanEst[11], 2)), color = 'gold', marker = 'x', label = "end lap mc")
 plt.legend(loc = "best")
+plt.yscale('log')
 plt.xlabel("Value of C")
-plt.ylabel("Error of unbiased estimator (end noise)")
-plt.title("Effect of C on error of unbiased estimator")
-plt.savefig("Synth_C_small_end_noise.png")
+plt.ylabel("Error of unbiased estimator (large KLD, samp)")
+plt.title("Effect of C on error of unbiased estimator (large KLD, samp)")
+plt.savefig("Synth_C_large_samp.png")
 plt.clf()
 
-plt.errorbar(Cset, sMean11, yerr = np.minimum(np.sqrt(sMean11), np.divide(sMean11, 2)), color = 'blueviolet', marker = 'o', label = "Large KLD + Lap (samp)")
-plt.errorbar(Cset, oMean11, yerr = np.minimum(np.sqrt(oMean11), np.divide(oMean11, 2)), color = 'lime', marker = 'x', label = "Large KLD + Lap (ord)")
-plt.errorbar(Cset, sMean12, yerr = np.minimum(np.sqrt(sMean12), np.divide(sMean12, 2)), color = 'gold', marker = 'o', label = "Large KLD + Lap (samp) mc")
-plt.errorbar(Cset, oMean12, yerr = np.minimum(np.sqrt(oMean12), np.divide(oMean12, 2)), color = 'pink', marker = 'x', label = "Large KLD + Lap (ord) mc")
-plt.legend(loc = "best")
+plt.plot(Cset, sLdaOpt[6], color = 'blue', marker = 'o', label = 'start gauss')
+plt.plot(Cset, sLdaOpt[7], color = 'blueviolet', marker = 'x', label = 'start gauss mc')
+plt.plot(Cset, sLdaOpt[8], color = 'green', marker = 'o', label = 'mid gauss')
+plt.plot(Cset, sLdaOpt[9], color = 'lime', marker = 'x', label = 'mid gauss mc')
+plt.plot(Cset, sLdaOpt[10], color = 'orange', marker = 'o', label = 'end lap')
+plt.plot(Cset, sLdaOpt[11], color = 'gold', marker = 'x', label = 'end lap mc')
+plt.legend(loc = 'best')
 plt.xlabel("Value of C")
-plt.ylabel("Error of unbiased estimator (end noise)")
-plt.title("Effect of C on error of unbiased estimator")
-plt.savefig("Synth_C_large_end_noise.png")
+plt.ylabel("Lambda to minimise error of unbiased estimator (large KLD, samp)")
+plt.title("How C affects optimum lambda (large KLD, samp)")
+plt.savefig("Synth_C_large_samp_lda.png")
+plt.clf()
+
+# Large KLD, ordered
+plt.errorbar(Cset, oMeanEst[6], yerr = np.minimum(np.sqrt(oMeanEst[6]), np.divide(oMeanEst[6], 2)), color = 'blue', marker = 'o', label = "start gauss")
+plt.errorbar(Cset, oMeanEst[7], yerr = np.minimum(np.sqrt(oMeanEst[7]), np.divide(oMeanEst[7], 2)), color = 'blueviolet', marker = 'x', label = "start gauss mc")
+plt.errorbar(Cset, oMeanEst[8], yerr = np.minimum(np.sqrt(oMeanEst[8]), np.divide(oMeanEst[8], 2)), color = 'green', marker = 'o', label = "mid gauss")
+plt.errorbar(Cset, oMeanEst[9], yerr = np.minimum(np.sqrt(oMeanEst[9]), np.divide(oMeanEst[9], 2)), color = 'lime', marker = 'x', label = "mid gauss mc")
+plt.errorbar(Cset, oMeanEst[10], yerr = np.minimum(np.sqrt(oMeanEst[10]), np.divide(oMeanEst[10], 2)), color = 'orange', marker = 'o', label = "end lap")
+plt.errorbar(Cset, oMeanEst[11], yerr = np.minimum(np.sqrt(oMeanEst[11]), np.divide(oMeanEst[11], 2)), color = 'gold', marker = 'x', label = "end lap mc")
+plt.legend(loc = "best")
+plt.yscale('log')
+plt.xlabel("Value of C")
+plt.ylabel("Error of unbiased estimator (large KLD, ord)")
+plt.title("Effect of C on error of unbiased estimator (large KLD, ord)")
+plt.savefig("Synth_C_large_ord.png")
+plt.clf()
+
+plt.plot(Cset, oLdaOpt[6], color = 'blue', marker = 'o', label = 'start gauss')
+plt.plot(Cset, oLdaOpt[7], color = 'blueviolet', marker = 'x', label = 'start gauss mc')
+plt.plot(Cset, oLdaOpt[8], color = 'green', marker = 'o', label = 'mid gauss')
+plt.plot(Cset, oLdaOpt[9], color = 'lime', marker = 'x', label = 'mid gauss mc')
+plt.plot(Cset, oLdaOpt[10], color = 'orange', marker = 'o', label = 'end lap')
+plt.plot(Cset, oLdaOpt[11], color = 'gold', marker = 'x', label = 'end lap mc')
+plt.legend(loc = 'best')
+plt.xlabel("Value of C")
+plt.ylabel("Lambda to minimise error of unbiased estimator (large KLD, samp)")
+plt.title("How C affects optimum lambda (large KLD, samp)")
+plt.savefig("Synth_C_large_ord_lda.png")
 plt.clf()
 
 # compute total runtime in minutes and seconds
