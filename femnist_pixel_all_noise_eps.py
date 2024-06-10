@@ -32,11 +32,11 @@ T = int(numWriters / 20)
 
 # lists of the values of epsilon and trials that will be run
 epsset = [0.05, 0.1, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 2.5, 3, 4]
-trialset = ["start_gauss", "start_gauss_mc", "mid_gauss", "mid_gauss_mc", "end_lap", "end_lap_mc", "no_privacy"]
+trialset = ["Dist", "Dist_mc", "TAgg", "TAgg_mc", "Trusted", "Trusted_mc", "NoAlgo"]
 ES = len(epsset)
 TS = len(trialset)
 
-# stores for mean of unbiased estimator and optimum lambda
+# stores for mean of PRIEST-KLD and optimum lambda
 meanEst = np.zeros((TS, ES))
 meanLdaOpt = np.zeros((TS, ES))
 
@@ -51,7 +51,7 @@ maxLdaOpt = np.zeros((TS, ES))
 for trial in range(7):
 
     print(f"\nTrial {trial + 1}: {trialset[trial]}")
-    statsfile = open(f"femnist_eps_{trialset[trial]}_noise.txt", "w", encoding = 'utf-8')
+    statsfile = open(f"femnist_eps_{trialset[trial]}.txt", "w", encoding = 'utf-8')
     EPS_FREQ = 0
 
     for eps in epsset:
@@ -223,7 +223,7 @@ for trial in range(7):
             uFreqSet[dig, ufreq] = int(freq)
             uProbsSet[dig, ufreq] = float((freq + ALPHA)/(T1 + (ALPHA*(digFreq[dig]))))
        
-            # option 2a: each client adds Gaussian noise term
+            # option 2a: "Dist" (each client adds Gaussian noise term)
             if trial == 0 or trial == 1:
                 startNoise = probGaussNoise.sample(sample_shape = (1,))
 
@@ -314,7 +314,7 @@ for trial in range(7):
         ldaStep = 0.05
         L = int((rLda + ldaStep) / ldaStep)
         
-        # store for unbiased estimator
+        # store for PRIEST-KLD
         R2 = len(rList)
         uEst = np.zeros((L, R2))
         R_FREQ = 0
@@ -329,7 +329,7 @@ for trial in range(7):
                 # compute k3 estimator
                 uRangeEst = lda * (np.exp(uLogr) - 1) - uLogr
 
-                # share unbiased estimator with server
+                # share PRIEST-KLD with server
                 uEst[LDA_FREQ, R_FREQ] = uRangeEst
                 LDA_FREQ = LDA_FREQ + 1
             
@@ -340,12 +340,14 @@ for trial in range(7):
         maxIndex = np.argmax(uList)
         minPair = uCDList[minIndex]
         maxPair = uCDList[maxIndex]
+        minValue = uList[minIndex]
+        maxValue = uList[maxIndex]
 
         meanLda = np.zeros(L)
         minLda = np.zeros(L)
         maxLda = np.zeros(L)
 
-        # compute mean error of unbiased estimator for each lambda
+        # compute mean error of PRIEST-KLD for each lambda
         for l in range(0, L):
             meanLda[l] = np.mean(uEst[l])
 
@@ -353,7 +355,7 @@ for trial in range(7):
             minLda[l] = uEst[l, minIndex]
             maxLda[l] = uEst[l, maxIndex]
 
-            # option 2b: intermediate server adds Gaussian noise term
+            # option 2b: "TAgg" (intermediate server adds Gaussian noise term)
             if trial == 2 or trial == 3:
                 meanLda[l] = meanLda[l] + gaussNoise.sample(sample_shape = (1,))
                 minLda[l] = minLda[l] + gaussNoise.sample(sample_shape = (1,))
@@ -377,7 +379,7 @@ for trial in range(7):
         minLdaOpt[trial, EPS_FREQ] = minLdaIndex * ldaStep
         maxLdaOpt[trial, EPS_FREQ] = maxLdaIndex * ldaStep
 
-        # option 2c: server adds Laplace noise term to final result
+        # option 2c: "Trusted" (server adds Laplace noise term to final result)
         if trial == 4 or trial == 5:
             lapNoise = tfp.distributions.Laplace(loc = A, scale = b1)
 
@@ -386,7 +388,7 @@ for trial in range(7):
             minEst[trial, EPS_FREQ] = (minEst[trial, EPS_FREQ] + lapNoise.sample(sample_shape = (1,)) - uList[minIndex])**2
             maxEst[trial, EPS_FREQ] = (maxEst[trial, EPS_FREQ] + lapNoise.sample(sample_shape = (1,)) - uList[maxIndex])**2
         
-        # option 2a/b: clients or intermediate server already added Gaussian noise term
+        # clients or intermediate server already added Gaussian noise term
         else:
             meanEst[trial, EPS_FREQ] = (meanEst[trial, EPS_FREQ] - np.mean(uList))**2
             minEst[trial, EPS_FREQ] = (minEst[trial, EPS_FREQ] - uList[minIndex])**2
@@ -395,157 +397,164 @@ for trial in range(7):
         statsfile.write(f"FEMNIST: Eps = {eps}\n")
         statsfile.write(f"Optimal Lambda {round(meanLdaOpt[trial, EPS_FREQ], 2)} for Mean Error {round(meanEst[trial, EPS_FREQ], 2)}\n")
         statsfile.write(f"Optimal Lambda {round(minLdaOpt[trial, EPS_FREQ], 2)} for Error {round(minEst[trial, EPS_FREQ], 2)} for Min Pair {minPair}\n")
-        statsfile.write(f"Optimal Lambda {round(maxLdaOpt[trial, EPS_FREQ], 2)} for Error {round(maxEst[trial, EPS_FREQ], 2)} for Max Pair {maxPair}\n\n")
+        statsfile.write(f"Optimal Lambda {round(maxLdaOpt[trial, EPS_FREQ], 2)} for Error {round(maxEst[trial, EPS_FREQ], 2)} for Max Pair {maxPair}\n")
+        
+        if trial == 6:
+            statsfile.write(f"Min Pair {minPair} has ground truth {minValue}\n")
+            statsfile.write(f"Max Pair {maxPair} has ground truth {maxValue}\n\n")
+        else:
+            statsfile.write(f"Min Pair {minPair} has output {minValue}\n")
+            statsfile.write(f"Max Pair {maxPair} has output {maxValue}\n\n")
 
         EPS_FREQ = EPS_FREQ + 1
 
-# plot error of unbiased estimator for each epsilon (mean)
-plt.errorbar(epsset, meanEst[0], yerr = np.minimum(np.sqrt(meanEst[0]), np.divide(meanEst[0], 2)), color = 'blue', marker = 'o', label = 'start gauss')
-plt.errorbar(epsset, meanEst[2], yerr = np.minimum(np.sqrt(meanEst[2]), np.divide(meanEst[2], 2)), color = 'green', marker = 'o', label = 'mid gauss')
-plt.errorbar(epsset, meanEst[4], yerr = np.minimum(np.sqrt(meanEst[4]), np.divide(meanEst[4], 2)), color = 'orange', marker = 'o', label = 'end lap')
-plt.errorbar(epsset, meanEst[6], yerr = np.minimum(np.sqrt(meanEst[6]), np.divide(meanEst[6], 2)), color = 'red', marker = '*', label = 'no noise')
+# plot error of PRIEST-KLD for each epsilon (mean)
+plt.errorbar(epsset, meanEst[0], yerr = np.minimum(np.sqrt(meanEst[0]), np.divide(meanEst[0], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(epsset, meanEst[2], yerr = np.minimum(np.sqrt(meanEst[2]), np.divide(meanEst[2], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(epsset, meanEst[4], yerr = np.minimum(np.sqrt(meanEst[4]), np.divide(meanEst[4], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(epsset, meanEst[6], yerr = np.minimum(np.sqrt(meanEst[6]), np.divide(meanEst[6], 2)), color = 'red', marker = '*', label = "NoAlgo")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of epsilon")
-plt.ylabel("Error of unbiased estimator (mean)")
-plt.title("How epsilon affects error of unbiased estimator (mean)")
+plt.ylabel("Error of PRIEST-KLD")
+plt.title("Epsilon vs error of PRIEST-KLD (mean)")
 plt.savefig("Femnist_pixel_eps_mean.png")
 plt.clf()
 
-# plot error of unbiased estimator for each epsilon (mean, mc)
-plt.errorbar(epsset, meanEst[1], yerr = np.minimum(np.sqrt(meanEst[1]), np.divide(meanEst[1], 2)), color = 'blueviolet', marker = 'x', label = 'start gauss mc')
-plt.errorbar(epsset, meanEst[3], yerr = np.minimum(np.sqrt(meanEst[3]), np.divide(meanEst[3], 2)), color = 'lime', marker = 'x', label = 'mid gauss mc')
-plt.errorbar(epsset, meanEst[5], yerr = np.minimum(np.sqrt(meanEst[5]), np.divide(meanEst[5], 2)), color = 'gold', marker = 'x', label = 'end lap mc')
-plt.errorbar(epsset, meanEst[6], yerr = np.minimum(np.sqrt(meanEst[6]), np.divide(meanEst[6], 2)), color = 'red', marker = '*', label = 'no noise')
+# plot error of PRIEST-KLD for each epsilon (mean, mc)
+plt.errorbar(epsset, meanEst[1], yerr = np.minimum(np.sqrt(meanEst[1]), np.divide(meanEst[1], 2)), color = 'blueviolet', marker = 'x', label = "Dist")
+plt.errorbar(epsset, meanEst[3], yerr = np.minimum(np.sqrt(meanEst[3]), np.divide(meanEst[3], 2)), color = 'lime', marker = 'x', label = "TAgg")
+plt.errorbar(epsset, meanEst[5], yerr = np.minimum(np.sqrt(meanEst[5]), np.divide(meanEst[5], 2)), color = 'gold', marker = 'x', label = "Trusted")
+plt.errorbar(epsset, meanEst[6], yerr = np.minimum(np.sqrt(meanEst[6]), np.divide(meanEst[6], 2)), color = 'red', marker = '*', label = "NoAlgo")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of epsilon")
-plt.ylabel("Error of unbiased estimator (mean, mc)")
-plt.title("How epsilon affects error of unbiased estimator (mean, mc)")
+plt.ylabel("Error of PRIEST-KLD")
+plt.title("Epsilon vs error of PRIEST-KLD (mean, mc)")
 plt.savefig("Femnist_pixel_eps_mean_mc.png")
 plt.clf()
 
-# plot error of unbiased estimator for each epsilon (min pair)
-plt.errorbar(epsset, minEst[0], yerr = np.minimum(np.sqrt(minEst[0]), np.divide(minEst[0], 2)), color = 'blue', marker = 'o', label = 'start gauss')
-plt.errorbar(epsset, minEst[2], yerr = np.minimum(np.sqrt(minEst[2]), np.divide(minEst[2], 2)), color = 'green', marker = 'o', label = 'mid gauss')
-plt.errorbar(epsset, minEst[4], yerr = np.minimum(np.sqrt(minEst[4]), np.divide(minEst[4], 2)), color = 'orange', marker = 'o', label = 'end lap')
-plt.errorbar(epsset, minEst[6], yerr = np.minimum(np.sqrt(minEst[6]), np.divide(minEst[6], 2)), color = 'red', marker = '*', label = 'no noise')
+# plot error of PRIEST-KLD for each epsilon (min pair)
+plt.errorbar(epsset, minEst[0], yerr = np.minimum(np.sqrt(minEst[0]), np.divide(minEst[0], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(epsset, minEst[2], yerr = np.minimum(np.sqrt(minEst[2]), np.divide(minEst[2], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(epsset, minEst[4], yerr = np.minimum(np.sqrt(minEst[4]), np.divide(minEst[4], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(epsset, minEst[6], yerr = np.minimum(np.sqrt(minEst[6]), np.divide(minEst[6], 2)), color = 'red', marker = '*', label = "NoAlgo")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of epsilon")
-plt.ylabel("Error of unbiased estimator (min pair)")
-plt.title("How epsilon affects error of unbiased estimator (min pair)")
+plt.ylabel("Error of PRIEST-KLD")
+plt.title(f"Epsilon vs error of PRIEST-KLD (min pair {minPair})")
 plt.savefig("Femnist_pixel_eps_min.png")
 plt.clf()
 
-# plot error of unbiased estimator for each epsilon (min pair, mc)
-plt.errorbar(epsset, minEst[1], yerr = np.minimum(np.sqrt(minEst[1]), np.divide(minEst[1], 2)), color = 'blueviolet', marker = 'x', label = 'start gauss mc')
-plt.errorbar(epsset, minEst[3], yerr = np.minimum(np.sqrt(minEst[3]), np.divide(minEst[3], 2)), color = 'lime', marker = 'x', label = 'mid gauss mc')
-plt.errorbar(epsset, minEst[5], yerr = np.minimum(np.sqrt(minEst[5]), np.divide(minEst[5], 2)), color = 'gold', marker = 'x', label = 'end lap mc')
-plt.errorbar(epsset, minEst[6], yerr = np.minimum(np.sqrt(minEst[6]), np.divide(minEst[6], 2)), color = 'red', marker = '*', label = 'no noise')
+# plot error of PRIEST-KLD for each epsilon (min pair, mc)
+plt.errorbar(epsset, minEst[1], yerr = np.minimum(np.sqrt(minEst[1]), np.divide(minEst[1], 2)), color = 'blueviolet', marker = 'x', label = "Dist")
+plt.errorbar(epsset, minEst[3], yerr = np.minimum(np.sqrt(minEst[3]), np.divide(minEst[3], 2)), color = 'lime', marker = 'x', label = "TAgg")
+plt.errorbar(epsset, minEst[5], yerr = np.minimum(np.sqrt(minEst[5]), np.divide(minEst[5], 2)), color = 'gold', marker = 'x', label = "Trusted")
+plt.errorbar(epsset, minEst[6], yerr = np.minimum(np.sqrt(minEst[6]), np.divide(minEst[6], 2)), color = 'red', marker = '*', label = "NoAlgo")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of epsilon")
-plt.ylabel("Error of unbiased estimator (min pair, mc)")
-plt.title("How epsilon affects error of unbiased estimator (min pair, mc)")
+plt.ylabel("Error of PRIEST-KLD")
+plt.title(f"Epsilon vs error of PRIEST-KLD (min pair {minPair}, mc)")
 plt.savefig("Femnist_pixel_eps_min_mc.png")
 plt.clf()
 
-# plot error of unbiased estimator for each epsilon (max pair)
-plt.errorbar(epsset, maxEst[0], yerr = np.minimum(np.sqrt(maxEst[0]), np.divide(maxEst[0], 2)), color = 'blue', marker = 'o', label = 'start gauss')
-plt.errorbar(epsset, maxEst[2], yerr = np.minimum(np.sqrt(maxEst[2]), np.divide(maxEst[2], 2)), color = 'green', marker = 'o', label = 'mid gauss')
-plt.errorbar(epsset, maxEst[4], yerr = np.minimum(np.sqrt(maxEst[4]), np.divide(maxEst[4], 2)), color = 'orange', marker = 'o', label = 'end lap')
-plt.errorbar(epsset, maxEst[6], yerr = np.minimum(np.sqrt(maxEst[6]), np.divide(maxEst[6], 2)), color = 'red', marker = '*', label = 'no noise')
+# plot error of PRIEST-KLD for each epsilon (max pair)
+plt.errorbar(epsset, maxEst[0], yerr = np.minimum(np.sqrt(maxEst[0]), np.divide(maxEst[0], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(epsset, maxEst[2], yerr = np.minimum(np.sqrt(maxEst[2]), np.divide(maxEst[2], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(epsset, maxEst[4], yerr = np.minimum(np.sqrt(maxEst[4]), np.divide(maxEst[4], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(epsset, maxEst[6], yerr = np.minimum(np.sqrt(maxEst[6]), np.divide(maxEst[6], 2)), color = 'red', marker = '*', label = "NoAlgo")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of epsilon")
-plt.ylabel("Error of unbiased estimator (max pair)")
-plt.title("How epsilon affects error of unbiased estimator (max pair)")
+plt.ylabel("Error of PRIEST-KLD")
+plt.title(f"Epsilon vs error of PRIEST-KLD (max pair {maxPair})")
 plt.savefig("Femnist_pixel_eps_max.png")
 plt.clf()
 
-# plot error of unbiased estimator for each epsilon (max pair, mc)
-plt.errorbar(epsset, maxEst[1], yerr = np.minimum(np.sqrt(maxEst[1]), np.divide(maxEst[1], 2)), color = 'blueviolet', marker = 'x', label = 'start gauss mc')
-plt.errorbar(epsset, maxEst[3], yerr = np.minimum(np.sqrt(maxEst[3]), np.divide(maxEst[3], 2)), color = 'lime', marker = 'x', label = 'mid gauss mc')
-plt.errorbar(epsset, maxEst[5], yerr = np.minimum(np.sqrt(maxEst[5]), np.divide(maxEst[5], 2)), color = 'gold', marker = 'x', label = 'end lap mc')
-plt.errorbar(epsset, maxEst[6], yerr = np.minimum(np.sqrt(maxEst[6]), np.divide(maxEst[6], 2)), color = 'red', marker = '*', label = 'no noise')
+# plot error of PRIEST-KLD for each epsilon (max pair, mc)
+plt.errorbar(epsset, maxEst[1], yerr = np.minimum(np.sqrt(maxEst[1]), np.divide(maxEst[1], 2)), color = 'blueviolet', marker = 'x', label = "Dist")
+plt.errorbar(epsset, maxEst[3], yerr = np.minimum(np.sqrt(maxEst[3]), np.divide(maxEst[3], 2)), color = 'lime', marker = 'x', label = "TAgg")
+plt.errorbar(epsset, maxEst[5], yerr = np.minimum(np.sqrt(maxEst[5]), np.divide(maxEst[5], 2)), color = 'gold', marker = 'x', label = "Trusted")
+plt.errorbar(epsset, maxEst[6], yerr = np.minimum(np.sqrt(maxEst[6]), np.divide(maxEst[6], 2)), color = 'red', marker = '*', label = "NoAlgo")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of epsilon")
-plt.ylabel("Error of unbiased estimator (max pair, mc)")
-plt.title("How epsilon affects error of unbiased estimator (max pair, mc)")
+plt.ylabel("Error of PRIEST-KLD")
+plt.title(f"Epsilon vs error of PRIEST-KLD (max pair {maxPair}, mc)")
 plt.savefig("Femnist_pixel_eps_max_mc.png")
 plt.clf()
 
 # plot optimum lambda for each epsilon (mean)
-plt.plot(epsset, meanLdaOpt[0], color = 'blue', marker = 'o', label = 'start gauss')
-plt.plot(epsset, meanLdaOpt[2], color = 'green', marker = 'o', label = 'mid gauss')
-plt.plot(epsset, meanLdaOpt[4], color = 'orange', marker = 'o', label = 'end lap')
-plt.plot(epsset, meanLdaOpt[6], color = 'red', marker = '*', label = 'no noise')
+plt.plot(epsset, meanLdaOpt[0], color = 'blue', marker = 'o', label = "Dist")
+plt.plot(epsset, meanLdaOpt[2], color = 'green', marker = 'o', label = "TAgg")
+plt.plot(epsset, meanLdaOpt[4], color = 'orange', marker = 'o', label = "Trusted")
+plt.plot(epsset, meanLdaOpt[6], color = 'red', marker = '*', label = "NoAlgo")
 plt.legend(loc = 'best')
 plt.xlabel("Value of epsilon")
-plt.ylabel("Lambda to minimise error of unbiased estimator (mean)")
-plt.title("How epsilon affects optimum lambda (mean)")
+plt.ylabel("Lambda to minimise error of PRIEST-KLD")
+plt.title("Epsilon vs optimum lambda (mean)")
 plt.savefig("Femnist_pixel_eps_lda_mean.png")
 plt.clf()
 
 # plot optimum lambda for each epsilon (mean, mc)
-plt.plot(epsset, meanLdaOpt[1], color = 'blueviolet', marker = 'x', label = 'start gauss mc')
-plt.plot(epsset, meanLdaOpt[3], color = 'lime', marker = 'x', label = 'mid gauss mc')
-plt.plot(epsset, meanLdaOpt[5], color = 'gold', marker = 'x', label = 'end lap mc')
-plt.plot(epsset, meanLdaOpt[6], color = 'red', marker = '*', label = 'no noise')
+plt.plot(epsset, meanLdaOpt[1], color = 'blueviolet', marker = 'x', label = "Dist")
+plt.plot(epsset, meanLdaOpt[3], color = 'lime', marker = 'x', label = "TAgg")
+plt.plot(epsset, meanLdaOpt[5], color = 'gold', marker = 'x', label = "Trusted")
+plt.plot(epsset, meanLdaOpt[6], color = 'red', marker = '*', label = "NoAlgo")
 plt.legend(loc = 'best')
 plt.xlabel("Value of epsilon")
-plt.ylabel("Lambda to minimise error of unbiased estimator (mean, mc)")
-plt.title("How epsilon affects optimum lambda (mean, mc)")
+plt.ylabel("Lambda to minimise error of PRIEST-KLD")
+plt.title("Epsilon vs optimum lambda (mean, mc)")
 plt.savefig("Femnist_pixel_eps_lda_mean_mc.png")
 plt.clf()
 
 # plot optimum lambda for each epsilon (min pair)
-plt.plot(epsset, minLdaOpt[0], color = 'blue', marker = 'o', label = 'start gauss')
-plt.plot(epsset, minLdaOpt[2], color = 'green', marker = 'o', label = 'mid gauss')
-plt.plot(epsset, minLdaOpt[4], color = 'orange', marker = 'o', label = 'end lap')
-plt.plot(epsset, minLdaOpt[6], color = 'red', marker = '*', label = 'no noise')
+plt.plot(epsset, minLdaOpt[0], color = 'blue', marker = 'o', label = "Dist")
+plt.plot(epsset, minLdaOpt[2], color = 'green', marker = 'o', label = "TAgg")
+plt.plot(epsset, minLdaOpt[4], color = 'orange', marker = 'o', label = "Trusted")
+plt.plot(epsset, minLdaOpt[6], color = 'red', marker = '*', label = "NoAlgo")
 plt.legend(loc = 'best')
 plt.xlabel("Value of epsilon")
-plt.ylabel("Lambda to minimise error of unbiased estimator (min pair)")
-plt.title("How epsilon affects optimum lambda (min pair)")
+plt.ylabel("Lambda to minimise error of PRIEST-KLD")
+plt.title(f"Epsilon vs optimum lambda (min pair {minPair})")
 plt.savefig("Femnist_pixel_eps_lda_min.png")
 plt.clf()
 
 # plot optimum lambda for each epsilon (min pair, mc)
-plt.plot(epsset, minLdaOpt[1], color = 'blueviolet', marker = 'x', label = 'start gauss mc')
-plt.plot(epsset, minLdaOpt[3], color = 'lime', marker = 'x', label = 'mid gauss mc')
-plt.plot(epsset, minLdaOpt[5], color = 'gold', marker = 'x', label = 'end lap mc')
-plt.plot(epsset, minLdaOpt[6], color = 'red', marker = '*', label = 'no noise')
+plt.plot(epsset, minLdaOpt[1], color = 'blueviolet', marker = 'x', label = "Dist")
+plt.plot(epsset, minLdaOpt[3], color = 'lime', marker = 'x', label = "TAgg")
+plt.plot(epsset, minLdaOpt[5], color = 'gold', marker = 'x', label = "Trusted")
+plt.plot(epsset, minLdaOpt[6], color = 'red', marker = '*', label = "NoAlgo")
 plt.legend(loc = 'best')
 plt.xlabel("Value of epsilon")
-plt.ylabel("Lambda to minimise error of unbiased estimator (min pair, mc)")
-plt.title("How epsilon affects optimum lambda (min pair, mc)")
+plt.ylabel("Lambda to minimise error of PRIEST-KLD")
+plt.title(f"Epsilon vs optimum lambda (min pair {minPair}, mc)")
 plt.savefig("Femnist_pixel_eps_lda_min_mc.png")
 plt.clf()
 
 # plot optimum lambda for each epsilon (max pair)
-plt.plot(epsset, maxLdaOpt[0], color = 'blue', marker = 'o', label = 'start gauss')
-plt.plot(epsset, maxLdaOpt[2], color = 'green', marker = 'o', label = 'mid gauss')
-plt.plot(epsset, maxLdaOpt[4], color = 'orange', marker = 'o', label = 'end lap')
-plt.plot(epsset, maxLdaOpt[6], color = 'red', marker = '*', label = 'no noise')
+plt.plot(epsset, maxLdaOpt[0], color = 'blue', marker = 'o', label = "Dist")
+plt.plot(epsset, maxLdaOpt[2], color = 'green', marker = 'o', label = "TAgg")
+plt.plot(epsset, maxLdaOpt[4], color = 'orange', marker = 'o', label = "Trusted")
+plt.plot(epsset, maxLdaOpt[6], color = 'red', marker = '*', label = "NoAlgo")
 plt.legend(loc = 'best')
 plt.xlabel("Value of epsilon")
-plt.ylabel("Lambda to minimise error of unbiased estimator (max pair)")
-plt.title("How epsilon affects optimum lambda (max pair)")
+plt.ylabel("Lambda to minimise error of PRIEST-KLD")
+plt.title(f"Epsilon vs optimum lambda (max pair {maxPair})")
 plt.savefig("Femnist_pixel_eps_lda_max.png")
 plt.clf()
 
 # plot optimum lambda for each epsilon (max pair, mc)
-plt.plot(epsset, maxLdaOpt[1], color = 'blueviolet', marker = 'x', label = 'start gauss mc')
-plt.plot(epsset, maxLdaOpt[3], color = 'lime', marker = 'x', label = 'mid gauss mc')
-plt.plot(epsset, maxLdaOpt[5], color = 'gold', marker = 'x', label = 'end lap mc')
-plt.plot(epsset, maxLdaOpt[6], color = 'red', marker = '*', label = 'no noise')
+plt.plot(epsset, maxLdaOpt[1], color = 'blueviolet', marker = 'x', label = "Dist")
+plt.plot(epsset, maxLdaOpt[3], color = 'lime', marker = 'x', label = "TAgg")
+plt.plot(epsset, maxLdaOpt[5], color = 'gold', marker = 'x', label = "Trusted")
+plt.plot(epsset, maxLdaOpt[6], color = 'red', marker = '*', label = "NoAlgo")
 plt.legend(loc = 'best')
 plt.xlabel("Value of epsilon")
-plt.ylabel("Lambda to minimise error of unbiased estimator (max pair, mc)")
-plt.title("How epsilon affects optimum lambda (max pair, mc)")
+plt.ylabel("Lambda to minimise error of PRIEST-KLD")
+plt.title(f"Epsilon vs optimum lambda (max pair {maxPair}, mc)")
 plt.savefig("Femnist_pixel_eps_lda_max_mc.png")
 plt.clf()
 

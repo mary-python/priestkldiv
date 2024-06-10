@@ -30,14 +30,14 @@ writers = sorted(file.keys())
 numWriters = len(writers)
 
 # list of the trials that will be run
-trialset = ["start_gauss", "start_gauss_mc", "mid_gauss", "mid_gauss_mc", "end_lap", "end_lap_mc", "no_privacy"]
+trialset = ["Dist", "Dist_mc", "TAgg", "TAgg_mc", "Trusted", "Trusted_mc", "NoAlgo"]
 TS = len(trialset)
 
 # investigate samples from approx 1% to approx 20% of writers
 Tset = [36, 72, 108, 144, 180, 225, 270, 360, 450, 540, 600, 660]
 ES = len(Tset)
 
-# stores for mean of unbiased estimator and optimum lambda
+# stores for mean of PRIEST-KLD and optimum lambda
 meanEst = np.zeros((TS, ES))
 meanLdaOpt = np.zeros((TS, ES))
 
@@ -52,7 +52,7 @@ maxLdaOpt = np.zeros((TS, ES))
 for trial in range(7):
     
     print(f"\nTrial {trial + 1}: {trialset[trial]}")
-    statsfile = open(f"femnist_T_{trialset[trial]}_noise.txt", "w", encoding = 'utf-8')
+    statsfile = open(f"femnist_T_{trialset[trial]}.txt", "w", encoding = 'utf-8')
     T_FREQ = 0
 
     for T in Tset:
@@ -232,7 +232,7 @@ for trial in range(7):
             uFreqSet[dig, ufreq] = int(freq)
             uProbsSet[dig, ufreq] = float((freq + ALPHA)/(T1 + (ALPHA*(digFreq[dig]))))
        
-            # option 2a: each client adds Gaussian noise term
+            # option 2a: "Dist" (each client adds Gaussian noise term)
             if trial == 0 or trial == 1:
                 startNoise = probGaussNoise.sample(sample_shape = (1,))
 
@@ -316,7 +316,7 @@ for trial in range(7):
         ldaStep = 0.05
         L = int((rLda + ldaStep) / ldaStep)
 
-        # store for unbiased estimator
+        # store for PRIEST-KLD
         R2 = len(rList)
         uEst = np.zeros((L, R2))
         R_FREQ = 0
@@ -331,7 +331,7 @@ for trial in range(7):
                 # compute k3 estimator
                 uRangeEst = lda * (np.exp(uLogr) - 1) - uLogr
 
-                # share unbiased estimator with intermediate server
+                # share PRIEST-KLD with intermediate server
                 uEst[LDA_FREQ, R_FREQ] = uRangeEst
                 LDA_FREQ = LDA_FREQ + 1
 
@@ -342,12 +342,14 @@ for trial in range(7):
         maxIndex = np.argmax(uList)
         minPair = uCDList[minIndex]
         maxPair = uCDList[maxIndex]
+        minValue = uList[minIndex]
+        maxValue = uList[maxIndex]
 
         meanLda = np.zeros(L)
         minLda = np.zeros(L)
         maxLda = np.zeros(L)
 
-        # compute mean error of unbiased estimator for each lambda
+        # compute mean error of PRIEST-KLD for each lambda
         for l in range(0, L):
             meanLda[l] = np.mean(uEst[l])
 
@@ -355,7 +357,7 @@ for trial in range(7):
             minLda[l] = uEst[l, minIndex]
             maxLda[l] = uEst[l, maxIndex]
 
-            # option 2b: intermediate server adds Gaussian noise term
+            # option 2b: "TAgg" (intermediate server adds Gaussian noise term)
             if trial == 2 or trial == 3:
                 meanLda[l] = meanLda[l] + gaussNoise.sample(sample_shape = (1,))
                 minLda[l] = minLda[l] + gaussNoise.sample(sample_shape = (1,))
@@ -379,7 +381,7 @@ for trial in range(7):
         minLdaOpt[trial, T_FREQ] = minLdaIndex * ldaStep
         maxLdaOpt[trial, T_FREQ] = maxLdaIndex * ldaStep
 
-        # option 2c: server adds Laplace noise term to final result
+        # option 2c: "Trusted" (server adds Laplace noise term to final result)
         if trial == 4 or trial == 5: 
             lapNoise = tfp.distributions.Normal(loc = A, scale = b2)
 
@@ -388,7 +390,7 @@ for trial in range(7):
             minEst[trial, T_FREQ] = (minEst[trial, T_FREQ] + lapNoise.sample(sample_shape = (1,)) - uList[minIndex])**2
             maxEst[trial, T_FREQ] = (maxEst[trial, T_FREQ] + lapNoise.sample(sample_shape = (1,)) - uList[maxIndex])**2
         
-        # option 2a/b: clients or intermediate server already added Gaussian noise term
+        # clients or intermediate server already added Gaussian noise term
         else:
             meanEst[trial, T_FREQ] = (meanEst[trial, T_FREQ] - np.mean(uList))**2
             minEst[trial, T_FREQ] = (minEst[trial, T_FREQ] - uList[minIndex])**2
@@ -397,11 +399,18 @@ for trial in range(7):
         statsfile.write(f"FEMNIST: T = {T}\n")
         statsfile.write(f"Optimal Lambda {round(meanLdaOpt[trial, T_FREQ], 2)} for Mean {round(meanEst[trial, T_FREQ], 2)}\n")
         statsfile.write(f"Optimal Lambda {round(minLdaOpt[trial, T_FREQ], 2)} for Error {round(minEst[trial, T_FREQ], 2)} for Min Pair {minPair}\n")
-        statsfile.write(f"Optimal Lambda {round(maxLdaOpt[trial, T_FREQ], 2)} for Error {round(maxEst[trial, T_FREQ], 2)} for Max Pair {maxPair}\n\n")
+        statsfile.write(f"Optimal Lambda {round(maxLdaOpt[trial, T_FREQ], 2)} for Error {round(maxEst[trial, T_FREQ], 2)} for Max Pair {maxPair}\n")
+
+        if trial == 6:
+            statsfile.write(f"Min Pair {minPair} has ground truth {minValue}\n")
+            statsfile.write(f"Max Pair {maxPair} has ground truth {maxValue}\n\n")
+        else:
+            statsfile.write(f"Min Pair {minPair} has output {minValue}\n")
+            statsfile.write(f"Max Pair {maxPair} has output {maxValue}\n\n")
 
         T_FREQ = T_FREQ + 1
 
-# plot error of unbiased estimator for each T (mean)
+# plot error of PRIEST-KLD for each T (mean)
 plt.errorbar(Tset, meanEst[0], yerr = np.minimum(np.sqrt(meanEst[0]), np.divide(meanEst[0], 2)), color = 'blue', marker = 'o', label = 'start gauss')
 plt.errorbar(Tset, meanEst[2], yerr = np.minimum(np.sqrt(meanEst[2]), np.divide(meanEst[2], 2)), color = 'green', marker = 'o', label = 'mid gauss')
 plt.errorbar(Tset, meanEst[4], yerr = np.minimum(np.sqrt(meanEst[4]), np.divide(meanEst[4], 2)), color = 'orange', marker = 'o', label = 'end lap')
@@ -409,12 +418,12 @@ plt.errorbar(Tset, meanEst[6], yerr = np.minimum(np.sqrt(meanEst[6]), np.divide(
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of T")
-plt.ylabel("Error of unbiased estimator (mean)")
-plt.title("How T affects error of unbiased estimator (mean)")
+plt.ylabel("Error of PRIEST-KLD")
+plt.title("T vs error of PRIEST-KLD (mean)")
 plt.savefig("Femnist_pixel_T_mean.png")
 plt.clf()
 
-# plot error of unbiased estimator for each T (mean, mc)
+# plot error of PRIEST-KLD for each T (mean, mc)
 plt.errorbar(Tset, meanEst[1], yerr = np.minimum(np.sqrt(meanEst[1]), np.divide(meanEst[1], 2)), color = 'blueviolet', marker = 'x', label = 'start gauss mc')
 plt.errorbar(Tset, meanEst[3], yerr = np.minimum(np.sqrt(meanEst[3]), np.divide(meanEst[3], 2)), color = 'lime', marker = 'x', label = 'mid gauss mc')
 plt.errorbar(Tset, meanEst[5], yerr = np.minimum(np.sqrt(meanEst[5]), np.divide(meanEst[5], 2)), color = 'gold', marker = 'x', label = 'end lap mc')
@@ -422,12 +431,12 @@ plt.errorbar(Tset, meanEst[6], yerr = np.minimum(np.sqrt(meanEst[6]), np.divide(
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of T")
-plt.ylabel("Error of unbiased estimator (mean, mc)")
-plt.title("How T affects error of unbiased estimator (mean, mc)")
+plt.ylabel("Error of PRIEST-KLD")
+plt.title("T vs error of PRIEST-KLD (mean, mc)")
 plt.savefig("Femnist_pixel_T_mean_mc.png")
 plt.clf()
 
-# plot error of unbiased estimator for each T (min pair)
+# plot error of PRIEST-KLD for each T (min pair)
 plt.errorbar(Tset, minEst[0], yerr = np.minimum(np.sqrt(minEst[0]), np.divide(minEst[0], 2)), color = 'blue', marker = 'o', label = 'start gauss')
 plt.errorbar(Tset, minEst[2], yerr = np.minimum(np.sqrt(minEst[2]), np.divide(minEst[2], 2)), color = 'green', marker = 'o', label = 'mid gauss')
 plt.errorbar(Tset, minEst[4], yerr = np.minimum(np.sqrt(minEst[4]), np.divide(minEst[4], 2)), color = 'orange', marker = 'o', label = 'end lap')
@@ -435,12 +444,12 @@ plt.errorbar(Tset, minEst[6], yerr = np.minimum(np.sqrt(minEst[6]), np.divide(mi
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of T")
-plt.ylabel("Error of unbiased estimator (min pair)")
-plt.title("How T affects error of unbiased estimator (min pair)")
+plt.ylabel("Error of PRIEST-KLD")
+plt.title(f"T vs error of PRIEST-KLD (min pair {minPair})")
 plt.savefig("Femnist_pixel_T_min.png")
 plt.clf()
 
-# plot error of unbiased estimator for each T (min pair, mc)
+# plot error of PRIEST-KLD for each T (min pair, mc)
 plt.errorbar(Tset, minEst[1], yerr = np.minimum(np.sqrt(minEst[1]), np.divide(minEst[1], 2)), color = 'blueviolet', marker = 'x', label = 'start gauss mc')
 plt.errorbar(Tset, minEst[3], yerr = np.minimum(np.sqrt(minEst[3]), np.divide(minEst[3], 2)), color = 'lime', marker = 'x', label = 'mid gauss mc')
 plt.errorbar(Tset, minEst[5], yerr = np.minimum(np.sqrt(minEst[5]), np.divide(minEst[5], 2)), color = 'gold', marker = 'x', label = 'end lap mc')
@@ -448,12 +457,12 @@ plt.errorbar(Tset, minEst[6], yerr = np.minimum(np.sqrt(minEst[6]), np.divide(mi
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of T")
-plt.ylabel("Error of unbiased estimator (min pair, mc)")
-plt.title("How T affects error of unbiased estimator (min pair, mc)")
+plt.ylabel("Error of PRIEST-KLD")
+plt.title(f"T vs error of PRIEST-KLD (min pair {minPair}, mc)")
 plt.savefig("Femnist_pixel_T_min_mc.png")
 plt.clf()
 
-# plot error of unbiased estimator for each T (max pair)
+# plot error of PRIEST-KLD for each T (max pair)
 plt.errorbar(Tset, maxEst[0], yerr = np.minimum(np.sqrt(maxEst[0]), np.divide(maxEst[0], 2)), color = 'blue', marker = 'o', label = 'start gauss')
 plt.errorbar(Tset, maxEst[2], yerr = np.minimum(np.sqrt(maxEst[2]), np.divide(maxEst[2], 2)), color = 'green', marker = 'o', label = 'mid gauss')
 plt.errorbar(Tset, maxEst[4], yerr = np.minimum(np.sqrt(maxEst[4]), np.divide(maxEst[4], 2)), color = 'orange', marker = 'o', label = 'end lap')
@@ -461,12 +470,12 @@ plt.errorbar(Tset, maxEst[6], yerr = np.minimum(np.sqrt(maxEst[6]), np.divide(ma
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of T")
-plt.ylabel("Error of unbiased estimator (max pair)")
-plt.title("How T affects error of unbiased estimator (max pair)")
+plt.ylabel("Error of PRIEST-KLD")
+plt.title(f"T vs error of PRIEST-KLD (max pair {maxPair})")
 plt.savefig("Femnist_pixel_T_max.png")
 plt.clf()
 
-# plot error of unbiased estimator for each T (max pair, mc)
+# plot error of PRIEST-KLD for each T (max pair, mc)
 plt.errorbar(Tset, maxEst[1], yerr = np.minimum(np.sqrt(maxEst[1]), np.divide(maxEst[1], 2)), color = 'blueviolet', marker = 'x', label = 'start gauss mc')
 plt.errorbar(Tset, maxEst[3], yerr = np.minimum(np.sqrt(maxEst[3]), np.divide(maxEst[3], 2)), color = 'lime', marker = 'x', label = 'mid gauss mc')
 plt.errorbar(Tset, maxEst[5], yerr = np.minimum(np.sqrt(maxEst[5]), np.divide(maxEst[5], 2)), color = 'gold', marker = 'x', label = 'end lap mc')
@@ -474,8 +483,8 @@ plt.errorbar(Tset, maxEst[6], yerr = np.minimum(np.sqrt(maxEst[6]), np.divide(ma
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of T")
-plt.ylabel("Error of unbiased estimator (max pair, mc)")
-plt.title("How T affects error of unbiased estimator (max pair, mc)")
+plt.ylabel("Error of PRIEST-KLD")
+plt.title(f"T vs error of PRIEST-KLD (max pair {maxPair}, mc)")
 plt.savefig("Femnist_pixel_T_max_mc.png")
 plt.clf()
 
@@ -486,8 +495,8 @@ plt.plot(Tset, meanLdaOpt[4], color = 'orange', marker = 'o', label = 'end lap')
 plt.plot(Tset, meanLdaOpt[6], color = 'red', marker = '*', label = 'no noise')
 plt.legend(loc = 'best')
 plt.xlabel("Value of T")
-plt.ylabel("Lambda to minimise error of unbiased estimator (mean)")
-plt.title("How T affects optimum lambda (mean)")
+plt.ylabel("Lambda to minimise error of PRIEST-KLD")
+plt.title("T vs optimum lambda (mean)")
 plt.savefig("Femnist_pixel_T_lda_mean.png")
 plt.clf()
 
@@ -498,8 +507,8 @@ plt.plot(Tset, meanLdaOpt[5], color = 'gold', marker = 'x', label = 'end lap mc'
 plt.plot(Tset, meanLdaOpt[6], color = 'red', marker = '*', label = 'no noise')
 plt.legend(loc = 'best')
 plt.xlabel("Value of T")
-plt.ylabel("Lambda to minimise error of unbiased estimator (mean, mc)")
-plt.title("How T affects optimum lambda (mean, mc)")
+plt.ylabel("Lambda to minimise error of PRIEST-KLD")
+plt.title("T vs optimum lambda (mean, mc)")
 plt.savefig("Femnist_pixel_T_lda_mean_mc.png")
 plt.clf()
 
@@ -510,8 +519,8 @@ plt.plot(Tset, minLdaOpt[4], color = 'orange', marker = 'o', label = 'end lap')
 plt.plot(Tset, minLdaOpt[6], color = 'red', marker = '*', label = 'no noise')
 plt.legend(loc = 'best')
 plt.xlabel("Value of T")
-plt.ylabel("Lambda to minimise error of unbiased estimator (min pair)")
-plt.title("How T affects optimum lambda (min pair)")
+plt.ylabel("Lambda to minimise error of PRIEST-KLD")
+plt.title(f"T vs optimum lambda (min pair {minPair})")
 plt.savefig("Femnist_pixel_T_lda_min.png")
 plt.clf()
 
@@ -522,8 +531,8 @@ plt.plot(Tset, minLdaOpt[5], color = 'gold', marker = 'x', label = 'end lap mc')
 plt.plot(Tset, minLdaOpt[6], color = 'red', marker = '*', label = 'no noise')
 plt.legend(loc = 'best')
 plt.xlabel("Value of T")
-plt.ylabel("Lambda to minimise error of unbiased estimator (min pair, mc)")
-plt.title("How T affects optimum lambda (min pair, mc)")
+plt.ylabel("Lambda to minimise error of PRIEST-KLD")
+plt.title(f"T vs optimum lambda (min pair {minPair}, mc)")
 plt.savefig("Femnist_pixel_T_lda_min_mc.png")
 plt.clf()
 
@@ -535,8 +544,8 @@ plt.plot(Tset, maxLdaOpt[4], color = 'orange', marker = 'o', label = 'end lap')
 plt.plot(Tset, maxLdaOpt[6], color = 'red', marker = '*', label = 'no noise')
 plt.legend(loc = 'best')
 plt.xlabel("Value of T")
-plt.ylabel("Lambda to minimise error of unbiased estimator (max pair)")
-plt.title("How T affects optimum lambda (max pair)")
+plt.ylabel("Lambda to minimise error of PRIEST-KLD")
+plt.title(f"T vs optimum lambda (max pair {maxPair})")
 plt.savefig("Femnist_pixel_T_lda_max.png")
 plt.clf()
 
@@ -547,8 +556,8 @@ plt.plot(Tset, maxLdaOpt[5], color = 'gold', marker = 'x', label = 'end lap mc')
 plt.plot(Tset, maxLdaOpt[6], color = 'red', marker = '*', label = 'no noise')
 plt.legend(loc = 'best')
 plt.xlabel("Value of T")
-plt.ylabel("Lambda to minimise error of unbiased estimator (max pair, mc)")
-plt.title("How T affects optimum lambda (max pair, mc)")
+plt.ylabel("Lambda to minimise error of PRIEST-KLD")
+plt.title(f"T vs optimum lambda (max pair {maxPair}, mc)")
 plt.savefig("Femnist_pixel_T_lda_max_mc.png")
 plt.clf()
 
