@@ -365,7 +365,7 @@ plt.plot(epsset, rLdaOpt[13], color = 'red', marker = '*', label = "NoAlgo")
 plt.legend(loc = 'best')
 plt.xlabel("Value of epsilon")
 plt.ylabel("Lambda to minimise error of PRIEST-KLD")
-plt.title("Epsilon vs optimum lambda (large KLD, samp, mc)")
+plt.title("Epsilon vs optimum lambda (large KLD, random +/-, mc)")
 plt.savefig("Synth_eps_lda_large_rand_mc.png")
 plt.clf()
 

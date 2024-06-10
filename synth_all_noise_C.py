@@ -365,7 +365,7 @@ plt.plot(Cset, rLdaOpt[13], color = 'red', marker = '*', label = "NoAlgo")
 plt.legend(loc = 'best')
 plt.xlabel("Value of C")
 plt.ylabel("Lambda to minimise error of PRIEST-KLD")
-plt.title("C vs optimum lambda (large KLD, samp, mc)")
+plt.title("C vs optimum lambda (large KLD, random +/-, mc)")
 plt.savefig("Synth_C_lda_large_rand_mc.png")
 plt.clf()
 
