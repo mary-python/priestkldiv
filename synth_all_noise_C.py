@@ -25,7 +25,7 @@ rLdaOpt = np.zeros((TS, CS))
 oMeanEst = np.zeros((TS, CS))
 oLdaOpt = np.zeros((TS, CS))
 
-for trial in range(13):
+for trial in range(14):
     print(f"\nTrial {trial + 1}: {trialset[trial]}")
     statsfile = open(f"synth_C_{trialset[trial]}.txt", "w", encoding = 'utf-8')
 
