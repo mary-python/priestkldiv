@@ -192,13 +192,6 @@ for trial in range(7):
         uProbsSet = np.zeros((10, U))
         T1 = 11*T # change this term so probabilities add up to 1
 
-        # stores for exact unknown distributions
-        uDist = np.zeros((10, 10, U))
-        nDist = np.zeros((10, 10, E))
-        uList = []
-        uCDList = []         
-        rList = []
-
         # parameters for the addition of Laplace and Gaussian noise
         EPS = 0.5
         DTA = 0.1
@@ -288,6 +281,13 @@ for trial in range(7):
                 eFreqSet[D, i] = uFreqSet[D, uSampledSet[i]]
                 eTotalFreq[D] = sum(eFreqSet[D])
                 eProbsSet[D, i] = float((eFreqSet[D, i] + ALPHA)/(T2 + (ALPHA*(eTotalFreq[D]))))
+        
+        # stores for exact unknown distributions
+        uDist = np.zeros((10, 10, U))
+        nDist = np.zeros((10, 10, E))
+        uList = []
+        uCDList = []         
+        rList = []
 
         # for each comparison digit compute exact unknown distributions for all digits
         for C in range(0, 10):
