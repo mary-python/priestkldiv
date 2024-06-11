@@ -402,11 +402,11 @@ for trial in range(7):
         statsfile.write(f"Optimal Lambda {round(maxLdaOpt[trial, T_FREQ], 2)} for Error {round(maxEst[trial, T_FREQ], 2)} for Max Pair {maxPair}\n")
 
         if trial == 6:
-            statsfile.write(f"Min Pair {minPair} has ground truth {minValue}\n")
-            statsfile.write(f"Max Pair {maxPair} has ground truth {maxValue}\n\n")
+            statsfile.write(f"Min Pair {minPair} has ground truth {round(minValue, 2)}\n")
+            statsfile.write(f"Max Pair {maxPair} has ground truth {round(maxValue, 2)}\n\n")
         else:
-            statsfile.write(f"Min Pair {minPair} has output {minValue}\n")
-            statsfile.write(f"Max Pair {maxPair} has output {maxValue}\n\n")
+            statsfile.write(f"Min Pair {minPair} has output {round(minValue, 2)}\n")
+            statsfile.write(f"Max Pair {maxPair} has output {round(maxValue, 2)}\n\n")
 
         T_FREQ = T_FREQ + 1
 
