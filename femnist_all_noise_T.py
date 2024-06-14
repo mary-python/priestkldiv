@@ -37,15 +37,18 @@ TS = len(trialset)
 Tset = [36, 72, 108, 144, 180, 225, 270, 360, 450, 540, 600, 660]
 ES = len(Tset)
 
-# stores for mean of PRIEST-KLD and optimum lambda
+# stores for each ground truth, mean of PRIEST-KLD and optimum lambda
+meanValue = np.zeros((TS, ES))
 meanEst = np.zeros((TS, ES))
 meanLdaOpt = np.zeros((TS, ES))
 
 # for min pairs
+minValue = np.zeros((TS, ES))
 minEst = np.zeros((TS, ES))
 minLdaOpt = np.zeros((TS, ES))
 
 # for max pairs
+maxValue = np.zeros((TS, ES))
 maxEst = np.zeros((TS, ES))
 maxLdaOpt = np.zeros((TS, ES))
 
@@ -342,12 +345,19 @@ for trial in range(7):
         maxIndex = np.argmax(uList)
         minPair = uCDList[minIndex]
         maxPair = uCDList[maxIndex]
-        minValue = uList[minIndex]
-        maxValue = uList[maxIndex]
+
+        # extract ground truths
+        meanValue[trial, T_FREQ] = np.mean(uList)
+        minValue[trial, T_FREQ] = uList[minIndex]
+        maxValue[trial, T_FREQ] = uList[maxIndex]
 
         meanLda = np.zeros(L)
         minLda = np.zeros(L)
         maxLda = np.zeros(L)
+
+        meanLdaNoise = np.zeros(L)
+        minLdaNoise = np.zeros(L)
+        maxLdaNoise = np.zeros(L)
 
         # compute mean error of PRIEST-KLD for each lambda
         for l in range(0, L):
@@ -359,9 +369,13 @@ for trial in range(7):
 
             # option 2b: "TAgg" (intermediate server adds Gaussian noise term)
             if trial == 2 or trial == 3:
-                meanLda[l] = meanLda[l] + gaussNoise.sample(sample_shape = (1,))
-                minLda[l] = minLda[l] + gaussNoise.sample(sample_shape = (1,))
-                maxLda[l] = maxLda[l] + gaussNoise.sample(sample_shape = (1,))   
+                meanLdaNoise[l] = gaussNoise.sample(sample_shape = (1,))
+                minLdaNoise[l] = gaussNoise.sample(sample_shape = (1,))
+                maxLdaNoise[l] = gaussNoise.sample(sample_shape = (1,))
+
+                meanLda[l] = meanLda[l] + meanLdaNoise[l]
+                minLda[l] = minLda[l] + minLdaNoise[l]
+                maxLda[l] = maxLda[l] + maxLdaNoise[l]
 
         # find lambda that produces minimum error
         meanLdaIndex = np.argmin(meanLda)
@@ -384,24 +398,54 @@ for trial in range(7):
         # option 2c: "Trusted" (server adds Laplace noise term to final result)
         if trial == 4 or trial == 5: 
             lapNoise = tfp.distributions.Normal(loc = A, scale = b2)
+            meanNoise = lapNoise.sample(sample_shape = (1,))
+            minNoise = lapNoise.sample(sample_shape = (1,))
+            maxNoise = lapNoise.sample(sample_shape = (1,))
 
             # define error = squared difference between estimator and ground truth
-            meanEst[trial, T_FREQ] = (meanEst[trial, T_FREQ] + lapNoise.sample(sample_shape = (1,)) - np.mean(uList))**2
-            minEst[trial, T_FREQ] = (minEst[trial, T_FREQ] + lapNoise.sample(sample_shape = (1,)) - uList[minIndex])**2
-            maxEst[trial, T_FREQ] = (maxEst[trial, T_FREQ] + lapNoise.sample(sample_shape = (1,)) - uList[maxIndex])**2
+            meanEst[trial, T_FREQ] = (meanEst[trial, T_FREQ] + meanNoise - meanValue[trial, T_FREQ])**2
+            minEst[trial, T_FREQ] = (minEst[trial, T_FREQ] + minNoise - minValue[trial, T_FREQ])**2
+            maxEst[trial, T_FREQ] = (maxEst[trial, T_FREQ] + maxNoise - maxValue[trial, T_FREQ])**2
         
         # clients or intermediate server already added Gaussian noise term
         else:
-            meanEst[trial, T_FREQ] = (meanEst[trial, T_FREQ] - np.mean(uList))**2
-            minEst[trial, T_FREQ] = (minEst[trial, T_FREQ] - uList[minIndex])**2
-            maxEst[trial, T_FREQ] = (maxEst[trial, T_FREQ] - uList[maxIndex])**2
+            meanEst[trial, T_FREQ] = (meanEst[trial, T_FREQ] - meanValue[trial, T_FREQ])**2
+            minEst[trial, T_FREQ] = (minEst[trial, T_FREQ] - minValue[trial, T_FREQ])**2
+            maxEst[trial, T_FREQ] = (maxEst[trial, T_FREQ] - maxValue[trial, T_FREQ])**2
 
-        statsfile.write(f"FEMNIST: T = {T}\n")
-        statsfile.write(f"Optimal Lambda {round(meanLdaOpt[trial, T_FREQ], 2)} for Mean {round(meanEst[trial, T_FREQ], 2)}\n")
-        statsfile.write(f"Optimal Lambda {round(minLdaOpt[trial, T_FREQ], 2)} for Error {round(minEst[trial, T_FREQ], 2)} for Min Pair {minPair}\n")
-        statsfile.write(f"Optimal Lambda {round(maxLdaOpt[trial, T_FREQ], 2)} for Error {round(maxEst[trial, T_FREQ], 2)} for Max Pair {maxPair}\n")
-        statsfile.write(f"Min Pair {minPair} has ground truth {round(minValue, 2)}\n")
-        statsfile.write(f"Max Pair {maxPair} has ground truth {round(maxValue, 2)}\n\n")
+        statsfile.write(f"FEMNIST: T = {T}\n\n")
+        statsfile.write(f"Mean Error: {round(meanEst[trial, T_FREQ], 2)}\n")
+        statsfile.write(f"Optimal Lambda: {round(meanLdaOpt[trial, T_FREQ], 2)}\n")
+        statsfile.write(f"Ground Truth: {round(meanValue[trial, T_FREQ], 2)}\n")
+
+        # INSERT TRIAL = 0 and TRIAL = 1 HERE (ADD UP START NOISE)
+
+        if trial == 2 or trial == 3:
+            statsfile.write(f"% Noise: {round((np.sum(meanLdaNoise) / meanValue[trial, T_FREQ])*100, 2)}\n\n")
+        if trial == 4 or trial == 5:
+            statsfile.write(f"% Noise: {round((meanNoise / meanValue[trial, T_FREQ])*100, 2)}\n\n")
+
+        statsfile.write(f"Min Error: {round(minEst[trial, T_FREQ], 2)}\n")
+        statsfile.write(f"Optimal Lambda: {round(minLdaOpt[trial, T_FREQ], 2)}\n")
+        statsfile.write(f"Ground Truth: {round(minValue[trial, T_FREQ], 2)}\n")
+
+        # INSERT TRIAL = 0 and TRIAL = 1 HERE (ADD UP START NOISE)
+
+        if trial == 2 or trial == 3:
+            statsfile.write(f"% Noise: {round((np.sum(minLdaNoise) / minValue[trial, T_FREQ])*100, 2)}\n\n")
+        if trial == 4 or trial == 5:
+            statsfile.write(f"% Noise: {round((minNoise / minValue[trial, T_FREQ])*100, 2)}\n\n")
+
+        statsfile.write(f"Max Error: {round(maxEst[trial, T_FREQ], 2)}\n")
+        statsfile.write(f"Optimal Lambda: {round(maxLdaOpt[trial, T_FREQ], 2)}\n")
+        statsfile.write(f"Ground Truth: {round(maxValue[trial, T_FREQ], 2)}\n")
+
+        # INSERT TRIAL = 0 and TRIAL = 1 HERE (ADD UP START NOISE)
+
+        if trial == 2 or trial == 3:
+            statsfile.write(f"% Noise: {round((np.sum(maxLdaNoise) / maxValue[trial, T_FREQ])*100, 2)}\n\n")
+        if trial == 4 or trial == 5:
+            statsfile.write(f"% Noise: {round((maxNoise / maxValue[trial, T_FREQ])*100, 2)}\n\n")
 
         T_FREQ = T_FREQ + 1
 
