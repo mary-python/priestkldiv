@@ -414,7 +414,11 @@ for trial in range(7):
             minEst[trial, T_FREQ] = (minEst[trial, T_FREQ] - minValue[trial, T_FREQ])**2
             maxEst[trial, T_FREQ] = (maxEst[trial, T_FREQ] - maxValue[trial, T_FREQ])**2
 
-        statsfile.write(f"FEMNIST: T = {T}\n")
+        if T == Tset[0]:
+            statsfile.write(f"FEMNIST: T = {T}\n")
+        else:
+            statsfile.write(f"\nFEMNIST: T = {T}\n")
+        
         statsfile.write(f"\nMean Error: {round(meanEst[trial, T_FREQ], 2)}\n")
         statsfile.write(f"Optimal Lambda: {round(meanLdaOpt[trial, T_FREQ], 2)}\n")
         statsfile.write(f"Ground Truth: {round(meanValue[trial, T_FREQ], 2)}\n")

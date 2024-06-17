@@ -412,7 +412,11 @@ for trial in range(7):
             minEst[trial, EPS_FREQ] = (minEst[trial, EPS_FREQ] - minValue[trial, EPS_FREQ])**2
             maxEst[trial, EPS_FREQ] = (maxEst[trial, EPS_FREQ] - maxValue[trial, EPS_FREQ])**2
 
-        statsfile.write(f"FEMNIST: Eps = {eps}\n")
+        if eps == epsset[0]:
+            statsfile.write(f"FEMNIST: Eps = {eps}\n")
+        else:
+            statsfile.write(f"\nFEMNIST: Eps = {eps}\n")
+
         statsfile.write(f"\nMean Error: {round(meanEst[trial, EPS_FREQ], 2)}\n")
         statsfile.write(f"Optimal Lambda: {round(meanLdaOpt[trial, EPS_FREQ], 2)}\n")
         statsfile.write(f"Ground Truth: {round(meanValue[trial, EPS_FREQ], 2)}\n")
