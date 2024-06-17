@@ -412,39 +412,39 @@ for trial in range(7):
             minEst[trial, EPS_FREQ] = (minEst[trial, EPS_FREQ] - minValue[trial, EPS_FREQ])**2
             maxEst[trial, EPS_FREQ] = (maxEst[trial, EPS_FREQ] - maxValue[trial, EPS_FREQ])**2
 
-        statsfile.write(f"FEMNIST: T = {T}\n\n")
-        statsfile.write(f"Mean Error: {round(meanEst[trial, EPS_FREQ], 2)}\n")
+        statsfile.write(f"FEMNIST: Eps = {eps}\n")
+        statsfile.write(f"\nMean Error: {round(meanEst[trial, EPS_FREQ], 2)}\n")
         statsfile.write(f"Optimal Lambda: {round(meanLdaOpt[trial, EPS_FREQ], 2)}\n")
         statsfile.write(f"Ground Truth: {round(meanValue[trial, EPS_FREQ], 2)}\n")
 
         if trial == 0 or trial == 1:
-            statsfile.write(f"% Noise: {round(((np.sum(startNoise) / startNoise.size) / meanValue[trial, EPS_FREQ])*100, 2)}\n\n")
+            statsfile.write(f"% Noise: {round(abs((np.sum(startNoise)) / meanValue[trial, EPS_FREQ])*100, 2)}\n")
         if trial == 2 or trial == 3:
-            statsfile.write(f"% Noise: {round(((abs(np.sum(meanLdaNoise)) / L) / meanValue[trial, EPS_FREQ])*100, 2)}\n\n")
+            statsfile.write(f"% Noise: {round(abs((np.sum(meanLdaNoise)) / meanValue[trial, EPS_FREQ])*100, 2)}\n")
         if trial == 4 or trial == 5:
-            statsfile.write(f"% Noise: {np.round((np.array(meanNoise) / meanValue[trial, EPS_FREQ])*100, 2)}\n\n")
+            statsfile.write(f"% Noise: {np.round(abs(float(np.array(meanNoise) / meanValue[trial, EPS_FREQ]))*100, 2)}\n")
 
-        statsfile.write(f"Min Error: {round(minEst[trial, EPS_FREQ], 2)}\n")
+        statsfile.write(f"\nMin Error: {round(minEst[trial, EPS_FREQ], 2)}\n")
         statsfile.write(f"Optimal Lambda: {round(minLdaOpt[trial, EPS_FREQ], 2)}\n")
         statsfile.write(f"Ground Truth: {round(minValue[trial, EPS_FREQ], 2)}\n")
 
         if trial == 0 or trial == 1:
-            statsfile.write(f"% Noise: {round(((np.sum(startNoise) / startNoise.size) / minValue[trial, EPS_FREQ])*100, 2)}\n\n")
+            statsfile.write(f"% Noise: {round(abs((np.sum(startNoise)) / minValue[trial, EPS_FREQ])*100, 2)}\n")
         if trial == 2 or trial == 3:
-            statsfile.write(f"% Noise: {round(((abs(np.sum(minLdaNoise)) / L) / minValue[trial, EPS_FREQ])*100, 2)}\n\n")
+            statsfile.write(f"% Noise: {round(abs((np.sum(minLdaNoise)) / minValue[trial, EPS_FREQ])*100, 2)}\n")
         if trial == 4 or trial == 5:
-            statsfile.write(f"% Noise: {np.round((np.array(minNoise) / minValue[trial, EPS_FREQ])*100, 2)}\n\n")
+            statsfile.write(f"% Noise: {np.round(abs(float(np.array(minNoise) / minValue[trial, EPS_FREQ]))*100, 2)}\n")
 
-        statsfile.write(f"Max Error: {round(maxEst[trial, EPS_FREQ], 2)}\n")
+        statsfile.write(f"\nMax Error: {round(maxEst[trial, EPS_FREQ], 2)}\n")
         statsfile.write(f"Optimal Lambda: {round(maxLdaOpt[trial, EPS_FREQ], 2)}\n")
         statsfile.write(f"Ground Truth: {round(maxValue[trial, EPS_FREQ], 2)}\n")
 
         if trial == 0 or trial == 1:
-            statsfile.write(f"% Noise: {round(((np.sum(startNoise) / startNoise.size) / maxValue[trial, EPS_FREQ])*100, 2)}\n\n")
+            statsfile.write(f"% Noise: {round(abs((np.sum(startNoise)) / maxValue[trial, EPS_FREQ])*100, 2)}\n")
         if trial == 2 or trial == 3:
-            statsfile.write(f"% Noise: {round(((abs(np.sum(maxLdaNoise)) / L) / maxValue[trial, EPS_FREQ])*100, 2)}\n\n")
+            statsfile.write(f"% Noise: {round(abs((np.sum(maxLdaNoise) / L) / maxValue[trial, EPS_FREQ])*100, 2)}\n")
         if trial == 4 or trial == 5:
-            statsfile.write(f"% Noise: {np.round((np.array(maxNoise) / maxValue[trial, EPS_FREQ])*100, 2)}\n\n")
+            statsfile.write(f"% Noise: {np.round(abs(float(np.array(maxNoise) / maxValue[trial, EPS_FREQ]))*100, 2)}\n")
 
         EPS_FREQ = EPS_FREQ + 1
 
