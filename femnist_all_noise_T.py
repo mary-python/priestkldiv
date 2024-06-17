@@ -422,7 +422,7 @@ for trial in range(7):
         if trial == 0 or trial == 1:
             statsfile.write(f"% Noise: {round(((np.sum(startNoise) / startNoise.size) / meanValue[trial, T_FREQ])*100, 2)}\n\n")
         if trial == 2 or trial == 3:
-            statsfile.write(f"% Noise: {round(((np.sum(meanLdaNoise) / L) / meanValue[trial, T_FREQ])*100, 2)}\n\n")
+            statsfile.write(f"% Noise: {round(((abs(np.sum(meanLdaNoise)) / L) / meanValue[trial, T_FREQ])*100, 2)}\n\n")
         if trial == 4 or trial == 5:
             statsfile.write(f"% Noise: {np.round((np.array(meanNoise) / meanValue[trial, T_FREQ])*100, 2)}\n\n")
 
@@ -433,7 +433,7 @@ for trial in range(7):
         if trial == 0 or trial == 1:
             statsfile.write(f"% Noise: {round(((np.sum(startNoise) / startNoise.size) / minValue[trial, T_FREQ])*100, 2)}\n\n")
         if trial == 2 or trial == 3:
-            statsfile.write(f"% Noise: {round(((np.sum(minLdaNoise) / L) / minValue[trial, T_FREQ])*100, 2)}\n\n")
+            statsfile.write(f"% Noise: {round(((abs(np.sum(minLdaNoise)) / L) / minValue[trial, T_FREQ])*100, 2)}\n\n")
         if trial == 4 or trial == 5:
             statsfile.write(f"% Noise: {np.round((np.array(minNoise) / minValue[trial, T_FREQ])*100, 2)}\n\n")
 
@@ -444,7 +444,7 @@ for trial in range(7):
         if trial == 0 or trial == 1:
             statsfile.write(f"% Noise: {round(((np.sum(startNoise) / startNoise.size) / maxValue[trial, T_FREQ])*100, 2)}\n\n")
         if trial == 2 or trial == 3:
-            statsfile.write(f"% Noise: {round(((np.sum(maxLdaNoise) / L) / maxValue[trial, T_FREQ])*100, 2)}\n\n")
+            statsfile.write(f"% Noise: {round(((abs(np.sum(maxLdaNoise)) / L) / maxValue[trial, T_FREQ])*100, 2)}\n\n")
         if trial == 4 or trial == 5:
             statsfile.write(f"% Noise: {np.round((np.array(maxNoise) / maxValue[trial, T_FREQ])*100, 2)}\n\n")
 
