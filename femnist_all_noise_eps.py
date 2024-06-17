@@ -192,6 +192,7 @@ for trial in range(7):
         uImageSet = np.ones((10, U, 4, 4))
         uFreqSet = np.zeros((10, U))
         uProbsSet = np.zeros((10, U))
+        startNoise = np.zeros((10, U))
         T1 = 11*T # change this term so probabilities add up to 1
 
         # parameters for the addition of Laplace and Gaussian noise
@@ -228,12 +229,12 @@ for trial in range(7):
        
             # option 2a: "Dist" (each client adds Gaussian noise term)
             if trial == 0 or trial == 1:
-                startNoise = probGaussNoise.sample(sample_shape = (1,))
+                startNoise[dig, ufreq] = probGaussNoise.sample(sample_shape = (1,))
 
-                if startNoise < 0:
-                    uProbsSet[dig, ufreq] = uProbsSet[dig, ufreq] - startNoise
+                if startNoise[dig, ufreq] < 0:
+                    uProbsSet[dig, ufreq] = uProbsSet[dig, ufreq] - startNoise[dig, ufreq]
                 else:
-                    uProbsSet[dig, ufreq] = uProbsSet[dig, ufreq] + startNoise
+                    uProbsSet[dig, ufreq] = uProbsSet[dig, ufreq] + startNoise[dig, ufreq]
                 
         for D in range(0, 10):
             UNIQUE_FREQ = 0
@@ -367,9 +368,9 @@ for trial in range(7):
 
             # option 2b: "TAgg" (intermediate server adds Gaussian noise term)
             if trial == 2 or trial == 3:
-                meanNoise = gaussNoise.sample(sample_shape = (1,))
-                minNoise = gaussNoise.sample(sample_shape = (1,))
-                maxNoise = gaussNoise.sample(sample_shape = (1,))
+                meanLdaNoise[l] = gaussNoise.sample(sample_shape = (1,))
+                minLdaNoise[l] = gaussNoise.sample(sample_shape = (1,))
+                maxLdaNoise[l] = gaussNoise.sample(sample_shape = (1,))
 
                 meanLda[l] = meanLda[l] + meanLdaNoise[l]
                 minLda[l] = minLda[l] + minLdaNoise[l]
@@ -416,10 +417,10 @@ for trial in range(7):
         statsfile.write(f"Optimal Lambda: {round(meanLdaOpt[trial, EPS_FREQ], 2)}\n")
         statsfile.write(f"Ground Truth: {round(meanValue[trial, EPS_FREQ], 2)}\n")
 
-        # INSERT TRIAL = 0 and TRIAL = 1 HERE (ADD UP START NOISE)
-
+        if trial == 0 or trial == 1:
+            statsfile.write(f"% Noise: {round(((np.sum(startNoise) / startNoise.size) / meanValue[trial, EPS_FREQ])*100, 2)}\n\n")
         if trial == 2 or trial == 3:
-            statsfile.write(f"% Noise: {round((np.sum(meanLdaNoise) / meanValue[trial, EPS_FREQ])*100, 2)}\n\n")
+            statsfile.write(f"% Noise: {round(((np.sum(meanLdaNoise) / L) / meanValue[trial, EPS_FREQ])*100, 2)}\n\n")
         if trial == 4 or trial == 5:
             statsfile.write(f"% Noise: {round((meanNoise / meanValue[trial, EPS_FREQ])*100, 2)}\n\n")
 
@@ -427,10 +428,10 @@ for trial in range(7):
         statsfile.write(f"Optimal Lambda: {round(minLdaOpt[trial, EPS_FREQ], 2)}\n")
         statsfile.write(f"Ground Truth: {round(minValue[trial, EPS_FREQ], 2)}\n")
 
-        # INSERT TRIAL = 0 and TRIAL = 1 HERE (ADD UP START NOISE)
-
+        if trial == 0 or trial == 1:
+            statsfile.write(f"% Noise: {round(((np.sum(startNoise) / startNoise.size) / minValue[trial, EPS_FREQ])*100, 2)}\n\n")
         if trial == 2 or trial == 3:
-            statsfile.write(f"% Noise: {round((np.sum(minLdaNoise) / minValue[trial, EPS_FREQ])*100, 2)}\n\n")
+            statsfile.write(f"% Noise: {round(((np.sum(minLdaNoise) / L) / minValue[trial, EPS_FREQ])*100, 2)}\n\n")
         if trial == 4 or trial == 5:
             statsfile.write(f"% Noise: {round((minNoise / minValue[trial, EPS_FREQ])*100, 2)}\n\n")
 
@@ -438,10 +439,10 @@ for trial in range(7):
         statsfile.write(f"Optimal Lambda: {round(maxLdaOpt[trial, EPS_FREQ], 2)}\n")
         statsfile.write(f"Ground Truth: {round(maxValue[trial, EPS_FREQ], 2)}\n")
 
-        # INSERT TRIAL = 0 and TRIAL = 1 HERE (ADD UP START NOISE)
-
+        if trial == 0 or trial == 1:
+            statsfile.write(f"% Noise: {round(((np.sum(startNoise) / startNoise.size) / maxValue[trial, EPS_FREQ])*100, 2)}\n\n")
         if trial == 2 or trial == 3:
-            statsfile.write(f"% Noise: {round((np.sum(maxLdaNoise) / maxValue[trial, EPS_FREQ])*100, 2)}\n\n")
+            statsfile.write(f"% Noise: {round(((np.sum(maxLdaNoise) / L) / maxValue[trial, EPS_FREQ])*100, 2)}\n\n")
         if trial == 4 or trial == 5:
             statsfile.write(f"% Noise: {round((maxNoise / maxValue[trial, EPS_FREQ])*100, 2)}\n\n")
 
