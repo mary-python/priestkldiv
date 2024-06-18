@@ -429,14 +429,14 @@ for trial in range(7):
 
         # compute % of noise vs ground truth (mean)
         if trial == 0 or trial == 1:
-            meanStartPerc = abs(float(np.array(sum(startNoise))) / (np.array(sum(startNoise)) + meanValue[trial, T_FREQ]))*100
-            meanfile.write(f"% Noise: {np.round(abs((np.sum(startNoise)) / meanValue[trial, T_FREQ])*100, 2)}\n")
+            meanStartPerc = abs(np.array(sum(startNoise)) / (np.array(sum(startNoise)) + meanValue[trial, T_FREQ]))*100
+            meanfile.write(f"% Noise: {float(np.round(meanStartPerc, 2))}\n")
         if trial == 2 or trial == 3:
             meanMidPerc = abs((np.sum(meanLdaNoise)) / (np.sum(meanLdaNoise) + meanValue[trial, T_FREQ]))*100
-            meanfile.write(f"% Noise: {round(abs((np.sum(meanLdaNoise)) / meanValue[trial, T_FREQ])*100, 2)}\n")
+            meanfile.write(f"% Noise: {round(meanMidPerc, 2)}\n")
         if trial == 4 or trial == 5:
             meanEndPerc = abs(float(np.array(meanNoise) / (np.array(meanNoise) + meanValue[trial, T_FREQ])))*100
-            meanfile.write(f"% Noise: {np.round(abs(float(np.array(meanNoise) / meanValue[trial, T_FREQ]))*100, 2)}\n")
+            meanfile.write(f"% Noise: {np.round(meanEndPerc, 2)}\n")
 
         minfile.write(f"\nMin Error: {round(minEst[trial, T_FREQ], 2)}\n")
         minfile.write(f"Optimal Lambda: {round(minLdaOpt[trial, T_FREQ], 2)}\n")
@@ -444,14 +444,14 @@ for trial in range(7):
 
         # compute % of noise vs ground truth (min pair)
         if trial == 0 or trial == 1:
-            minStartPerc = abs(float(np.array(sum(startNoise))) / (np.array(sum(startNoise)) + minValue[trial, T_FREQ]))*100
-            minfile.write(f"% Noise: {np.round(abs((np.sum(startNoise)) / minValue[trial, T_FREQ])*100, 2)}\n")
+            minStartPerc = abs(np.array(sum(startNoise)) / (np.array(sum(startNoise)) + minValue[trial, T_FREQ]))*100
+            minfile.write(f"% Noise: {float(np.round(minStartPerc, 2))}\n")
         if trial == 2 or trial == 3:
             minMidPerc = abs((np.sum(meanLdaNoise)) / (np.sum(meanLdaNoise) + minValue[trial, T_FREQ]))*100
-            minfile.write(f"% Noise: {round(abs((np.sum(minLdaNoise)) / minValue[trial, T_FREQ])*100, 2)}\n")
+            minfile.write(f"% Noise: {round(minMidPerc, 2)}\n")
         if trial == 4 or trial == 5:
             minEndPerc = abs(float(np.array(meanNoise) / (np.array(meanNoise) + minValue[trial, T_FREQ])))*100
-            minfile.write(f"% Noise: {np.round(abs(float(np.array(minNoise) / minValue[trial, T_FREQ]))*100, 2)}\n")
+            minfile.write(f"% Noise: {np.round(minEndPerc, 2)}\n")
 
         maxfile.write(f"\nMax Error: {round(maxEst[trial, T_FREQ], 2)}\n")
         maxfile.write(f"Optimal Lambda: {round(maxLdaOpt[trial, T_FREQ], 2)}\n")
@@ -459,14 +459,14 @@ for trial in range(7):
 
         # compute % of noise vs ground truth (max pair)
         if trial == 0 or trial == 1:
-            maxStartPerc = abs(float(np.array(sum(startNoise))) / (np.array(sum(startNoise)) + maxValue[trial, T_FREQ]))*100
-            maxfile.write(f"% Noise: {np.round(abs((np.sum(startNoise)) / maxValue[trial, T_FREQ])*100, 2)}\n")
+            maxStartPerc = abs(np.array(sum(startNoise)) / (np.array(sum(startNoise)) + maxValue[trial, T_FREQ]))*100
+            maxfile.write(f"% Noise: {float(np.round(maxStartPerc, 2))}\n")
         if trial == 2 or trial == 3:
             maxMidPerc = abs((np.sum(meanLdaNoise)) / (np.sum(meanLdaNoise) + maxValue[trial, T_FREQ]))*100
-            maxfile.write(f"% Noise: {round(abs((np.sum(maxLdaNoise)) / maxValue[trial, T_FREQ])*100, 2)}\n")
+            maxfile.write(f"% Noise: {round(maxMidPerc, 2)}\n")
         if trial == 4 or trial == 5:
             maxEndPerc = abs(float(np.array(meanNoise) / (np.array(meanNoise) + maxValue[trial, T_FREQ])))*100
-            maxfile.write(f"% Noise: {np.round(abs(float(np.array(maxNoise) / maxValue[trial, T_FREQ]))*100, 2)}\n")
+            maxfile.write(f"% Noise: {np.round(maxEndPerc, 2)}\n")
 
         T_FREQ = T_FREQ + 1
 
@@ -474,7 +474,7 @@ for trial in range(7):
 plt.errorbar(Tset, meanEst[0], yerr = np.minimum(np.sqrt(meanEst[0]), np.divide(meanEst[0], 2)), color = 'blue', marker = 'o', label = "Dist")
 plt.errorbar(Tset, meanEst[2], yerr = np.minimum(np.sqrt(meanEst[2]), np.divide(meanEst[2], 2)), color = 'green', marker = 'o', label = "TAgg")
 plt.errorbar(Tset, meanEst[4], yerr = np.minimum(np.sqrt(meanEst[4]), np.divide(meanEst[4], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.errorbar(Tset, meanEst[6], yerr = np.minimum(np.sqrt(meanEst[6]), np.divide(meanEst[6], 2)), color = 'red', marker = '*', label = "NoAlgo")
+plt.errorbar(Tset, meanEst[6], yerr = np.minimum(np.sqrt(meanEst[6]), np.divide(meanEst[6], 2)), color = 'red', marer = '*', label = "NoAlgo")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of T")
