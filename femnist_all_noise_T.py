@@ -309,13 +309,9 @@ for trial in range(7):
 
                     # option 2a: "Dist" (each client adds Gaussian noise term)
                     if trial == 0 or trial == 1:
-                        startSample = probGaussNoise.sample(sample_shape = (1,))
+                        startSample = abs(probGaussNoise.sample(sample_shape = (1,)))
                         startNoise.append(startSample)
-
-                        if startSample < 0:
-                            ratio = ratio - startSample
-                        else:
-                            ratio = ratio + startSample
+                        ratio = ratio + startSample
                     
                     rList.append(ratio)
 
@@ -425,7 +421,7 @@ for trial in range(7):
         else:
             meanfile.write(f"\nT = {T}\n")
             minfile.write(f"\nT = {T}\n")
-            meanfile.write(f"\nT = {T}\n")
+            maxfile.write(f"\nT = {T}\n")
         
         meanfile.write(f"\nMean Error: {round(meanEst[trial, T_FREQ], 2)}\n")
         meanfile.write(f"Optimal Lambda: {round(meanLdaOpt[trial, T_FREQ], 2)}\n")

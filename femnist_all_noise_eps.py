@@ -307,13 +307,9 @@ for trial in range(7):
 
                     # option 2a: "Dist" (each client adds Gaussian noise term)
                     if trial == 0 or trial == 1:
-                        startSample = probGaussNoise.sample(sample_shape = (1,))
+                        startSample = abs(probGaussNoise.sample(sample_shape = (1,)))
                         startNoise.append(startSample)
-
-                        if startSample < 0:
-                            ratio = ratio - startSample
-                        else:
-                            ratio = ratio + startSample
+                        ratio = ratio + startSample
                     
                     rList.append(ratio)
 
