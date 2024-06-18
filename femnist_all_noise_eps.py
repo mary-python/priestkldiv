@@ -54,7 +54,9 @@ maxLdaOpt = np.zeros((TS, ES))
 for trial in range(7):
 
     print(f"\nTrial {trial + 1}: {trialset[trial]}")
-    statsfile = open(f"femnist_eps_{trialset[trial]}.txt", "w", encoding = 'utf-8')
+    meanfile = open(f"femnist_eps_{trialset[trial]}_mean.txt", "w", encoding = 'utf-8')
+    minfile = open(f"femnist_eps_{trialset[trial]}_min.txt", "w", encoding = 'utf-8')
+    maxfile = open(f"femnist_eps_{trialset[trial]}_max.txt", "w", encoding = 'utf-8')
     EPS_FREQ = 0
 
     for eps in epsset:
@@ -192,29 +194,7 @@ for trial in range(7):
         uImageSet = np.ones((10, U, 4, 4))
         uFreqSet = np.zeros((10, U))
         uProbsSet = np.zeros((10, U))
-        startNoise = np.zeros((10, U))
         T1 = 11*T # change this term so probabilities add up to 1
-
-        # parameters for the addition of Laplace and Gaussian noise
-        DTA = 0.1
-        A = 0
-        R1 = 90
-
-        # option 1a: baseline case
-        if trial % 2 == 0:
-            b1 = log(2) / eps
-
-        # option 1b: Monte Carlo estimate
-        else:
-            b1 = (1 + log(2)) / eps
-
-        b2 = (2*((log(1.25))/DTA)*b1) / eps
-
-        # load Gaussian noise distributions for clients and intermediate server
-        if trial < 4:
-            s = b2 * (np.sqrt(2) / R1)
-            probGaussNoise = tfp.distributions.Normal(loc = A, scale = s / 100)
-            gaussNoise = tfp.distributions.Normal(loc = A, scale = s)
 
         # smoothing parameter: 0.1 and 1 are too large
         ALPHA = 0.01
@@ -226,15 +206,6 @@ for trial in range(7):
             uImageSet[dig, ufreq] = im
             uFreqSet[dig, ufreq] = int(freq)
             uProbsSet[dig, ufreq] = float((freq + ALPHA)/(T1 + (ALPHA*(digFreq[dig]))))
-       
-            # option 2a: "Dist" (each client adds Gaussian noise term)
-            if trial == 0 or trial == 1:
-                startNoise[dig, ufreq] = probGaussNoise.sample(sample_shape = (1,))
-
-                if startNoise[dig, ufreq] < 0:
-                    uProbsSet[dig, ufreq] = uProbsSet[dig, ufreq] - startNoise[dig, ufreq]
-                else:
-                    uProbsSet[dig, ufreq] = uProbsSet[dig, ufreq] + startNoise[dig, ufreq]
                 
         for D in range(0, 10):
             UNIQUE_FREQ = 0
@@ -284,12 +255,34 @@ for trial in range(7):
                 eTotalFreq[D] = sum(eFreqSet[D])
                 eProbsSet[D, i] = float((eFreqSet[D, i] + ALPHA)/(T2 + (ALPHA*(eTotalFreq[D]))))
 
+        # parameters for the addition of Laplace and Gaussian noise
+        DTA = 0.1
+        A = 0
+        R1 = 90
+
+        # option 1a: baseline case
+        if trial % 2 == 0:
+            b1 = log(2) / eps
+
+        # option 1b: Monte Carlo estimate
+        else:
+            b1 = (1 + log(2)) / eps
+
+        b2 = (2*((log(1.25))/DTA)*b1) / eps
+
+        # load Gaussian noise distributions for clients and intermediate server
+        if trial < 4:
+            s = b2 * (np.sqrt(2) / R1)
+            probGaussNoise = tfp.distributions.Normal(loc = A, scale = s / 100)
+            gaussNoise = tfp.distributions.Normal(loc = A, scale = s)
+
         # stores for exact unknown distributions
         uDist = np.zeros((10, 10, U))
         nDist = np.zeros((10, 10, E))
         uList = []
         uCDList = []
         rList = []
+        startNoise = []
 
         # for each comparison digit compute unknown distributions for all digits
         for C in range(0, 10):
@@ -311,6 +304,17 @@ for trial in range(7):
 
                 # eliminate all divide by zero errors
                 if ratio != 0.0 and sum(uDist[C, D]) != 0.0:
+
+                    # option 2a: "Dist" (each client adds Gaussian noise term)
+                    if trial == 0 or trial == 1:
+                        startSample = probGaussNoise.sample(sample_shape = (1,))
+                        startNoise.append(startSample)
+
+                        if startSample < 0:
+                            ratio = ratio - startSample
+                        else:
+                            ratio = ratio + startSample
+                    
                     rList.append(ratio)
 
         # constants for lambda search
@@ -413,42 +417,58 @@ for trial in range(7):
             maxEst[trial, EPS_FREQ] = (maxEst[trial, EPS_FREQ] - maxValue[trial, EPS_FREQ])**2
 
         if eps == epsset[0]:
-            statsfile.write(f"FEMNIST: Eps = {eps}\n")
+            meanfile.write(f"FEMNIST: Eps = {eps}\n")
+            minfile.write(f"FEMNIST: Eps = {eps}\n")
+            maxfile.write(f"FEMNIST: Eps = {eps}\n")
         else:
-            statsfile.write(f"\nFEMNIST: Eps = {eps}\n")
+            meanfile.write(f"\nEps = {eps}\n")
+            minfile.write(f"\nEps = {eps}\n")
+            maxfile.write(f"\nEps = {eps}\n")
 
-        statsfile.write(f"\nMean Error: {round(meanEst[trial, EPS_FREQ], 2)}\n")
-        statsfile.write(f"Optimal Lambda: {round(meanLdaOpt[trial, EPS_FREQ], 2)}\n")
-        statsfile.write(f"Ground Truth: {round(meanValue[trial, EPS_FREQ], 2)}\n")
+        meanfile.write(f"\nMean Error: {round(meanEst[trial, EPS_FREQ], 2)}\n")
+        meanfile.write(f"Optimal Lambda: {round(meanLdaOpt[trial, EPS_FREQ], 2)}\n")
+        meanfile.write(f"Ground Truth: {round(meanValue[trial, EPS_FREQ], 2)}\n")
 
+        # compute % of noise vs ground truth (mean)
         if trial == 0 or trial == 1:
-            statsfile.write(f"% Noise: {round(abs((np.sum(startNoise)) / meanValue[trial, EPS_FREQ])*100, 2)}\n")
+            meanStartPerc = abs(float(np.array(sum(startNoise))) / (np.array(startNoise) + meanValue[trial, EPS_FREQ]))*100
+            meanfile.write(f"% Noise: {np.round(meanStartPerc, 2)}\n")
         if trial == 2 or trial == 3:
-            statsfile.write(f"% Noise: {round(abs((np.sum(meanLdaNoise)) / meanValue[trial, EPS_FREQ])*100, 2)}\n")
+            meanMidPerc = abs((np.sum(meanLdaNoise)) / (np.sum(meanLdaNoise) + meanValue[trial, EPS_FREQ]))*100
+            meanfile.write(f"% Noise: {round(meanMidPerc, 2)}\n")
         if trial == 4 or trial == 5:
-            statsfile.write(f"% Noise: {np.round(abs(float(np.array(meanNoise) / meanValue[trial, EPS_FREQ]))*100, 2)}\n")
+            meanEndPerc = abs(float(np.array(meanNoise) / (np.array(meanNoise) + meanValue[trial, EPS_FREQ])))*100
+            meanfile.write(f"% Noise: {np.round(meanEndPerc, 2)}\n")
 
-        statsfile.write(f"\nMin Error: {round(minEst[trial, EPS_FREQ], 2)}\n")
-        statsfile.write(f"Optimal Lambda: {round(minLdaOpt[trial, EPS_FREQ], 2)}\n")
-        statsfile.write(f"Ground Truth: {round(minValue[trial, EPS_FREQ], 2)}\n")
+        minfile.write(f"\nMin Error: {round(minEst[trial, EPS_FREQ], 2)}\n")
+        minfile.write(f"Optimal Lambda: {round(minLdaOpt[trial, EPS_FREQ], 2)}\n")
+        minfile.write(f"Ground Truth: {round(minValue[trial, EPS_FREQ], 2)}\n")
 
+        # compute % of noise vs ground truth (min pair)
         if trial == 0 or trial == 1:
-            statsfile.write(f"% Noise: {round(abs((np.sum(startNoise)) / minValue[trial, EPS_FREQ])*100, 2)}\n")
+            minStartPerc = abs(float(np.array(sum(startNoise))) / (sum(startNoise) + minValue[trial, EPS_FREQ]))*100
+            minfile.write(f"% Noise: {np.round(minStartPerc, 2)}\n")
         if trial == 2 or trial == 3:
-            statsfile.write(f"% Noise: {round(abs((np.sum(minLdaNoise)) / minValue[trial, EPS_FREQ])*100, 2)}\n")
+            minMidPerc = abs((np.sum(meanLdaNoise)) / (np.sum(meanLdaNoise) + minValue[trial, EPS_FREQ]))*100
+            minfile.write(f"% Noise: {round(minMidPerc, 2)}\n")
         if trial == 4 or trial == 5:
-            statsfile.write(f"% Noise: {np.round(abs(float(np.array(minNoise) / minValue[trial, EPS_FREQ]))*100, 2)}\n")
+            minEndPerc = abs(float(np.array(meanNoise) / (np.array(meanNoise) + minValue[trial, EPS_FREQ])))*100
+            minfile.write(f"% Noise: {np.round(minEndPerc, 2)}\n")
 
-        statsfile.write(f"\nMax Error: {round(maxEst[trial, EPS_FREQ], 2)}\n")
-        statsfile.write(f"Optimal Lambda: {round(maxLdaOpt[trial, EPS_FREQ], 2)}\n")
-        statsfile.write(f"Ground Truth: {round(maxValue[trial, EPS_FREQ], 2)}\n")
+        maxfile.write(f"\nMax Error: {round(maxEst[trial, EPS_FREQ], 2)}\n")
+        maxfile.write(f"Optimal Lambda: {round(maxLdaOpt[trial, EPS_FREQ], 2)}\n")
+        maxfile.write(f"Ground Truth: {round(maxValue[trial, EPS_FREQ], 2)}\n")
 
+        # compute % of noise vs ground truth (max pair) 
         if trial == 0 or trial == 1:
-            statsfile.write(f"% Noise: {round(abs((np.sum(startNoise)) / maxValue[trial, EPS_FREQ])*100, 2)}\n")
+            maxStartPerc = abs(float(np.array(sum(startNoise))) / (sum(startNoise) + maxValue[trial, EPS_FREQ]))*100
+            maxfile.write(f"% Noise: {np.round(maxStartPerc, 2)}\n")
         if trial == 2 or trial == 3:
-            statsfile.write(f"% Noise: {round(abs((np.sum(maxLdaNoise) / L) / maxValue[trial, EPS_FREQ])*100, 2)}\n")
+            maxMidPerc = abs((np.sum(meanLdaNoise)) / (np.sum(meanLdaNoise) + maxValue[trial, EPS_FREQ]))*100
+            maxfile.write(f"% Noise: {round(maxMidPerc, 2)}\n")
         if trial == 4 or trial == 5:
-            statsfile.write(f"% Noise: {np.round(abs(float(np.array(maxNoise) / maxValue[trial, EPS_FREQ]))*100, 2)}\n")
+            maxEndPerc = abs(float(np.array(meanNoise) / (np.array(meanNoise) + maxValue[trial, EPS_FREQ])))*100
+            maxfile.write(f"% Noise: {np.round(maxEndPerc, 2)}\n")
 
         EPS_FREQ = EPS_FREQ + 1
 
