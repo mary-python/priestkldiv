@@ -431,7 +431,7 @@ for trial in range(7):
 
         # compute % of noise vs ground truth (mean)
         if trial == 0 or trial == 1:
-            meanStartPerc = abs(float(np.array(sum(startNoise))) / (np.array(startNoise) + meanValue[trial, EPS_FREQ]))*100
+            meanStartPerc = abs(float(np.array(sum(startNoise))) / (np.array(sum(startNoise)) + meanValue[trial, EPS_FREQ]))*100
             meanfile.write(f"% Noise: {np.round(meanStartPerc, 2)}\n")
         if trial == 2 or trial == 3:
             meanMidPerc = abs((np.sum(meanLdaNoise)) / (np.sum(meanLdaNoise) + meanValue[trial, EPS_FREQ]))*100
@@ -446,7 +446,7 @@ for trial in range(7):
 
         # compute % of noise vs ground truth (min pair)
         if trial == 0 or trial == 1:
-            minStartPerc = abs(float(np.array(sum(startNoise))) / (sum(startNoise) + minValue[trial, EPS_FREQ]))*100
+            minStartPerc = abs(float(np.array(sum(startNoise))) / (np.array(sum(startNoise)) + minValue[trial, EPS_FREQ]))*100
             minfile.write(f"% Noise: {np.round(minStartPerc, 2)}\n")
         if trial == 2 or trial == 3:
             minMidPerc = abs((np.sum(meanLdaNoise)) / (np.sum(meanLdaNoise) + minValue[trial, EPS_FREQ]))*100
@@ -461,7 +461,7 @@ for trial in range(7):
 
         # compute % of noise vs ground truth (max pair) 
         if trial == 0 or trial == 1:
-            maxStartPerc = abs(float(np.array(sum(startNoise))) / (sum(startNoise) + maxValue[trial, EPS_FREQ]))*100
+            maxStartPerc = abs(float(np.array(sum(startNoise))) / (np.array(sum(startNoise)) + maxValue[trial, EPS_FREQ]))*100
             maxfile.write(f"% Noise: {np.round(maxStartPerc, 2)}\n")
         if trial == 2 or trial == 3:
             maxMidPerc = abs((np.sum(meanLdaNoise)) / (np.sum(meanLdaNoise) + maxValue[trial, EPS_FREQ]))*100
