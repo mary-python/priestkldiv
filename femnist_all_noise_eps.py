@@ -430,14 +430,14 @@ for trial in range(7):
 
         # compute % of noise vs ground truth (mean)
         if trial == 0 or trial == 1:
-            meanStartPerc = float(abs(np.array(sum(startNoise)) / (np.array(sum(startNoise)) + meanValue[trial, EPS_FREQ])))*100
-            meanfile.write(f"Noise: {np.round(meanStartPerc, 2)}%\n")
+            meanPerc[trial, EPS_FREQ] = float(abs(np.array(sum(startNoise)) / (np.array(sum(startNoise)) + meanValue[trial, EPS_FREQ])))*100
+            meanfile.write(f"Noise: {np.round(meanPerc[trial, EPS_FREQ], 2)}%\n")
         if trial == 2 or trial == 3:
-            meanMidPerc = abs((np.sum(meanLdaNoise)) / (np.sum(meanLdaNoise) + meanValue[trial, EPS_FREQ]))*100
-            meanfile.write(f"Noise: {round(meanMidPerc, 2)}%\n")
+            meanPerc[trial, EPS_FREQ] = abs((np.sum(meanLdaNoise)) / (np.sum(meanLdaNoise) + meanValue[trial, EPS_FREQ]))*100
+            meanfile.write(f"Noise: {round(meanPerc[trial, EPS_FREQ], 2)}%\n")
         if trial == 4 or trial == 5:
-            meanEndPerc = float(abs(np.array(meanNoise) / (np.array(meanNoise) + meanValue[trial, EPS_FREQ])))*100
-            meanfile.write(f"Noise: {np.round(meanEndPerc, 2)}%\n")
+            meanPerc[trial, EPS_FREQ] = float(abs(np.array(meanNoise) / (np.array(meanNoise) + meanValue[trial, EPS_FREQ])))*100
+            meanfile.write(f"Noise: {np.round(meanPerc[trial, EPS_FREQ], 2)}%\n")
 
         minfile.write(f"\nMin Error: {round(minEst[trial, EPS_FREQ], 2)}\n")
         minfile.write(f"Optimal Lambda: {round(minLdaOpt[trial, EPS_FREQ], 2)}\n")
@@ -629,13 +629,14 @@ plt.plot(epsset, meanPerc[3], color = 'lime', marker = 'x', label = "TAgg mc")
 plt.plot(epsset, meanPerc[4], color = 'orange', marker = 'o', label = "Trusted")
 plt.plot(epsset, meanPerc[5], color = 'gold', marker = 'x', label = "Trusted mc")
 plt.legend(loc = 'best')
+plt.yscale('log')
 plt.xlabel("Value of epsilon")
 plt.ylabel("Noise (%)")
 plt.title("Noise (%) compared to ground truth (mean)")
 plt.savefig("Femnist_eps_perc_mean.png")
 plt.clf()
 
-# plot % of noise vs ground truth for each epsilon (min)
+# plot % of noise vs ground truth for each epsilon (min pair)
 plt.plot(epsset, minPerc[0], color = 'blue', marker = 'o', label = "Dist")
 plt.plot(epsset, minPerc[1], color = 'blueviolet', marker = 'x', label = "Dist mc")
 plt.plot(epsset, minPerc[2], color = 'green', marker = 'o', label = "TAgg")
@@ -643,13 +644,14 @@ plt.plot(epsset, minPerc[3], color = 'lime', marker = 'x', label = "TAgg mc")
 plt.plot(epsset, minPerc[4], color = 'orange', marker = 'o', label = "Trusted")
 plt.plot(epsset, minPerc[5], color = 'gold', marker = 'x', label = "Trusted mc")
 plt.legend(loc = 'best')
+plt.yscale('log')
 plt.xlabel("Value of epsilon")
 plt.ylabel("Noise (%)")
-plt.title("Noise (%) compared to ground truth (min)")
+plt.title(f"Noise (%) compared to ground truth (min pair {minPair})")
 plt.savefig("Femnist_eps_perc_min.png")
 plt.clf()
 
-# plot % of noise vs ground truth for each epsilon (max)
+# plot % of noise vs ground truth for each epsilon (max pair)
 plt.plot(epsset, maxPerc[0], color = 'blue', marker = 'o', label = "Dist")
 plt.plot(epsset, maxPerc[1], color = 'blueviolet', marker = 'x', label = "Dist mc")
 plt.plot(epsset, maxPerc[2], color = 'green', marker = 'o', label = "TAgg")
@@ -657,9 +659,10 @@ plt.plot(epsset, maxPerc[3], color = 'lime', marker = 'x', label = "TAgg mc")
 plt.plot(epsset, maxPerc[4], color = 'orange', marker = 'o', label = "Trusted")
 plt.plot(epsset, maxPerc[5], color = 'gold', marker = 'x', label = "Trusted mc")
 plt.legend(loc = 'best')
+plt.yscale('log')
 plt.xlabel("Value of epsilon")
 plt.ylabel("Noise (%)")
-plt.title("Noise (%) compared to ground truth (max)")
+plt.title(f"Noise (%) compared to ground truth (max pair {maxPair})")
 plt.savefig("Femnist_eps_perc_max.png")
 plt.clf()
 

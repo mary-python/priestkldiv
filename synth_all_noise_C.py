@@ -19,15 +19,18 @@ trialset = ["Dist_small", "Dist_small_mc", "TAgg_small", "TAgg_small_mc", "Trust
 CS = len(Cset)
 TS = len(trialset)
 
-# stores for mean of PRIEST-KLD and optimum lambda
+# stores for mean of PRIEST-KLD, optimum lambda and % noise
 rMeanEst = np.zeros((TS, CS))
 rLdaOpt = np.zeros((TS, CS))
+rMeanPerc = np.zeros((TS, CS))
 oMeanEst = np.zeros((TS, CS))
 oLdaOpt = np.zeros((TS, CS))
+oMeanPerc = np.zeros((TS, CS))
 
 for trial in range(14):
     print(f"\nTrial {trial + 1}: {trialset[trial]}")
-    statsfile = open(f"synth_C_{trialset[trial]}.txt", "w", encoding = 'utf-8')
+    randfile = open(f"synth_C_{trialset[trial]}_rand.txt", "w", encoding = 'utf-8')
+    ordfile = open(f"synth_C_{trialset[trial]}_ord.txt", "w", encoding = 'utf-8')
 
     # p is unknown distribution, q is known
     # option 1a: distributions have small KL divergence
@@ -107,6 +110,8 @@ for trial in range(14):
 
         rEst = np.zeros((L, C))
         oEst = np.zeros((L, C))
+        rStartNoise = []
+        oStartNoise = []
 
         for j in range(C):
 
@@ -121,24 +126,19 @@ for trial in range(14):
             # "ORDERED": each client gets N points in order from ordered pre-processed sample
             qOrdClientSamp = qOrderedRound[0][N*j : N*(j + 1)]
 
-            # option 3a: "Dist" (each client adds Gaussian noise term)
-            if trial % 3 == 0 and trial != 12:
-                rStartNoise = probGaussNoise.sample(sample_shape = (1,))
-                oStartNoise = probGaussNoise.sample(sample_shape = (1,))
-
-                if rStartNoise < 0:
-                    qClientSamp = qClientSamp - rStartNoise
-                else:
-                    qClientSamp = qClientSamp + rStartNoise
-
-                if oStartNoise < 0:
-                    qClientSamp = qClientSamp - oStartNoise
-                else:
-                    qClientSamp = qClientSamp + oStartNoise
-
             # compute ratio between unknown and known distributions
             rLogr = p.log_prob(qClientSamp) - q.log_prob(qClientSamp)
             oLogr = p.log_prob(qOrdClientSamp) - q.log_prob(qOrdClientSamp)
+
+            # option 3a: "Dist" (each client adds Gaussian noise term)
+            if trial % 3 == 0 and trial != 12:
+                rStartSample = abs(probGaussNoise.sample(sample_shape = (1,)))
+                oStartSample = abs(probGaussNoise.sample(sample_shape = (1,)))
+                rStartNoise.append(rStartSample)
+                oStartNoise.append(oStartSample)
+                rLogr = rLogr + rStartSample
+                oLogr = oLogr + oStartSample
+
             LDA_COUNT = 0
 
             # explore lambdas in a range
@@ -156,12 +156,17 @@ for trial in range(14):
         # compute mean of PRIEST-KLD across clients
         rMeanLda = np.mean(rEst, axis = 1)
         oMeanLda = np.mean(oEst, axis = 1)
+
+        rMeanLdaNoise = np.zeros(L)
+        oMeanLdaNoise = np.zeros(L)
         
         # option 3b: "TAgg" (intermediate server adds Gaussian noise term)
         if trial % 3 == 1 and trial != 13:
             for l in range(L):
-                rMeanLda[l] = rMeanLda[l] + gaussNoise.sample(sample_shape = (1,))
-                oMeanLda[l] = oMeanLda[l] + gaussNoise.sample(sample_shape = (1,))
+                rMeanLdaNoise[l] = gaussNoise.sample(sample_shape = (1,))
+                oMeanLdaNoise[l] = gaussNoise.sample(sample_shape = (1,))
+                rMeanLda[l] = rMeanLda[l] + rMeanLdaNoise[l]
+                oMeanLda[l] = oMeanLda[l] + oMeanLdaNoise[l]
 
         # find lambda that produces minimum error
         rLdaIndex = np.argmin(rMeanLda)
@@ -179,17 +184,54 @@ for trial in range(14):
 
         # option 3c: "Trusted" (server adds Laplace noise term to final result)
         if trial % 3 == 2:
-            rMeanEst[trial, C_COUNT] = (rMeanEst[trial, C_COUNT] + lapNoise.sample(sample_shape = (1,)) - groundTruth)**2
-            oMeanEst[trial, C_COUNT] = (oMeanEst[trial, C_COUNT] + lapNoise.sample(sample_shape = (1,)) - groundTruth)**2
+            rMeanNoise = lapNoise.sample(sample_shape = (1,))
+            oMeanNoise = lapNoise.sample(sample_shape = (1,))
+
+            # define error = squared difference between estimator and ground truth
+            rMeanEst[trial, C_COUNT] = (rMeanEst[trial, C_COUNT] + rMeanNoise - groundTruth)**2
+            oMeanEst[trial, C_COUNT] = (oMeanEst[trial, C_COUNT] + oMeanNoise - groundTruth)**2
 
         # clients or intermediate server already added Gaussian noise term
         else:
             rMeanEst[trial, C_COUNT] = (rMeanEst[trial, C_COUNT] - groundTruth)**2
             oMeanEst[trial, C_COUNT] = (oMeanEst[trial, C_COUNT] - groundTruth)**2
 
-        statsfile.write(f"SYNTHETIC: C = {C}\n")
-        statsfile.write(f"Random +/-: Optimal Lambda {round(rLdaOpt[trial, C_COUNT], 2)} for Mean Error {round(rMeanEst[trial, C_COUNT], 2)}\n")
-        statsfile.write(f"Ordered: Optimal Lambda {round(oLdaOpt[trial, C_COUNT], 2)} for Mean Error {round(oMeanEst[trial, C_COUNT], 2)}\n\n")
+        if C == Cset[0]:
+            randfile.write(f"SYNTHETIC Random +/-: C = {C}\n")
+            ordfile.write(f"SYNTHETIC Ordered: C = {C}\n")
+        else:
+            randfile.write(f"\nC = {C}\n")
+            ordfile.write(f"\nC = {C}\n")
+
+        randfile.write(f"\nMean Error {round(rMeanEst[trial, C_COUNT], 2)}\n")
+        randfile.write(f"Optimal Lambda {round(rLdaOpt[trial, C_COUNT], 2)}\n")
+        randfile.write(f"Ground Truth {round(groundTruth, 2)}\n")
+
+        # compute % of noise vs ground truth (random +/-)
+        if trial % 3 == 0 and trial != 12:
+            rMeanPerc[trial, C_COUNT] = float(abs(np.array(sum(rStartNoise)) / (np.array(sum(rStartNoise)) + groundTruth)))*100
+            randfile.write(f"Noise: {np.round(rMeanPerc[trial, C_COUNT], 2)}%\n")
+        if trial % 3 == 1 and trial != 13:
+            rMeanPerc[trial, C_COUNT] = abs((np.sum(rMeanLdaNoise)) / (np.sum(rMeanLdaNoise) + groundTruth))*100
+            randfile.write(f"Noise: {round(rMeanPerc[trial, C_COUNT], 2)}%\n")
+        if trial % 3 == 2:
+            rMeanPerc[trial, C_COUNT] = float(abs(np.array(rMeanNoise) / (np.array(rMeanNoise) + groundTruth)))*100
+            randfile.write(f"Noise: {np.round(rMeanPerc[trial, C_COUNT], 2)}%\n")
+
+        ordfile.write(f"\nMean Error {round(oMeanEst[trial, C_COUNT], 2)}\n")
+        ordfile.write(f"Optimal Lambda {round(oLdaOpt[trial, C_COUNT], 2)}\n")
+        ordfile.write(f"Ground Truth {round(groundTruth, 2)}\n")
+
+        # compute % of noise vs ground truth (ordered)
+        if trial % 3 == 0 and trial != 12:
+            oMeanPerc[trial, C_COUNT] = float(abs(np.array(sum(oStartNoise)) / (np.array(sum(oStartNoise)) + groundTruth)))*100
+            ordfile.write(f"Noise: {np.round(oMeanPerc[trial, C_COUNT], 2)}%\n")
+        if trial % 3 == 1 and trial != 13:
+            oMeanPerc[trial, C_COUNT] = abs((np.sum(oMeanLdaNoise)) / (np.sum(oMeanLdaNoise) + groundTruth))*100
+            ordfile.write(f"Noise: {round(oMeanPerc[trial, C_COUNT], 2)}%\n")
+        if trial % 3 == 2:
+            oMeanPerc[trial, C_COUNT] = float(abs(np.array(oMeanNoise) / (np.array(oMeanNoise) + groundTruth)))*100
+            ordfile.write(f"Noise: {np.round(oMeanPerc[trial, C_COUNT], 2)}%\n")
 
         C_COUNT = C_COUNT + 1
 
@@ -391,6 +433,66 @@ plt.xlabel("Value of C")
 plt.ylabel("Lambda to minimise error of PRIEST-KLD")
 plt.title("C vs optimum lambda (large KLD, ordered, mc)")
 plt.savefig("Synth_C_lda_large_ord_mc.png")
+plt.clf()
+
+# plot % of noise vs ground truth for each C (small KLD, random +/-)
+plt.plot(Cset, rMeanPerc[0], color = 'blue', marker = 'o', label = "Dist")
+plt.plot(Cset, rMeanPerc[1], color = 'blueviolet', marker = 'x', label = "Dist mc")
+plt.plot(Cset, rMeanPerc[2], color = 'green', marker = 'o', label = "TAgg")
+plt.plot(Cset, rMeanPerc[3], color = 'lime', marker = 'x', label = "TAgg mc")
+plt.plot(Cset, rMeanPerc[4], color = 'orange', marker = 'o', label = "Trusted")
+plt.plot(Cset, rMeanPerc[5], color = 'gold', marker = 'x', label = "Trusted mc")
+plt.legend(loc = 'best')
+plt.yscale('log')
+plt.xlabel("Value of C")
+plt.ylabel("Noise (%)")
+plt.title("Noise (%) compared to ground truth (small KLD, random +/-)")
+plt.savefig("Synth_C_perc_small_rand.png")
+plt.clf()
+
+# plot % of noise vs ground truth for each C (large KLD, random +/-)
+plt.plot(Cset, rMeanPerc[6], color = 'blue', marker = 'o', label = "Dist")
+plt.plot(Cset, rMeanPerc[7], color = 'blueviolet', marker = 'x', label = "Dist mc")
+plt.plot(Cset, rMeanPerc[8], color = 'green', marker = 'o', label = "TAgg")
+plt.plot(Cset, rMeanPerc[9], color = 'lime', marker = 'x', label = "TAgg mc")
+plt.plot(Cset, rMeanPerc[10], color = 'orange', marker = 'o', label = "Trusted")
+plt.plot(Cset, rMeanPerc[11], color = 'gold', marker = 'x', label = "Trusted mc")
+plt.legend(loc = 'best')
+plt.yscale('log')
+plt.xlabel("Value of C")
+plt.ylabel("Noise (%)")
+plt.title("Noise (%) compared to ground truth (large KLD, random +/-)")
+plt.savefig("Synth_C_perc_large_rand.png")
+plt.clf()
+
+# plot % of noise vs ground truth for each C (small KLD, ordered)
+plt.plot(Cset, oMeanPerc[0], color = 'blue', marker = 'o', label = "Dist")
+plt.plot(Cset, oMeanPerc[1], color = 'blueviolet', marker = 'x', label = "Dist mc")
+plt.plot(Cset, oMeanPerc[2], color = 'green', marker = 'o', label = "TAgg")
+plt.plot(Cset, oMeanPerc[3], color = 'lime', marker = 'x', label = "TAgg mc")
+plt.plot(Cset, oMeanPerc[4], color = 'orange', marker = 'o', label = "Trusted")
+plt.plot(Cset, oMeanPerc[5], color = 'gold', marker = 'x', label = "Trusted mc")
+plt.legend(loc = 'best')
+plt.yscale('log')
+plt.xlabel("Value of C")
+plt.ylabel("Noise (%)")
+plt.title("Noise (%) compared to ground truth (small KLD, ordered)")
+plt.savefig("Synth_C_perc_small_ord.png")
+plt.clf()
+
+# plot % of noise vs ground truth for each C (large KLD, ordered)
+plt.plot(Cset, oMeanPerc[6], color = 'blue', marker = 'o', label = "Dist")
+plt.plot(Cset, oMeanPerc[7], color = 'blueviolet', marker = 'x', label = "Dist mc")
+plt.plot(Cset, oMeanPerc[8], color = 'green', marker = 'o', label = "TAgg")
+plt.plot(Cset, oMeanPerc[9], color = 'lime', marker = 'x', label = "TAgg mc")
+plt.plot(Cset, oMeanPerc[10], color = 'orange', marker = 'o', label = "Trusted")
+plt.plot(Cset, oMeanPerc[11], color = 'gold', marker = 'x', label = "Trusted mc")
+plt.legend(loc = 'best')
+plt.yscale('log')
+plt.xlabel("Value of C")
+plt.ylabel("Noise (%)")
+plt.title("Noise (%) compared to ground truth (large KLD, ordered)")
+plt.savefig("Synth_C_perc_large_ord.png")
 plt.clf()
 
 # compute total runtime in minutes and seconds
