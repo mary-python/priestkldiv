@@ -215,7 +215,7 @@ for trial in range(14):
             rMeanPerc[trial, C_COUNT] = abs((np.sum(rMeanLdaNoise)) / (np.sum(rMeanLdaNoise) + groundTruth))*100
             randfile.write(f"Noise: {round(rMeanPerc[trial, C_COUNT], 2)}%\n")
         if trial % 3 == 2:
-            rMeanPerc[trial, C_COUNT] = float(abs(np.array(rMeanNoise) / (np.array(rMeanNoise) + groundTruth)))*100
+            rMeanPerc[trial, C_COUNT] = float(abs(np.array(rMeanNoise) / (np.array(rMeanNoise + groundTruth))))*100
             randfile.write(f"Noise: {np.round(rMeanPerc[trial, C_COUNT], 2)}%\n")
 
         ordfile.write(f"\nMean Error {round(oMeanEst[trial, C_COUNT], 2)}\n")
@@ -230,7 +230,7 @@ for trial in range(14):
             oMeanPerc[trial, C_COUNT] = abs((np.sum(oMeanLdaNoise)) / (np.sum(oMeanLdaNoise) + groundTruth))*100
             ordfile.write(f"Noise: {round(oMeanPerc[trial, C_COUNT], 2)}%\n")
         if trial % 3 == 2:
-            oMeanPerc[trial, C_COUNT] = float(abs(np.array(oMeanNoise) / (np.array(oMeanNoise) + groundTruth)))*100
+            oMeanPerc[trial, C_COUNT] = float(abs(np.array(oMeanNoise) / (np.array(oMeanNoise + groundTruth))))*100
             ordfile.write(f"Noise: {np.round(oMeanPerc[trial, C_COUNT], 2)}%\n")
 
         C_COUNT = C_COUNT + 1
