@@ -37,20 +37,23 @@ TS = len(trialset)
 Tset = [36, 72, 108, 144, 180, 225, 270, 360, 450, 540, 600, 660]
 ES = len(Tset)
 
-# stores for each ground truth, mean of PRIEST-KLD and optimum lambda
+# stores for each ground truth, mean of PRIEST-KLD, optimum lambda and % noise
 meanValue = np.zeros((TS, ES))
 meanEst = np.zeros((TS, ES))
 meanLdaOpt = np.zeros((TS, ES))
+meanPerc = np.zeros((TS, ES))
 
 # for min pairs
 minValue = np.zeros((TS, ES))
 minEst = np.zeros((TS, ES))
 minLdaOpt = np.zeros((TS, ES))
+minPerc = np.zeros((TS, ES))
 
 # for max pairs
 maxValue = np.zeros((TS, ES))
 maxEst = np.zeros((TS, ES))
 maxLdaOpt = np.zeros((TS, ES))
+maxPerc = np.zeros((TS, ES))
 
 for trial in range(7):
     
@@ -429,14 +432,14 @@ for trial in range(7):
 
         # compute % of noise vs ground truth (mean)
         if trial == 0 or trial == 1:
-            meanStartPerc = abs(np.array(sum(startNoise)) / (np.array(sum(startNoise)) + meanValue[trial, T_FREQ]))*100
-            meanfile.write(f"% Noise: {float(np.round(meanStartPerc, 2))}\n")
+            meanPerc[trial, T_FREQ] = float(abs(np.array(sum(startNoise)) / (np.array(sum(startNoise)) + meanValue[trial, T_FREQ])))*100
+            meanfile.write(f"% Noise: {np.round(meanPerc[trial, T_FREQ], 2)}\n")
         if trial == 2 or trial == 3:
-            meanMidPerc = abs((np.sum(meanLdaNoise)) / (np.sum(meanLdaNoise) + meanValue[trial, T_FREQ]))*100
-            meanfile.write(f"% Noise: {round(meanMidPerc, 2)}\n")
+            meanPerc[trial, T_FREQ] = abs((np.sum(meanLdaNoise)) / (np.sum(meanLdaNoise) + meanValue[trial, T_FREQ]))*100
+            meanfile.write(f"% Noise: {round(meanPerc[trial, T_FREQ], 2)}\n")
         if trial == 4 or trial == 5:
-            meanEndPerc = abs(float(np.array(meanNoise) / (np.array(meanNoise) + meanValue[trial, T_FREQ])))*100
-            meanfile.write(f"% Noise: {np.round(meanEndPerc, 2)}\n")
+            meanPerc[trial, T_FREQ] = float(abs(np.array(meanNoise) / (np.array(meanNoise) + meanValue[trial, T_FREQ])))*100
+            meanfile.write(f"% Noise: {np.round(meanPerc[trial, T_FREQ], 2)}\n")
 
         minfile.write(f"\nMin Error: {round(minEst[trial, T_FREQ], 2)}\n")
         minfile.write(f"Optimal Lambda: {round(minLdaOpt[trial, T_FREQ], 2)}\n")
@@ -444,14 +447,14 @@ for trial in range(7):
 
         # compute % of noise vs ground truth (min pair)
         if trial == 0 or trial == 1:
-            minStartPerc = abs(np.array(sum(startNoise)) / (np.array(sum(startNoise)) + minValue[trial, T_FREQ]))*100
-            minfile.write(f"% Noise: {float(np.round(minStartPerc, 2))}\n")
+            minPerc[trial, T_FREQ] = float(abs(np.array(sum(startNoise)) / (np.array(sum(startNoise)) + minValue[trial, T_FREQ])))*100
+            minfile.write(f"% Noise: {np.round(minPerc[trial, T_FREQ], 2)}\n")
         if trial == 2 or trial == 3:
-            minMidPerc = abs((np.sum(meanLdaNoise)) / (np.sum(meanLdaNoise) + minValue[trial, T_FREQ]))*100
-            minfile.write(f"% Noise: {round(minMidPerc, 2)}\n")
+            minPerc[trial, T_FREQ] = abs((np.sum(meanLdaNoise)) / (np.sum(meanLdaNoise) + minValue[trial, T_FREQ]))*100
+            minfile.write(f"% Noise: {round(minPerc[trial, T_FREQ], 2)}\n")
         if trial == 4 or trial == 5:
-            minEndPerc = abs(float(np.array(meanNoise) / (np.array(meanNoise) + minValue[trial, T_FREQ])))*100
-            minfile.write(f"% Noise: {np.round(minEndPerc, 2)}\n")
+            minPerc[trial, T_FREQ] = float(abs(np.array(meanNoise) / (np.array(meanNoise) + minValue[trial, T_FREQ])))*100
+            minfile.write(f"% Noise: {np.round(minPerc[trial, T_FREQ], 2)}\n")
 
         maxfile.write(f"\nMax Error: {round(maxEst[trial, T_FREQ], 2)}\n")
         maxfile.write(f"Optimal Lambda: {round(maxLdaOpt[trial, T_FREQ], 2)}\n")
@@ -459,14 +462,14 @@ for trial in range(7):
 
         # compute % of noise vs ground truth (max pair)
         if trial == 0 or trial == 1:
-            maxStartPerc = abs(np.array(sum(startNoise)) / (np.array(sum(startNoise)) + maxValue[trial, T_FREQ]))*100
-            maxfile.write(f"% Noise: {float(np.round(maxStartPerc, 2))}\n")
+            maxPerc[trial, T_FREQ] = float(abs(np.array(sum(startNoise)) / (np.array(sum(startNoise)) + maxValue[trial, T_FREQ])))*100
+            maxfile.write(f"% Noise: {np.round(maxPerc[trial, T_FREQ], 2)}\n")
         if trial == 2 or trial == 3:
-            maxMidPerc = abs((np.sum(meanLdaNoise)) / (np.sum(meanLdaNoise) + maxValue[trial, T_FREQ]))*100
-            maxfile.write(f"% Noise: {round(maxMidPerc, 2)}\n")
+            maxPerc[trial, T_FREQ] = abs((np.sum(meanLdaNoise)) / (np.sum(meanLdaNoise) + maxValue[trial, T_FREQ]))*100
+            maxfile.write(f"% Noise: {round(maxPerc[trial, T_FREQ], 2)}\n")
         if trial == 4 or trial == 5:
-            maxEndPerc = abs(float(np.array(meanNoise) / (np.array(meanNoise) + maxValue[trial, T_FREQ])))*100
-            maxfile.write(f"% Noise: {np.round(maxEndPerc, 2)}\n")
+            maxPerc[trial, T_FREQ] = float(abs(np.array(meanNoise) / (np.array(meanNoise) + maxValue[trial, T_FREQ])))*100
+            maxfile.write(f"% Noise: {np.round(maxPerc[trial, T_FREQ], 2)}\n")
 
         T_FREQ = T_FREQ + 1
 
@@ -619,6 +622,48 @@ plt.xlabel("Value of T")
 plt.ylabel("Lambda to minimise error of PRIEST-KLD")
 plt.title(f"T vs optimum lambda (max pair {maxPair}, mc)")
 plt.savefig("Femnist_T_lda_max_mc.png")
+plt.clf()
+
+# plot % of noise vs ground truth for each T (mean)
+plt.plot(Tset, meanPerc[0], color = 'blue', marker = 'o', label = "Dist")
+plt.plot(Tset, meanPerc[1], color = 'blueviolet', marker = 'x', label = "Dist mc")
+plt.plot(Tset, meanPerc[2], color = 'green', marker = 'o', label = "TAgg")
+plt.plot(Tset, meanPerc[3], color = 'lime', marker = 'x', label = "TAgg mc")
+plt.plot(Tset, meanPerc[4], color = 'orange', marker = 'o', label = "Trusted")
+plt.plot(Tset, meanPerc[5], color = 'gold', marker = 'x', label = "Trusted mc")
+plt.legend(loc = 'best')
+plt.xlabel("Value of T")
+plt.ylabel("% Noise")
+plt.title("% Noise compared to ground truth (mean)")
+plt.savefig("Femnist_eps_perc_mean.png")
+plt.clf()
+
+# plot % of noise vs ground truth for each T (min)
+plt.plot(Tset, minPerc[0], color = 'blue', marker = 'o', label = "Dist")
+plt.plot(Tset, minPerc[1], color = 'blueviolet', marker = 'x', label = "Dist mc")
+plt.plot(Tset, minPerc[2], color = 'green', marker = 'o', label = "TAgg")
+plt.plot(Tset, minPerc[3], color = 'lime', marker = 'x', label = "TAgg mc")
+plt.plot(Tset, minPerc[4], color = 'orange', marker = 'o', label = "Trusted")
+plt.plot(Tset, minPerc[5], color = 'gold', marker = 'x', label = "Trusted mc")
+plt.legend(loc = 'best')
+plt.xlabel("Value of T")
+plt.ylabel("% Noise")
+plt.title("% Noise compared to ground truth (min)")
+plt.savefig("Femnist_eps_perc_min.png")
+plt.clf()
+
+# plot % of noise vs ground truth for each T (max)
+plt.plot(Tset, maxPerc[0], color = 'blue', marker = 'o', label = "Dist")
+plt.plot(Tset, maxPerc[1], color = 'blueviolet', marker = 'x', label = "Dist mc")
+plt.plot(Tset, maxPerc[2], color = 'green', marker = 'o', label = "TAgg")
+plt.plot(Tset, maxPerc[3], color = 'lime', marker = 'x', label = "TAgg mc")
+plt.plot(Tset, maxPerc[4], color = 'orange', marker = 'o', label = "Trusted")
+plt.plot(Tset, maxPerc[5], color = 'gold', marker = 'x', label = "Trusted mc")
+plt.legend(loc = 'best')
+plt.xlabel("Value of T")
+plt.ylabel("% Noise")
+plt.title("% Noise compared to ground truth (max)")
+plt.savefig("Femnist_eps_perc_max.png")
 plt.clf()
 
 # compute total runtime in minutes and seconds
