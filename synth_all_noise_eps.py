@@ -203,9 +203,9 @@ for trial in range(14):
             randfile.write(f"\nEps = {eps}\n")
             ordfile.write(f"\nEps = {eps}\n")
 
-        randfile.write(f"\nMean Error {round(rMeanEst[trial, EPS_COUNT], 2)}\n")
-        randfile.write(f"Optimal Lambda {round(rLdaOpt[trial, EPS_COUNT], 2)}\n")
-        randfile.write(f"Ground Truth {torch.round(groundTruth, decimals = 2)}\n")
+        randfile.write(f"\nMean Error: {round(rMeanEst[trial, EPS_COUNT], 2)}\n")
+        randfile.write(f"Optimal Lambda: {round(rLdaOpt[trial, EPS_COUNT], 2)}\n")
+        randfile.write(f"Ground Truth: {round(float(groundTruth), 2)}\n")
 
         # compute % of noise vs ground truth (random +/-)
         if trial % 3 == 0 and trial != 12:
@@ -218,9 +218,9 @@ for trial in range(14):
             rMeanPerc[trial, EPS_COUNT] = float(abs(np.array(rMeanNoise) / (np.array(rMeanNoise + groundTruth))))*100
             randfile.write(f"Noise: {np.round(rMeanPerc[trial, EPS_COUNT], 2)}%\n")
 
-        ordfile.write(f"\nMean Error {round(oMeanEst[trial, EPS_COUNT], 2)}\n")
-        ordfile.write(f"Optimal Lambda {round(oLdaOpt[trial, EPS_COUNT], 2)}\n")
-        ordfile.write(f"Ground Truth {torch.round(groundTruth, decimals = 2)}\n")
+        ordfile.write(f"\nMean Error: {round(oMeanEst[trial, EPS_COUNT], 2)}\n")
+        ordfile.write(f"Optimal Lambda: {round(oLdaOpt[trial, EPS_COUNT], 2)}\n")
+        ordfile.write(f"Ground Truth: {round(float(groundTruth), 2)}\n")
 
         # compute % of noise vs ground truth (ordered)
         if trial % 3 == 0 and trial != 12:
