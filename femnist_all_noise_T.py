@@ -433,13 +433,13 @@ for trial in range(7):
         # compute % of noise vs ground truth (mean)
         if trial == 0 or trial == 1:
             meanPerc[trial, T_FREQ] = float(abs(np.array(sum(startNoise)) / (np.array(sum(startNoise)) + meanValue[trial, T_FREQ])))*100
-            meanfile.write(f"% Noise: {np.round(meanPerc[trial, T_FREQ], 2)}\n")
+            meanfile.write(f"Noise: {np.round(meanPerc[trial, T_FREQ], 2)}%\n")
         if trial == 2 or trial == 3:
             meanPerc[trial, T_FREQ] = abs((np.sum(meanLdaNoise)) / (np.sum(meanLdaNoise) + meanValue[trial, T_FREQ]))*100
-            meanfile.write(f"% Noise: {round(meanPerc[trial, T_FREQ], 2)}\n")
+            meanfile.write(f"Noise: {round(meanPerc[trial, T_FREQ], 2)}%\n")
         if trial == 4 or trial == 5:
             meanPerc[trial, T_FREQ] = float(abs(np.array(meanNoise) / (np.array(meanNoise) + meanValue[trial, T_FREQ])))*100
-            meanfile.write(f"% Noise: {np.round(meanPerc[trial, T_FREQ], 2)}\n")
+            meanfile.write(f"Noise: {np.round(meanPerc[trial, T_FREQ], 2)}%\n")
 
         minfile.write(f"\nMin Error: {round(minEst[trial, T_FREQ], 2)}\n")
         minfile.write(f"Optimal Lambda: {round(minLdaOpt[trial, T_FREQ], 2)}\n")
@@ -448,13 +448,13 @@ for trial in range(7):
         # compute % of noise vs ground truth (min pair)
         if trial == 0 or trial == 1:
             minPerc[trial, T_FREQ] = float(abs(np.array(sum(startNoise)) / (np.array(sum(startNoise)) + minValue[trial, T_FREQ])))*100
-            minfile.write(f"% Noise: {np.round(minPerc[trial, T_FREQ], 2)}\n")
+            minfile.write(f"Noise: {np.round(minPerc[trial, T_FREQ], 2)}%\n")
         if trial == 2 or trial == 3:
             minPerc[trial, T_FREQ] = abs((np.sum(meanLdaNoise)) / (np.sum(meanLdaNoise) + minValue[trial, T_FREQ]))*100
-            minfile.write(f"% Noise: {round(minPerc[trial, T_FREQ], 2)}\n")
+            minfile.write(f"Noise: {round(minPerc[trial, T_FREQ], 2)}%\n")
         if trial == 4 or trial == 5:
             minPerc[trial, T_FREQ] = float(abs(np.array(meanNoise) / (np.array(meanNoise) + minValue[trial, T_FREQ])))*100
-            minfile.write(f"% Noise: {np.round(minPerc[trial, T_FREQ], 2)}\n")
+            minfile.write(f"Noise: {np.round(minPerc[trial, T_FREQ], 2)}%\n")
 
         maxfile.write(f"\nMax Error: {round(maxEst[trial, T_FREQ], 2)}\n")
         maxfile.write(f"Optimal Lambda: {round(maxLdaOpt[trial, T_FREQ], 2)}\n")
@@ -463,13 +463,13 @@ for trial in range(7):
         # compute % of noise vs ground truth (max pair)
         if trial == 0 or trial == 1:
             maxPerc[trial, T_FREQ] = float(abs(np.array(sum(startNoise)) / (np.array(sum(startNoise)) + maxValue[trial, T_FREQ])))*100
-            maxfile.write(f"% Noise: {np.round(maxPerc[trial, T_FREQ], 2)}\n")
+            maxfile.write(f"Noise: {np.round(maxPerc[trial, T_FREQ], 2)}%\n")
         if trial == 2 or trial == 3:
             maxPerc[trial, T_FREQ] = abs((np.sum(meanLdaNoise)) / (np.sum(meanLdaNoise) + maxValue[trial, T_FREQ]))*100
-            maxfile.write(f"% Noise: {round(maxPerc[trial, T_FREQ], 2)}\n")
+            maxfile.write(f"Noise: {round(maxPerc[trial, T_FREQ], 2)}%\n")
         if trial == 4 or trial == 5:
             maxPerc[trial, T_FREQ] = float(abs(np.array(meanNoise) / (np.array(meanNoise) + maxValue[trial, T_FREQ])))*100
-            maxfile.write(f"% Noise: {np.round(maxPerc[trial, T_FREQ], 2)}\n")
+            maxfile.write(f"Noise: {np.round(maxPerc[trial, T_FREQ], 2)}%\n")
 
         T_FREQ = T_FREQ + 1
 
@@ -633,8 +633,8 @@ plt.plot(Tset, meanPerc[4], color = 'orange', marker = 'o', label = "Trusted")
 plt.plot(Tset, meanPerc[5], color = 'gold', marker = 'x', label = "Trusted mc")
 plt.legend(loc = 'best')
 plt.xlabel("Value of T")
-plt.ylabel("% Noise")
-plt.title("% Noise compared to ground truth (mean)")
+plt.ylabel("Noise (%)")
+plt.title("Noise (%) compared to ground truth (mean)")
 plt.savefig("Femnist_eps_perc_mean.png")
 plt.clf()
 
@@ -647,8 +647,8 @@ plt.plot(Tset, minPerc[4], color = 'orange', marker = 'o', label = "Trusted")
 plt.plot(Tset, minPerc[5], color = 'gold', marker = 'x', label = "Trusted mc")
 plt.legend(loc = 'best')
 plt.xlabel("Value of T")
-plt.ylabel("% Noise")
-plt.title("% Noise compared to ground truth (min)")
+plt.ylabel("Noise (%)")
+plt.title("Noise (%) compared to ground truth (min)")
 plt.savefig("Femnist_eps_perc_min.png")
 plt.clf()
 
@@ -661,8 +661,8 @@ plt.plot(Tset, maxPerc[4], color = 'orange', marker = 'o', label = "Trusted")
 plt.plot(Tset, maxPerc[5], color = 'gold', marker = 'x', label = "Trusted mc")
 plt.legend(loc = 'best')
 plt.xlabel("Value of T")
-plt.ylabel("% Noise")
-plt.title("% Noise compared to ground truth (max)")
+plt.ylabel("Noise (%)")
+plt.title("Noise (%) compared to ground truth (max)")
 plt.savefig("Femnist_eps_perc_max.png")
 plt.clf()
 
