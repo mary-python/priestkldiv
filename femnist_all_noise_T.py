@@ -37,22 +37,31 @@ TS = len(trialset)
 Tset = [36, 72, 108, 144, 180, 225, 270, 360, 450, 540, 600, 660]
 ES = len(Tset)
 
-# stores for each ground truth, mean of PRIEST-KLD, optimum lambda and % noise
+# stores for each ground truth, mean of PRIEST-KLD, optimum and fixed lambdas, and % noise
 meanValue = np.zeros((TS, ES))
 meanEst = np.zeros((TS, ES))
 meanLdaOpt = np.zeros((TS, ES))
+meanLdaZero = np.zeros((TS, ES))
+meanLdaOne = np.zeros((TS, ES))
+meanLdaHalf = np.zeros((TS, ES))
 meanPerc = np.zeros((TS, ES))
 
 # for min pairs
 minValue = np.zeros((TS, ES))
 minEst = np.zeros((TS, ES))
 minLdaOpt = np.zeros((TS, ES))
+minLdaZero = np.zeros((TS, ES))
+minLdaOne = np.zeros((TS, ES))
+minLdaHalf = np.zeros((TS, ES))
 minPerc = np.zeros((TS, ES))
 
 # for max pairs
 maxValue = np.zeros((TS, ES))
 maxEst = np.zeros((TS, ES))
 maxLdaOpt = np.zeros((TS, ES))
+maxLdaZero = np.zeros((TS, ES))
+maxLdaOne = np.zeros((TS, ES))
+maxLdaHalf = np.zeros((TS, ES))
 maxPerc = np.zeros((TS, ES))
 
 for trial in range(7):
@@ -398,6 +407,21 @@ for trial in range(7):
         meanLdaOpt[trial, T_FREQ] = meanLdaIndex * ldaStep
         minLdaOpt[trial, T_FREQ] = minLdaIndex * ldaStep
         maxLdaOpt[trial, T_FREQ] = maxLdaIndex * ldaStep
+
+        # lambda = 0
+        meanLdaZero[trial, T_FREQ] = meanLda[0]
+        minLdaZero[trial, T_FREQ] = minLda[0]
+        maxLdaZero[trial, T_FREQ] = maxLda[0]
+
+        # lambda = 1
+        meanLdaOne[trial, T_FREQ] = meanLda[L-1]
+        minLdaOne[trial, T_FREQ] = minLda[L-1]
+        maxLdaOne[trial, T_FREQ] = maxLda[L-1]
+
+        # lambda = 0.5
+        meanLdaHalf[trial, T_FREQ] = meanLda[(L-1)/2]
+        minLdaHalf[trial, T_FREQ] = minLda[(L-1)/2]
+        maxLdaHalf[trial, T_FREQ] = maxLda[(L-1)/2]
 
         # option 2c: "Trusted" (server adds Laplace noise term to final result)
         if trial == 4 or trial == 5:

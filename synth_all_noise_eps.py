@@ -19,12 +19,19 @@ trialset = ["Dist_small", "Dist_small_mc", "TAgg_small", "TAgg_small_mc", "Trust
 ES = len(epsset)
 TS = len(trialset)
 
-# stores for mean of PRIEST-KLD, optimum lambda and % noise
+# stores for mean of PRIEST-KLD, optimum and fixed lambdas, and % noise
 rMeanEst = np.zeros((TS, ES))
 rLdaOpt = np.zeros((TS, ES))
+rLdaZero = np.zeros((TS, ES))
+rLdaOne = np.zeros((TS, ES))
+rLdaHalf = np.zeros((TS, ES))
 rMeanPerc = np.zeros((TS, ES))
+
 oMeanEst = np.zeros((TS, ES))
 oLdaOpt = np.zeros((TS, ES))
+oLdaZero = np.zeros((TS, ES))
+oLdaOne = np.zeros((TS, ES))
+oLdaHalf = np.zeros((TS, ES))
 oMeanPerc = np.zeros((TS, ES))
 
 for trial in range(14):
@@ -181,6 +188,18 @@ for trial in range(14):
 
         rLdaOpt[trial, EPS_COUNT] = rLdaIndex * ldaStep
         oLdaOpt[trial, EPS_COUNT] = oLdaIndex * ldaStep
+
+        # lambda = 0
+        rLdaZero[trial, EPS_COUNT] = rMeanLda[0]
+        oLdaZero[trial, EPS_COUNT] = oMeanLda[0]
+
+        # lambda = 1
+        rLdaOne[trial, EPS_COUNT] = rMeanLda[L-1]
+        oLdaOne[trial, EPS_COUNT] = oMeanLda[L-1]
+
+        # lambda = 0.5
+        rLdaHalf[trial, EPS_COUNT] = rMeanLda[(L-1)/2]
+        oLdaHalf[trial, EPS_COUNT] = oMeanLda[(L-1)/2]
 
         # option 3c: "Trusted" (server adds Laplace noise term to final result)
         if trial % 3 == 2:
