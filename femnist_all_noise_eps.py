@@ -30,13 +30,15 @@ writers = sorted(file.keys())
 numWriters = len(writers)
 T = int(numWriters / 20)
 
-# lists of the values of epsilon and trials that will be run
+# lists of the values of epsilon and lambda, as well as the trials that will be explored
 epsset = [0.05, 0.1, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 2.5, 3, 4]
+ldaset = [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1]
 trialset = ["Dist", "Dist_mc", "TAgg", "TAgg_mc", "Trusted", "Trusted_mc", "NoAlgo"]
 ES = len(epsset)
+LS = len(ldaset)
 TS = len(trialset)
 
-# stores for each ground truth, mean of PRIEST-KLD, optimum and fixed lambdas, and % noise
+# to store statistics related to mean estimates
 meanValue = np.zeros((TS, ES))
 meanEst = np.zeros((TS, ES))
 meanLdaOpt = np.zeros((TS, ES))
@@ -44,8 +46,12 @@ meanLdaZero = np.zeros((TS, ES))
 meanLdaOne = np.zeros((TS, ES))
 meanLdaHalf = np.zeros((TS, ES))
 meanPerc = np.zeros((TS, ES))
+meanEpsSmall = np.zeros((TS, LS))
+meanEpsDef = np.zeros((TS, LS))
+meanEpsMid = np.zeros((TS, LS))
+meanEpsLarge = np.zeros((TS, LS))
 
-# for min pairs
+# related to min pairs
 minValue = np.zeros((TS, ES))
 minEst = np.zeros((TS, ES))
 minLdaOpt = np.zeros((TS, ES))
@@ -53,8 +59,12 @@ minLdaZero = np.zeros((TS, ES))
 minLdaOne = np.zeros((TS, ES))
 minLdaHalf = np.zeros((TS, ES))
 minPerc = np.zeros((TS, ES))
+minEpsSmall = np.zeros((TS, LS))
+minEpsDef = np.zeros((TS, LS))
+minEpsMid = np.zeros((TS, LS))
+minEpsLarge = np.zeros((TS, LS))
 
-# for max pairs
+# related to max pairs
 maxValue = np.zeros((TS, ES))
 maxEst = np.zeros((TS, ES))
 maxLdaOpt = np.zeros((TS, ES))
@@ -62,6 +72,10 @@ maxLdaZero = np.zeros((TS, ES))
 maxLdaOne = np.zeros((TS, ES))
 maxLdaHalf = np.zeros((TS, ES))
 maxPerc = np.zeros((TS, ES))
+maxEpsSmall = np.zeros((TS, LS))
+maxEpsDef = np.zeros((TS, LS))
+maxEpsMid = np.zeros((TS, LS))
+maxEpsLarge = np.zeros((TS, LS))
 
 for trial in range(7):
 
@@ -324,15 +338,10 @@ for trial in range(7):
                         ratio = ratio + startSample
                     
                     rList.append(ratio)
-
-        # constants for lambda search
-        rLda = 1
-        ldaStep = 0.05
-        L = int((rLda + ldaStep) / ldaStep)
         
         # store for PRIEST-KLD
         R2 = len(rList)
-        uEst = np.zeros((L, R2))
+        uEst = np.zeros((LS, R2))
         R_FREQ = 0
 
         for row in range(0, R2):
@@ -340,7 +349,7 @@ for trial in range(7):
             LDA_FREQ = 0
 
             # explore lambdas in a range
-            for lda in np.arange(0, rLda + ldaStep, ldaStep):
+            for lda in ldaset:
 
                 # compute k3 estimator
                 uRangeEst = lda * (np.exp(uLogr) - 1) - uLogr
@@ -362,16 +371,16 @@ for trial in range(7):
         minValue[trial, EPS_FREQ] = uList[minIndex]
         maxValue[trial, EPS_FREQ] = uList[maxIndex]
         
-        meanLda = np.zeros(L)
-        minLda = np.zeros(L)
-        maxLda = np.zeros(L)
+        meanLda = np.zeros(LS)
+        minLda = np.zeros(LS)
+        maxLda = np.zeros(LS)
 
-        meanLdaNoise = np.zeros(L)
-        minLdaNoise = np.zeros(L)
-        maxLdaNoise = np.zeros(L)
+        meanLdaNoise = np.zeros(LS)
+        minLdaNoise = np.zeros(LS)
+        maxLdaNoise = np.zeros(LS)
 
         # compute mean error of PRIEST-KLD for each lambda
-        for l in range(0, L):
+        for l in range(0, LS):
             meanLda[l] = np.mean(uEst[l])
 
             # extract error for max and min pairs
@@ -387,6 +396,30 @@ for trial in range(7):
                 meanLda[l] = meanLda[l] + meanLdaNoise[l]
                 minLda[l] = minLda[l] + minLdaNoise[l]
                 maxLda[l] = maxLda[l] + maxLdaNoise[l]
+            
+            # mean / min / max across lambdas for eps = 0.05 (small)
+            if EPS_FREQ == 0:
+                meanEpsSmall[trial, l] = meanLda[l]
+                minEpsSmall[trial, l] = minLda[l]
+                maxEpsSmall[trial, l] = maxLda[l]
+
+            # eps = 0.5 (default)
+            if EPS_FREQ == 3:
+                meanEpsDef[trial, l] = meanLda[l]
+                minEpsDef[trial, l] = minLda[l]
+                maxEpsDef[trial, l] = maxLda[l]
+
+            # eps = 1.5 (mid)
+            if EPS_FREQ == 6:
+                meanEpsMid[trial, l] = meanLda[l]
+                minEpsMid[trial, l] = minLda[l]
+                maxEpsMid[trial, l] = maxLda[l]
+
+            # eps = 3 (large)
+            if EPS_FREQ == 10:
+                meanEpsLarge[trial, l] = meanLda[l]
+                minEpsLarge[trial, l] = minLda[l]
+                maxEpsLarge[trial, l] = maxLda[l]
 
         # find lambda that produces minimum error
         meanLdaIndex = np.argmin(meanLda)
@@ -397,11 +430,13 @@ for trial in range(7):
         minMinError = minLda[minLdaIndex]
         maxMinError = maxLda[maxLdaIndex]
 
-        # mean across clients for optimum lambda
+        # mean / min / max across clients for optimum lambda
         meanEst[trial, EPS_FREQ] = meanMinError
         minEst[trial, EPS_FREQ] = minMinError
         maxEst[trial, EPS_FREQ] = maxMinError
 
+        # optimum lambda
+        ldaStep = 0.05
         meanLdaOpt[trial, EPS_FREQ] = meanLdaIndex * ldaStep
         minLdaOpt[trial, EPS_FREQ] = minLdaIndex * ldaStep
         maxLdaOpt[trial, EPS_FREQ] = maxLdaIndex * ldaStep
@@ -412,14 +447,14 @@ for trial in range(7):
         maxLdaZero[trial, EPS_FREQ] = maxLda[0]
 
         # lambda = 1
-        meanLdaOne[trial, EPS_FREQ] = meanLda[L-1]
-        minLdaOne[trial, EPS_FREQ] = minLda[L-1]
-        maxLdaOne[trial, EPS_FREQ] = maxLda[L-1]
+        meanLdaOne[trial, EPS_FREQ] = meanLda[LS-1]
+        minLdaOne[trial, EPS_FREQ] = minLda[LS-1]
+        maxLdaOne[trial, EPS_FREQ] = maxLda[LS-1]
 
         # lambda = 0.5
-        meanLdaHalf[trial, EPS_FREQ] = meanLda[(L-1)/2]
-        minLdaHalf[trial, EPS_FREQ] = minLda[(L-1)/2]
-        maxLdaHalf[trial, EPS_FREQ] = maxLda[(L-1)/2]
+        meanLdaHalf[trial, EPS_FREQ] = meanLda[(LS-1)/2]
+        minLdaHalf[trial, EPS_FREQ] = minLda[(LS-1)/2]
+        maxLdaHalf[trial, EPS_FREQ] = maxLda[(LS-1)/2]
 
         # option 2c: "Trusted" (server adds Laplace noise term to final result)
         if trial == 4 or trial == 5:
@@ -582,7 +617,7 @@ plt.legend(loc = 'best')
 plt.xlabel("Value of epsilon")
 plt.ylabel("Lambda to minimise error of PRIEST-KLD")
 plt.title("Epsilon vs optimum lambda (mean)")
-plt.savefig("Femnist_eps_lda_mean.png")
+plt.savefig("Femnist_eps_lda_opt_mean.png")
 plt.clf()
 
 # plot optimum lambda for each epsilon (mean, mc)
@@ -594,7 +629,7 @@ plt.legend(loc = 'best')
 plt.xlabel("Value of epsilon")
 plt.ylabel("Lambda to minimise error of PRIEST-KLD")
 plt.title("Epsilon vs optimum lambda (mean, mc)")
-plt.savefig("Femnist_eps_lda_mean_mc.png")
+plt.savefig("Femnist_eps_lda_opt_mean_mc.png")
 plt.clf()
 
 # plot optimum lambda for each epsilon (min pair)
@@ -606,7 +641,7 @@ plt.legend(loc = 'best')
 plt.xlabel("Value of epsilon")
 plt.ylabel("Lambda to minimise error of PRIEST-KLD")
 plt.title(f"Epsilon vs optimum lambda (min pair {minPair})")
-plt.savefig("Femnist_eps_lda_min.png")
+plt.savefig("Femnist_eps_lda_opt_min.png")
 plt.clf()
 
 # plot optimum lambda for each epsilon (min pair, mc)
@@ -618,7 +653,7 @@ plt.legend(loc = 'best')
 plt.xlabel("Value of epsilon")
 plt.ylabel("Lambda to minimise error of PRIEST-KLD")
 plt.title(f"Epsilon vs optimum lambda (min pair {minPair}, mc)")
-plt.savefig("Femnist_eps_lda_min_mc.png")
+plt.savefig("Femnist_eps_lda_opt_min_mc.png")
 plt.clf()
 
 # plot optimum lambda for each epsilon (max pair)
@@ -630,7 +665,7 @@ plt.legend(loc = 'best')
 plt.xlabel("Value of epsilon")
 plt.ylabel("Lambda to minimise error of PRIEST-KLD")
 plt.title(f"Epsilon vs optimum lambda (max pair {maxPair})")
-plt.savefig("Femnist_eps_lda_max.png")
+plt.savefig("Femnist_eps_lda_opt_max.png")
 plt.clf()
 
 # plot optimum lambda for each epsilon (max pair, mc)
@@ -642,7 +677,223 @@ plt.legend(loc = 'best')
 plt.xlabel("Value of epsilon")
 plt.ylabel("Lambda to minimise error of PRIEST-KLD")
 plt.title(f"Epsilon vs optimum lambda (max pair {maxPair}, mc)")
-plt.savefig("Femnist_eps_lda_max_mc.png")
+plt.savefig("Femnist_eps_lda_opt_max_mc.png")
+plt.clf()
+
+# plot error of PRIEST-KLD when lambda = 0 for each epsilon (mean)
+plt.errorbar(epsset, meanLdaZero[0], yerr = np.minimum(np.sqrt(meanLdaZero[0]), np.divide(meanLdaZero[0], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(epsset, meanLdaZero[2], yerr = np.minimum(np.sqrt(meanLdaZero[2]), np.divide(meanLdaZero[2], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(epsset, meanLdaZero[4], yerr = np.minimum(np.sqrt(meanLdaZero[4]), np.divide(meanLdaZero[4], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(epsset, meanLdaZero[6], yerr = np.minimum(np.sqrt(meanLdaZero[6]), np.divide(meanLdaZero[6], 2)),  color = 'red', marker = '*', label = "NoAlgo")
+plt.legend(loc = 'best')
+plt.xlabel("Value of epsilon")
+plt.ylabel("Error of PRIEST-KLD")
+plt.title("Error of PRIEST-KLD when lambda = 0 (mean)")
+plt.savefig("Femnist_eps_lda_zero_mean.png")
+plt.clf()
+
+# plot error oF PRIEST-KLD when lambda = 0 for each epsilon (mean, mc)
+plt.errorbar(epsset, meanLdaZero[1], yerr = np.minimum(np.sqrt(meanLdaZero[1]), np.divide(meanLdaZero[1], 2)), color = 'blueviolet', marker = 'x', label = "Dist")
+plt.errorbar(epsset, meanLdaZero[3], yerr = np.minimum(np.sqrt(meanLdaZero[3]), np.divide(meanLdaZero[3], 2)), color = 'lime', marker = 'x', label = "TAgg")
+plt.errorbar(epsset, meanLdaZero[5], yerr = np.minimum(np.sqrt(meanLdaZero[5]), np.divide(meanLdaZero[5], 2)), color = 'gold', marker = 'x', label = "Trusted")
+plt.errorbar(epsset, meanLdaZero[6], yerr = np.minimum(np.sqrt(meanLdaZero[6]), np.divide(meanLdaZero[6], 2)), color = 'red', marker = '*', label = "NoAlgo")
+plt.legend(loc = 'best')
+plt.xlabel("Value of epsilon")
+plt.ylabel("Error of PRIEST-KLD")
+plt.title("Error of PRIEST-KLD when lambda = 0 (mean, mc)")
+plt.savefig("Femnist_eps_lda_zero_mean_mc.png")
+plt.clf()
+
+# plot error oF PRIEST-KLD when lambda = 0 for each epsilon (min pair)
+plt.errorbar(epsset, minLdaZero[0], yerr = np.minimum(np.sqrt(minLdaZero[0]), np.divide(minLdaZero[0], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(epsset, minLdaZero[2], yerr = np.minimum(np.sqrt(minLdaZero[2]), np.divide(minLdaZero[2], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(epsset, minLdaZero[4], yerr = np.minimum(np.sqrt(minLdaZero[4]), np.divide(minLdaZero[4], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(epsset, minLdaZero[6], yerr = np.minimum(np.sqrt(minLdaZero[6]), np.divide(minLdaZero[6], 2)), color = 'red', marker = '*', label = "NoAlgo")
+plt.legend(loc = 'best')
+plt.xlabel("Value of epsilon")
+plt.ylabel("Error of PRIEST-KLD")
+plt.title(f"Error of PRIEST-KLD when lambda = 0 (min pair {minPair})")
+plt.savefig("Femnist_eps_lda_zero_min.png")
+plt.clf()
+
+# plot error oF PRIEST-KLD when lambda = 0 for each epsilon (min pair, mc)
+plt.errorbar(epsset, minLdaZero[1], yerr = np.minimum(np.sqrt(minLdaZero[1]), np.divide(minLdaZero[1], 2)), color = 'blueviolet', marker = 'x', label = "Dist")
+plt.errorbar(epsset, minLdaZero[3], yerr = np.minimum(np.sqrt(minLdaZero[3]), np.divide(minLdaZero[3], 2)), color = 'lime', marker = 'x', label = "TAgg")
+plt.errorbar(epsset, minLdaZero[5], yerr = np.minimum(np.sqrt(minLdaZero[5]), np.divide(minLdaZero[5], 2)), color = 'gold', marker = 'x', label = "Trusted")
+plt.errorbar(epsset, minLdaZero[6], yerr = np.minimum(np.sqrt(minLdaZero[6]), np.divide(minLdaZero[6], 2)), color = 'red', marker = '*', label = "NoAlgo")
+plt.legend(loc = 'best')
+plt.xlabel("Value of epsilon")
+plt.ylabel("Error of PRIEST-KLD")
+plt.title(f"Error of PRIEST-KLD when lambda = 0 (min pair {minPair}, mc)")
+plt.savefig("Femnist_eps_lda_zero_min_mc.png")
+plt.clf()
+
+# plot error oF PRIEST-KLD when lambda = 0 for each epsilon (max pair)
+plt.errorbar(epsset, maxLdaZero[0], yerr = np.minimum(np.sqrt(maxLdaZero[0]), np.divide(maxLdaZero[0], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(epsset, maxLdaZero[2], yerr = np.minimum(np.sqrt(maxLdaZero[2]), np.divide(maxLdaZero[2], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(epsset, maxLdaZero[4], yerr = np.minimum(np.sqrt(maxLdaZero[4]), np.divide(maxLdaZero[4], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(epsset, maxLdaZero[6], yerr = np.minimum(np.sqrt(maxLdaZero[6]), np.divide(maxLdaZero[6], 2)), color = 'red', marker = '*', label = "NoAlgo")
+plt.legend(loc = 'best')
+plt.xlabel("Value of epsilon")
+plt.ylabel("Error of PRIEST-KLD")
+plt.title(f"Error of PRIEST-KLD when lambda = 0 (max pair {maxPair})")
+plt.savefig("Femnist_eps_lda_zero_max.png")
+plt.clf()
+
+# plot error oF PRIEST-KLD when lambda = 0 for each epsilon (max pair, mc)
+plt.errorbar(epsset, maxLdaZero[1], yerr = np.minimum(np.sqrt(maxLdaZero[1]), np.divide(maxLdaZero[1], 2)), color = 'blueviolet', marker = 'x', label = "Dist")
+plt.errorbar(epsset, maxLdaZero[3], yerr = np.minimum(np.sqrt(maxLdaZero[3]), np.divide(maxLdaZero[3], 2)), color = 'lime', marker = 'x', label = "TAgg")
+plt.errorbar(epsset, maxLdaZero[5], yerr = np.minimum(np.sqrt(maxLdaZero[5]), np.divide(maxLdaZero[5], 2)), color = 'gold', marker = 'x', label = "Trusted")
+plt.errorbar(epsset, maxLdaZero[6], yerr = np.minimum(np.sqrt(maxLdaZero[6]), np.divide(maxLdaZero[6], 2)), color = 'red', marker = '*', label = "NoAlgo")
+plt.legend(loc = 'best')
+plt.xlabel("Value of epsilon")
+plt.ylabel("Error of PRIEST-KLD")
+plt.title(f"Error of PRIEST-KLD when lambda = 0 (max pair {maxPair}, mc)")
+plt.savefig("Femnist_eps_lda_zero_max_mc.png")
+plt.clf()
+
+# plot error of PRIEST-KLD when lambda = 1 for each epsilon (mean)
+plt.errorbar(epsset, meanLdaOne[0], yerr = np.minimum(np.sqrt(meanLdaOne[0]), np.divide(meanLdaOne[0], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(epsset, meanLdaOne[2], yerr = np.minimum(np.sqrt(meanLdaOne[2]), np.divide(meanLdaOne[2], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(epsset, meanLdaOne[4], yerr = np.minimum(np.sqrt(meanLdaOne[4]), np.divide(meanLdaOne[4], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(epsset, meanLdaOne[6], yerr = np.minimum(np.sqrt(meanLdaOne[6]), np.divide(meanLdaOne[6], 2)),  color = 'red', marker = '*', label = "NoAlgo")
+plt.legend(loc = 'best')
+plt.xlabel("Value of epsilon")
+plt.ylabel("Error of PRIEST-KLD")
+plt.title("Error of PRIEST-KLD when lambda = 1 (mean)")
+plt.savefig("Femnist_eps_lda_one_mean.png")
+plt.clf()
+
+# plot error oF PRIEST-KLD when lambda = 1 for each epsilon (mean, mc)
+plt.errorbar(epsset, meanLdaOne[1], yerr = np.minimum(np.sqrt(meanLdaOne[1]), np.divide(meanLdaOne[1], 2)), color = 'blueviolet', marker = 'x', label = "Dist")
+plt.errorbar(epsset, meanLdaOne[3], yerr = np.minimum(np.sqrt(meanLdaOne[3]), np.divide(meanLdaOne[3], 2)), color = 'lime', marker = 'x', label = "TAgg")
+plt.errorbar(epsset, meanLdaOne[5], yerr = np.minimum(np.sqrt(meanLdaOne[5]), np.divide(meanLdaOne[5], 2)), color = 'gold', marker = 'x', label = "Trusted")
+plt.errorbar(epsset, meanLdaOne[6], yerr = np.minimum(np.sqrt(meanLdaOne[6]), np.divide(meanLdaOne[6], 2)), color = 'red', marker = '*', label = "NoAlgo")
+plt.legend(loc = 'best')
+plt.xlabel("Value of epsilon")
+plt.ylabel("Error of PRIEST-KLD")
+plt.title("Error of PRIEST-KLD when lambda = 1 (mean, mc)")
+plt.savefig("Femnist_eps_lda_one_mean_mc.png")
+plt.clf()
+
+# plot error oF PRIEST-KLD when lambda = 1 for each epsilon (min pair)
+plt.errorbar(epsset, minLdaOne[0], yerr = np.minimum(np.sqrt(minLdaOne[0]), np.divide(minLdaOne[0], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(epsset, minLdaOne[2], yerr = np.minimum(np.sqrt(minLdaOne[2]), np.divide(minLdaOne[2], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(epsset, minLdaOne[4], yerr = np.minimum(np.sqrt(minLdaOne[4]), np.divide(minLdaOne[4], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(epsset, minLdaOne[6], yerr = np.minimum(np.sqrt(minLdaOne[6]), np.divide(minLdaOne[6], 2)), color = 'red', marker = '*', label = "NoAlgo")
+plt.legend(loc = 'best')
+plt.xlabel("Value of epsilon")
+plt.ylabel("Error of PRIEST-KLD")
+plt.title(f"Error of PRIEST-KLD when lambda = 1 (min pair {minPair})")
+plt.savefig("Femnist_eps_lda_one_min.png")
+plt.clf()
+
+# plot error oF PRIEST-KLD when lambda = 1 for each epsilon (min pair, mc)
+plt.errorbar(epsset, minLdaOne[1], yerr = np.minimum(np.sqrt(minLdaOne[1]), np.divide(minLdaOne[1], 2)), color = 'blueviolet', marker = 'x', label = "Dist")
+plt.errorbar(epsset, minLdaOne[3], yerr = np.minimum(np.sqrt(minLdaOne[3]), np.divide(minLdaOne[3], 2)), color = 'lime', marker = 'x', label = "TAgg")
+plt.errorbar(epsset, minLdaOne[5], yerr = np.minimum(np.sqrt(minLdaOne[5]), np.divide(minLdaOne[5], 2)), color = 'gold', marker = 'x', label = "Trusted")
+plt.errorbar(epsset, minLdaOne[6], yerr = np.minimum(np.sqrt(minLdaOne[6]), np.divide(minLdaOne[6], 2)), color = 'red', marker = '*', label = "NoAlgo")
+plt.legend(loc = 'best')
+plt.xlabel("Value of epsilon")
+plt.ylabel("Error of PRIEST-KLD")
+plt.title(f"Error of PRIEST-KLD when lambda = 1 (min pair {minPair}, mc)")
+plt.savefig("Femnist_eps_lda_one_min_mc.png")
+plt.clf()
+
+# plot error oF PRIEST-KLD when lambda = 1 for each epsilon (max pair)
+plt.errorbar(epsset, maxLdaOne[0], yerr = np.minimum(np.sqrt(maxLdaOne[0]), np.divide(maxLdaOne[0], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(epsset, maxLdaOne[2], yerr = np.minimum(np.sqrt(maxLdaOne[2]), np.divide(maxLdaOne[2], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(epsset, maxLdaOne[4], yerr = np.minimum(np.sqrt(maxLdaOne[4]), np.divide(maxLdaOne[4], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(epsset, maxLdaOne[6], yerr = np.minimum(np.sqrt(maxLdaOne[6]), np.divide(maxLdaOne[6], 2)), color = 'red', marker = '*', label = "NoAlgo")
+plt.legend(loc = 'best')
+plt.xlabel("Value of epsilon")
+plt.ylabel("Error of PRIEST-KLD")
+plt.title(f"Error of PRIEST-KLD when lambda = 1 (max pair {maxPair})")
+plt.savefig("Femnist_eps_lda_one_max.png")
+plt.clf()
+
+# plot error oF PRIEST-KLD when lambda = 1 for each epsilon (max pair, mc)
+plt.errorbar(epsset, maxLdaOne[1], yerr = np.minimum(np.sqrt(maxLdaOne[1]), np.divide(maxLdaOne[1], 2)), color = 'blueviolet', marker = 'x', label = "Dist")
+plt.errorbar(epsset, maxLdaOne[3], yerr = np.minimum(np.sqrt(maxLdaOne[3]), np.divide(maxLdaOne[3], 2)), color = 'lime', marker = 'x', label = "TAgg")
+plt.errorbar(epsset, maxLdaOne[5], yerr = np.minimum(np.sqrt(maxLdaOne[5]), np.divide(maxLdaOne[5], 2)), color = 'gold', marker = 'x', label = "Trusted")
+plt.errorbar(epsset, maxLdaOne[6], yerr = np.minimum(np.sqrt(maxLdaOne[6]), np.divide(maxLdaOne[6], 2)), color = 'red', marker = '*', label = "NoAlgo")
+plt.legend(loc = 'best')
+plt.xlabel("Value of epsilon")
+plt.ylabel("Error of PRIEST-KLD")
+plt.title(f"Error of PRIEST-KLD when lambda = 1 (max pair {maxPair}, mc)")
+plt.savefig("Femnist_eps_lda_one_max_mc.png")
+plt.clf()
+
+# plot error of PRIEST-KLD when lambda = 0.5 for each epsilon (mean)
+plt.errorbar(epsset, meanLdaHalf[0], yerr = np.minimum(np.sqrt(meanLdaHalf[0]), np.divide(meanLdaHalf[0], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(epsset, meanLdaHalf[2], yerr = np.minimum(np.sqrt(meanLdaHalf[2]), np.divide(meanLdaHalf[2], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(epsset, meanLdaHalf[4], yerr = np.minimum(np.sqrt(meanLdaHalf[4]), np.divide(meanLdaHalf[4], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(epsset, meanLdaHalf[6], yerr = np.minimum(np.sqrt(meanLdaHalf[6]), np.divide(meanLdaHalf[6], 2)),  color = 'red', marker = '*', label = "NoAlgo")
+plt.legend(loc = 'best')
+plt.xlabel("Value of epsilon")
+plt.ylabel("Error of PRIEST-KLD")
+plt.title("Error of PRIEST-KLD when lambda = 0.5 (mean)")
+plt.savefig("Femnist_eps_lda_half_mean.png")
+plt.clf()
+
+# plot error oF PRIEST-KLD when lambda = 0.5 for each epsilon (mean, mc)
+plt.errorbar(epsset, meanLdaHalf[1], yerr = np.minimum(np.sqrt(meanLdaHalf[1]), np.divide(meanLdaHalf[1], 2)), color = 'blueviolet', marker = 'x', label = "Dist")
+plt.errorbar(epsset, meanLdaHalf[3], yerr = np.minimum(np.sqrt(meanLdaHalf[3]), np.divide(meanLdaHalf[3], 2)), color = 'lime', marker = 'x', label = "TAgg")
+plt.errorbar(epsset, meanLdaHalf[5], yerr = np.minimum(np.sqrt(meanLdaHalf[5]), np.divide(meanLdaHalf[5], 2)), color = 'gold', marker = 'x', label = "Trusted")
+plt.errorbar(epsset, meanLdaHalf[6], yerr = np.minimum(np.sqrt(meanLdaHalf[6]), np.divide(meanLdaHalf[6], 2)), color = 'red', marker = '*', label = "NoAlgo")
+plt.legend(loc = 'best')
+plt.xlabel("Value of epsilon")
+plt.ylabel("Error of PRIEST-KLD")
+plt.title("Error of PRIEST-KLD when lambda = 0.5 (mean, mc)")
+plt.savefig("Femnist_eps_lda_half_mean_mc.png")
+plt.clf()
+
+# plot error oF PRIEST-KLD when lambda = 0.5 for each epsilon (min pair)
+plt.errorbar(epsset, minLdaHalf[0], yerr = np.minimum(np.sqrt(minLdaHalf[0]), np.divide(minLdaHalf[0], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(epsset, minLdaHalf[2], yerr = np.minimum(np.sqrt(minLdaHalf[2]), np.divide(minLdaHalf[2], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(epsset, minLdaHalf[4], yerr = np.minimum(np.sqrt(minLdaHalf[4]), np.divide(minLdaHalf[4], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(epsset, minLdaHalf[6], yerr = np.minimum(np.sqrt(minLdaHalf[6]), np.divide(minLdaHalf[6], 2)), color = 'red', marker = '*', label = "NoAlgo")
+plt.legend(loc = 'best')
+plt.xlabel("Value of epsilon")
+plt.ylabel("Error of PRIEST-KLD")
+plt.title(f"Error of PRIEST-KLD when lambda = 0.5 (min pair {minPair})")
+plt.savefig("Femnist_eps_lda_half_min.png")
+plt.clf()
+
+# plot error oF PRIEST-KLD when lambda = 0.5 for each epsilon (min pair, mc)
+plt.errorbar(epsset, minLdaHalf[1], yerr = np.minimum(np.sqrt(minLdaHalf[1]), np.divide(minLdaHalf[1], 2)), color = 'blueviolet', marker = 'x', label = "Dist")
+plt.errorbar(epsset, minLdaHalf[3], yerr = np.minimum(np.sqrt(minLdaHalf[3]), np.divide(minLdaHalf[3], 2)), color = 'lime', marker = 'x', label = "TAgg")
+plt.errorbar(epsset, minLdaHalf[5], yerr = np.minimum(np.sqrt(minLdaHalf[5]), np.divide(minLdaHalf[5], 2)), color = 'gold', marker = 'x', label = "Trusted")
+plt.errorbar(epsset, minLdaHalf[6], yerr = np.minimum(np.sqrt(minLdaHalf[6]), np.divide(minLdaHalf[6], 2)), color = 'red', marker = '*', label = "NoAlgo")
+plt.legend(loc = 'best')
+plt.xlabel("Value of epsilon")
+plt.ylabel("Error of PRIEST-KLD")
+plt.title(f"Error of PRIEST-KLD when lambda = 0.5 (min pair {minPair}, mc)")
+plt.savefig("Femnist_eps_lda_half_min_mc.png")
+plt.clf()
+
+# plot error oF PRIEST-KLD when lambda = 0.5 for each epsilon (max pair)
+plt.errorbar(epsset, maxLdaHalf[0], yerr = np.minimum(np.sqrt(maxLdaHalf[0]), np.divide(maxLdaHalf[0], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(epsset, maxLdaHalf[2], yerr = np.minimum(np.sqrt(maxLdaHalf[2]), np.divide(maxLdaHalf[2], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(epsset, maxLdaHalf[4], yerr = np.minimum(np.sqrt(maxLdaHalf[4]), np.divide(maxLdaHalf[4], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(epsset, maxLdaHalf[6], yerr = np.minimum(np.sqrt(maxLdaHalf[6]), np.divide(maxLdaHalf[6], 2)), color = 'red', marker = '*', label = "NoAlgo")
+plt.legend(loc = 'best')
+plt.xlabel("Value of epsilon")
+plt.ylabel("Error of PRIEST-KLD")
+plt.title(f"Error of PRIEST-KLD when lambda = 0.5 (max pair {maxPair})")
+plt.savefig("Femnist_eps_lda_half_max.png")
+plt.clf()
+
+# plot error oF PRIEST-KLD when lambda = 0.5 for each epsilon (max pair, mc)
+plt.errorbar(epsset, maxLdaHalf[1], yerr = np.minimum(np.sqrt(maxLdaHalf[1]), np.divide(maxLdaHalf[1], 2)), color = 'blueviolet', marker = 'x', label = "Dist")
+plt.errorbar(epsset, maxLdaHalf[3], yerr = np.minimum(np.sqrt(maxLdaHalf[3]), np.divide(maxLdaHalf[3], 2)), color = 'lime', marker = 'x', label = "TAgg")
+plt.errorbar(epsset, maxLdaHalf[5], yerr = np.minimum(np.sqrt(maxLdaHalf[5]), np.divide(maxLdaHalf[5], 2)), color = 'gold', marker = 'x', label = "Trusted")
+plt.errorbar(epsset, maxLdaHalf[6], yerr = np.minimum(np.sqrt(maxLdaHalf[6]), np.divide(maxLdaHalf[6], 2)), color = 'red', marker = '*', label = "NoAlgo")
+plt.legend(loc = 'best')
+plt.xlabel("Value of epsilon")
+plt.ylabel("Error of PRIEST-KLD")
+plt.title(f"Error of PRIEST-KLD when lambda = 0.5 (max pair {maxPair}, mc)")
+plt.savefig("Femnist_eps_lda_half_max_mc.png")
 plt.clf()
 
 # plot % of noise vs ground truth for each epsilon (mean)
