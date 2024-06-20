@@ -454,9 +454,9 @@ for trial in range(7):
         maxLdaOne[trial, T_FREQ] = maxLda[LS-1]
 
         # lambda = 0.5
-        meanLdaHalf[trial, T_FREQ] = meanLda[(LS-1)/2]
-        minLdaHalf[trial, T_FREQ] = minLda[(LS-1)/2]
-        maxLdaHalf[trial, T_FREQ] = maxLda[(LS-1)/2]
+        meanLdaHalf[trial, T_FREQ] = meanLda[10]
+        minLdaHalf[trial, T_FREQ] = minLda[10]
+        maxLdaHalf[trial, T_FREQ] = maxLda[10]
 
         # option 2c: "Trusted" (server adds Laplace noise term to final result)
         if trial == 4 or trial == 5:

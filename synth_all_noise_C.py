@@ -228,8 +228,8 @@ for trial in range(14):
         oLdaOne[trial, C_COUNT] = oMeanLda[LS-1]
 
         # lambda = 0.5
-        rLdaHalf[trial, C_COUNT] = rMeanLda[(LS-1)/2]
-        oLdaHalf[trial, C_COUNT] = oMeanLda[(LS-1)/2]
+        rLdaHalf[trial, C_COUNT] = rMeanLda[10]
+        oLdaHalf[trial, C_COUNT] = oMeanLda[10]
 
         # option 3c: "Trusted" (server adds Laplace noise term to final result)
         if trial % 3 == 2:
