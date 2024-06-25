@@ -1172,7 +1172,7 @@ plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
 plt.ylabel("Error of PRIEST-KLD")
-plt.savefig("Femnist_lda_est_max_mc_large.png")
+plt.savefig("Femnist_T_est_max_mc_T_large.png")
 plt.clf()
 
 # plot % of noise vs ground truth for each T (mean)
