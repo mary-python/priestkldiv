@@ -380,177 +380,107 @@ for trial in range(4):
             minLda[l] = uEst[l, minIndex]
             maxLda[l] = uEst[l, maxIndex]
 
-            # "TAgg" (intermediate server adds Gaussian noise term)
-            if trial == 1:
-                meanLdaNoise[l] = gaussNoise.sample(sample_shape = (1,))
-                minLdaNoise[l] = gaussNoise.sample(sample_shape = (1,))
-                maxLdaNoise[l] = gaussNoise.sample(sample_shape = (1,))
+            def tagg(mldanoise, mlda, mtsmall, mtdef, mtmid, mtlarge):
+                """TAgg: Intermediate server adds Gaussian noise term."""
+                if trial == 1:
+                    mldanoise[l] = gaussNoise.sample(sample_shape = (1,))
+                    mlda[l] = mlda[l] + mldanoise[l]
 
-                meanLda[l] = meanLda[l] + meanLdaNoise[l]
-                minLda[l] = minLda[l] + minLdaNoise[l]
-                maxLda[l] = maxLda[l] + maxLdaNoise[l]
-            
-            # mean / min / max across lambdas for T = 36 (~1% of clients, small)
-            if T_FREQ == 0:
-                meanTSmall[trial, l] = meanLda[l]
-                minTSmall[trial, l] = minLda[l]
-                maxTSmall[trial, l] = maxLda[l]
+                if T_FREQ == 0:
+                    mtsmall[trial, l] = mlda[l]
+                if T_FREQ == 3:
+                    mtdef[trial, l] = mlda[l]
+                if T_FREQ == 6:
+                    mtmid[trial, l] = mlda[l]
+                if T_FREQ == 10:
+                    mtlarge[trial, l] = mlda[l]
 
-            # T = 180 (~5% of clients, default)
-            if T_FREQ == 4:
-                meanTDef[trial, l] = meanLda[l]
-                minTDef[trial, l] = minLda[l]
-                maxTDef[trial, l] = maxLda[l]
+            tagg(meanLdaNoise, meanLda, meanTSmall, meanTDef, meanTMid, meanTLarge)
+            tagg(minLdaNoise, minLda, minTSmall, minTDef, minTMid, minTLarge)
+            tagg(maxLdaNoise, maxLda, maxTSmall, maxTDef, maxTMid, maxTLarge)
 
-            # T = 360 (~10% of clients, mid)
-            if T_FREQ == 7:
-                meanTMid[trial, l] = meanLda[l]
-                minTMid[trial, l] = minLda[l]
-                maxTMid[trial, l] = maxLda[l]
-
-            # T = 600 (~16.6% of clients, large)
-            if T_FREQ == 10:
-                meanTLarge[trial, l] = meanLda[l]
-                minTLarge[trial, l] = minLda[l]
-                maxTLarge[trial, l] = maxLda[l]
-
-        # find lambda that produces minimum error
-        meanLdaIndex = np.argmin(meanLda)
-        minLdaIndex = np.argmin(minLda)
-        maxLdaIndex = np.argmin(maxLda)
-
-        meanMinError = meanLda[meanLdaIndex]
-        minMinError = minLda[minLdaIndex]
-        maxMinError = maxLda[maxLdaIndex]
-
-        # mean / min / max across clients for optimum lambda
-        meanEst[trial, T_FREQ] = meanMinError
-        minEst[trial, T_FREQ] = minMinError
-        maxEst[trial, T_FREQ] = maxMinError
-
-        # optimum lambda
         ldaStep = 0.05
-        meanLdaOpt[trial, T_FREQ] = meanLdaIndex * ldaStep
-        minLdaOpt[trial, T_FREQ] = minLdaIndex * ldaStep
-        maxLdaOpt[trial, T_FREQ] = maxLdaIndex * ldaStep
 
-        # lambda = 0
-        meanEstZero[trial, T_FREQ] = meanLda[0]
-        minEstZero[trial, T_FREQ] = minLda[0]
-        maxEstZero[trial, T_FREQ] = maxLda[0]
+        def opt_lda(mlda, mest, mldaopt, mestzero, mestone):
+            """Method to find lambda that produces minimum error."""
+            mldaindex = np.argmin(mlda)
+            mminerror = mlda[mldaindex]
+            mest[trial, T_FREQ] = mminerror
+            mldaopt[trial, T_FREQ] = mldaindex * ldaStep
 
-        # lambda = 1
-        meanEstOne[trial, T_FREQ] = meanLda[LS-1]
-        minEstOne[trial, T_FREQ] = minLda[LS-1]
-        maxEstOne[trial, T_FREQ] = maxLda[LS-1]
+            # estimates for lambda = 0 and 1
+            mestzero[trial, T_FREQ] = mlda[0]
+            mestone[trial, T_FREQ] = mlda[LS-1]
 
-        # "Trusted" (server adds Laplace noise term to final result)
+        opt_lda(meanLda, meanEst, meanLdaOpt, meanEstZero, meanEstOne)
+        opt_lda(minLda, minEst, minLdaOpt, minEstZero, minEstOne)
+        opt_lda(maxLda, maxEst, maxLdaOpt, maxEstZero, maxEstOne)
+
         if trial == 2:
-            lapNoise = tfp.distributions.Normal(loc = A, scale = b2)
+            lapNoise = tfp.distributions.Laplace(loc = A, scale = b1)
             meanNoise = lapNoise.sample(sample_shape = (1,))
             minNoise = lapNoise.sample(sample_shape = (1,))
             maxNoise = lapNoise.sample(sample_shape = (1,))
-            meanZeroNoise = lapNoise.sample(sample_shape = (1,))
-            minZeroNoise = lapNoise.sample(sample_shape = (1,))
-            maxZeroNoise = lapNoise.sample(sample_shape = (1,))
-            meanOneNoise = lapNoise.sample(sample_shape = (1,))
-            minOneNoise = lapNoise.sample(sample_shape = (1,))
-            maxOneNoise = lapNoise.sample(sample_shape = (1,))
 
-            # define error = squared difference between estimator and ground truth
-            meanEst[trial, T_FREQ] = (meanEst[trial, T_FREQ] + meanNoise - meanValue[trial, T_FREQ])**2
-            minEst[trial, T_FREQ] = (minEst[trial, T_FREQ] + minNoise - minValue[trial, T_FREQ])**2
-            maxEst[trial, T_FREQ] = (maxEst[trial, T_FREQ] + maxNoise - maxValue[trial, T_FREQ])**2
+            def trusted(mest, mnoise, mestzero, mestone, mvalue):
+                """Trusted: Server adds Laplace noise term to final result."""
+                mzeronoise = lapNoise.sample(sample_shape = (1,))
+                monenoise = lapNoise.sample(sample_shape = (1,))
 
-            # lambda = 0
-            meanEstZero[trial, T_FREQ] = (meanEstZero[trial, T_FREQ] + meanZeroNoise - meanValue[trial, T_FREQ])**2
-            minEstZero[trial, T_FREQ] = (minEstZero[trial, T_FREQ] + minZeroNoise - minValue[trial, T_FREQ])**2
-            maxEstZero[trial, T_FREQ] = (maxEstZero[trial, T_FREQ] + maxZeroNoise - maxValue[trial, T_FREQ])**2
-
-            # lambda = 1
-            meanEstOne[trial, T_FREQ] = (meanEstOne[trial, T_FREQ] + meanOneNoise - meanValue[trial, T_FREQ])**2
-            minEstOne[trial, T_FREQ] = (minEstOne[trial, T_FREQ] + minOneNoise - minValue[trial, T_FREQ])**2
-            maxEstOne[trial, T_FREQ] = (maxEstOne[trial, T_FREQ] + maxOneNoise - maxValue[trial, T_FREQ])**2
+                # define error = squared difference between estimator and ground truth
+                mest[trial, T_FREQ] = (mest[trial, T_FREQ] + mnoise - mvalue[trial, T_FREQ])**2
+                mestzero[trial, T_FREQ] = (mestzero[trial, T_FREQ] + mzeronoise - mvalue[trial, T_FREQ])**2
+                mestone[trial, T_FREQ] = (mestone[trial, T_FREQ] + monenoise - mvalue[trial, T_FREQ])**2
+            
+            trusted(meanEst, meanNoise, meanValue, meanEstZero, meanEstOne)
+            trusted(minEst, minNoise, minValue, minEstZero, minEstOne)
+            trusted(maxEst, maxNoise, maxValue, maxEstZero, maxEstOne)
 
             for l in range(LS):
-        
-                # T = 36 (small)
-                if T_FREQ == 0:
-                    meanSmallNoise = lapNoise.sample(sample_shape = (1,))
-                    minSmallNoise = lapNoise.sample(sample_shape = (1,))
-                    maxSmallNoise = lapNoise.sample(sample_shape = (1,))
-                    meanTSmall[trial, l] = (meanTSmall[trial, l] + meanSmallNoise - meanValue[trial, T_FREQ])**2
-                    minTSmall[trial, l] = (minTSmall[trial, l] + minSmallNoise - minValue[trial, T_FREQ])**2
-                    maxTSmall[trial, l] = (maxTSmall[trial, l] + maxSmallNoise - maxValue[trial, T_FREQ])**2
+                
+                def trusted_eps(mtsmall, mtdef, mtmid, mtlarge, mvalue):
+                    """Trusted method for cases where eps is constant and lda is changing."""
+                    # T = 36 (~1% of clients, small)
+                    if T_FREQ == 0:
+                        msmallnoise = lapNoise.sample(sample_shape = (1,))
+                        mtsmall[trial, l] = (mtsmall[trial, l] + msmallnoise - mvalue[trial, T_FREQ])**2
 
-                # T = 180 (def)
-                if T_FREQ == 4:
-                    meanDefNoise = lapNoise.sample(sample_shape = (1,))
-                    minDefNoise = lapNoise.sample(sample_shape = (1,))
-                    maxDefNoise = lapNoise.sample(sample_shape = (1,))
-                    meanTDef[trial, l] = (meanTDef[trial, l] + meanDefNoise - meanValue[trial, T_FREQ])**2
-                    minTDef[trial, l] = (minTDef[trial, l] + minDefNoise - minValue[trial, T_FREQ])**2
-                    maxTDef[trial, l] = (maxTDef[trial, l] + maxDefNoise - maxValue[trial, T_FREQ])**2
+                    # T = 180 (~5% of clients, default)
+                    if T_FREQ == 3:
+                        mdefnoise = lapNoise.sample(sample_shape = (1,))
+                        mtdef[trial, l] = (mtdef[trial, l] + mdefnoise - mvalue[trial, T_FREQ])**2
 
-                # T = 360 (mid)
-                if T_FREQ == 7:
-                    meanMidNoise = lapNoise.sample(sample_shape = (1,))
-                    minMidNoise = lapNoise.sample(sample_shape = (1,))
-                    maxMidNoise = lapNoise.sample(sample_shape = (1,))
-                    meanTMid[trial, l] = (meanTMid[trial, l] + meanMidNoise - meanValue[trial, T_FREQ])**2
-                    minTMid[trial, l] = (minTMid[trial, l] + minMidNoise - minValue[trial, T_FREQ])**2
-                    maxTMid[trial, l] = (maxTMid[trial, l] + maxMidNoise - maxValue[trial, T_FREQ])**2
+                    # T = 360 (~10% of clients, mid)
+                    if T_FREQ == 6:
+                        mmidnoise = lapNoise.sample(sample_shape = (1,))
+                        mtmid[trial, l] = (mtmid[trial, l] + mmidnoise - mvalue[trial, T_FREQ])**2
 
-                # T = 600 (large)
-                if T_FREQ == 10:
-                    meanLargeNoise = lapNoise.sample(sample_shape = (1,))
-                    minLargeNoise = lapNoise.sample(sample_shape = (1,))
-                    maxLargeNoise = lapNoise.sample(sample_shape = (1,))
-                    meanTLarge[trial, l] = (meanTLarge[trial, l] + meanLargeNoise - meanValue[trial, T_FREQ])**2
-                    minTLarge[trial, l] = (minTLarge[trial, l] + minLargeNoise - minValue[trial, T_FREQ])**2
-                    maxTLarge[trial, l] = (maxTLarge[trial, l] + maxLargeNoise - maxValue[trial, T_FREQ])**2
-        
-        # clients or intermediate server already added Gaussian noise term
+                    # T = 600 (~16.6% of clients, large)
+                    if T_FREQ == 10:
+                        mlargenoise = lapNoise.sample(sample_shape = (1,))
+                        mtlarge[trial, l] = (mtlarge[trial, l] + mlargenoise - mvalue[trial, T_FREQ])**2
+
+                trusted_eps(meanTSmall, meanTDef, meanTMid, meanTLarge, meanValue)
+                trusted_eps(minTSmall, minTDef, minTMid, minTLarge, minValue)
+                trusted_eps(maxTSmall, maxTDef, maxTMid, maxTLarge, maxValue)
+
         else:
-            meanEst[trial, T_FREQ] = (meanEst[trial, T_FREQ] - meanValue[trial, T_FREQ])**2
-            minEst[trial, T_FREQ] = (minEst[trial, T_FREQ] - minValue[trial, T_FREQ])**2
-            maxEst[trial, T_FREQ] = (maxEst[trial, T_FREQ] - maxValue[trial, T_FREQ])**2
+            
+            def trusted_else(mest, mvalue, mestzero, mestone, mtsmall, mtdef, mtmid, mtlarge):
+                """Method for when clients or intermediate server already added Gaussian noise term."""
+                mest[trial, T_FREQ] = (mest[trial, T_FREQ] - mvalue[trial, T_FREQ])**2
+                mestzero[trial, T_FREQ] = (mestzero[trial, T_FREQ] - mvalue[trial, T_FREQ])**2
+                mestone[trial, T_FREQ] = (mestone[trial, T_FREQ] - mvalue[trial, T_FREQ])**2
 
-            # lambda = 0
-            meanEstZero[trial, T_FREQ] = (meanEstZero[trial, T_FREQ] - meanValue[trial, T_FREQ])**2
-            minEstZero[trial, T_FREQ] = (minEstZero[trial, T_FREQ] - minValue[trial, T_FREQ])**2
-            maxEstZero[trial, T_FREQ] = (maxEstZero[trial, T_FREQ] - maxValue[trial, T_FREQ])**2
-
-            # lambda = 1
-            meanEstOne[trial, T_FREQ] = (meanEstOne[trial, T_FREQ] - meanValue[trial, T_FREQ])**2
-            minEstOne[trial, T_FREQ] = (minEstOne[trial, T_FREQ] - minValue[trial, T_FREQ])**2
-            maxEstOne[trial, T_FREQ] = (maxEstOne[trial, T_FREQ] - maxValue[trial, T_FREQ])**2
-
-            for l in range(LS):
-
-                # T = 36 (small)
-                if T_FREQ == 0:
-                    meanTSmall[trial, l] = (meanTSmall[trial, l] - meanValue[trial, T_FREQ])**2
-                    minTSmall[trial, l] = (minTSmall[trial, l] - minValue[trial, T_FREQ])**2
-                    maxTSmall[trial, l] = (maxTSmall[trial, l] - maxValue[trial, T_FREQ])**2
-
-                # T = 180 (def)
-                if T_FREQ == 4:
-                    meanTDef[trial, l] = (meanTDef[trial, l] - meanValue[trial, T_FREQ])**2
-                    minTDef[trial, l] = (minTDef[trial, l] - minValue[trial, T_FREQ])**2
-                    maxTDef[trial, l] = (maxTDef[trial, l] - maxValue[trial, T_FREQ])**2
-
-                # T = 360 (mid)
-                if T_FREQ == 7:
-                    meanTMid[trial, l] = (meanTMid[trial, l] - meanValue[trial, T_FREQ])**2
-                    minTMid[trial, l] = (minTMid[trial, l] - minValue[trial, T_FREQ])**2
-                    maxTMid[trial, l] = (maxTMid[trial, l] - maxValue[trial, T_FREQ])**2
-
-                # T = 600 (large)
-                if T_FREQ == 10:
-                    meanTLarge[trial, l] = (meanTLarge[trial, l] - meanValue[trial, T_FREQ])**2
-                    minTLarge[trial, l] = (minTLarge[trial, l] - minValue[trial, T_FREQ])**2
-                    maxTLarge[trial, l] = (maxTLarge[trial, l] - maxValue[trial, T_FREQ])**2
+                for l in range(LS):
+                    mtsmall[trial, l] = (mtsmall[trial, l] - mvalue[trial, T_FREQ])**2
+                    mtdef[trial, l] = (mtdef[trial, l] - mvalue[trial, T_FREQ])**2
+                    mtmid[trial, l] = (mtmid[trial, l] - mvalue[trial, T_FREQ])**2
+                    mtlarge[trial, l] = (mtlarge[trial, l] - mvalue[trial, T_FREQ])**2
+            
+            trusted_else(meanEst, meanValue, meanEstZero, meanEstOne, meanTSmall, meanTDef, meanTMid, meanTLarge)
+            trusted_else(minEst, minValue, minEstZero, minEstOne, minTSmall, minTDef, minTMid, minTLarge)
+            trusted_else(maxEst, maxValue, maxEstZero, maxEstOne, maxTSmall, maxTDef, maxTMid, maxTLarge)
 
         if T == Tset[0]:
             meanfile.write(f"FEMNIST: T = {T}\n")
@@ -586,10 +516,10 @@ for trial in range(4):
             minPerc[trial, T_FREQ] = float(abs(np.array(sum(startNoise)) / (np.array(sum(startNoise)) + minValue[trial, T_FREQ])))*100
             minfile.write(f"Noise: {np.round(minPerc[trial, T_FREQ], 2)}%\n")
         if trial == 1:
-            minPerc[trial, T_FREQ] = abs((np.sum(meanLdaNoise)) / (np.sum(meanLdaNoise) + minValue[trial, T_FREQ]))*100
+            minPerc[trial, T_FREQ] = abs((np.sum(minLdaNoise)) / (np.sum(minLdaNoise) + minValue[trial, T_FREQ]))*100
             minfile.write(f"Noise: {round(minPerc[trial, T_FREQ], 2)}%\n")
         if trial == 2:
-            minPerc[trial, T_FREQ] = float(abs(np.array(meanNoise) / (np.array(meanNoise) + minValue[trial, T_FREQ])))*100
+            minPerc[trial, T_FREQ] = float(abs(np.array(minNoise) / (np.array(minNoise) + minValue[trial, T_FREQ])))*100
             minfile.write(f"Noise: {np.round(minPerc[trial, T_FREQ], 2)}%\n")
 
         minfile.write(f"\nMax Pair: {maxPair}\n")
@@ -602,10 +532,10 @@ for trial in range(4):
             maxPerc[trial, T_FREQ] = float(abs(np.array(sum(startNoise)) / (np.array(sum(startNoise)) + maxValue[trial, T_FREQ])))*100
             maxfile.write(f"Noise: {np.round(maxPerc[trial, T_FREQ], 2)}%\n")
         if trial == 1:
-            maxPerc[trial, T_FREQ] = abs((np.sum(meanLdaNoise)) / (np.sum(meanLdaNoise) + maxValue[trial, T_FREQ]))*100
+            maxPerc[trial, T_FREQ] = abs((np.sum(maxLdaNoise)) / (np.sum(maxLdaNoise) + maxValue[trial, T_FREQ]))*100
             maxfile.write(f"Noise: {round(maxPerc[trial, T_FREQ], 2)}%\n")
         if trial == 2:
-            maxPerc[trial, T_FREQ] = float(abs(np.array(meanNoise) / (np.array(meanNoise) + maxValue[trial, T_FREQ])))*100
+            maxPerc[trial, T_FREQ] = float(abs(np.array(maxNoise) / (np.array(maxNoise) + maxValue[trial, T_FREQ])))*100
             maxfile.write(f"Noise: {np.round(maxPerc[trial, T_FREQ], 2)}%\n")
 
         T_FREQ = T_FREQ + 1
