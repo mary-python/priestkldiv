@@ -378,107 +378,177 @@ for trial in range(4):
             minLda[l] = uEst[l, minIndex]
             maxLda[l] = uEst[l, maxIndex]
 
-            def tagg(mldanoise, mlda, mepssmall, mepsdef, mepsmid, mepslarge):
-                """TAgg: Intermediate server adds Gaussian noise term."""
-                if trial == 1:
-                    mldanoise[l] = gaussNoise.sample(sample_shape = (1,))
-                    mlda[l] = mlda[l] + mldanoise[l]
+            # "TAgg" (intermediate server adds Gaussian noise term)
+            if trial == 1:
+                meanLdaNoise[l] = gaussNoise.sample(sample_shape = (1,))
+                minLdaNoise[l] = gaussNoise.sample(sample_shape = (1,))
+                maxLdaNoise[l] = gaussNoise.sample(sample_shape = (1,))
 
-                if EPS_FREQ == 0:
-                    mepssmall[trial, l] = mlda[l]
-                if EPS_FREQ == 3:
-                    mepsdef[trial, l] = mlda[l]
-                if EPS_FREQ == 6:
-                    mepsmid[trial, l] = mlda[l]
-                if EPS_FREQ == 10:
-                    mepslarge[trial, l] = mlda[l]
+                meanLda[l] = meanLda[l] + meanLdaNoise[l]
+                minLda[l] = minLda[l] + minLdaNoise[l]
+                maxLda[l] = maxLda[l] + maxLdaNoise[l]
+            
+            # mean / min / max across lambdas for eps = 0.05 (small)
+            if EPS_FREQ == 0:
+                meanEpsSmall[trial, l] = meanLda[l]
+                minEpsSmall[trial, l] = minLda[l]
+                maxEpsSmall[trial, l] = maxLda[l]
 
-            tagg(meanLdaNoise, meanLda, meanEpsSmall, meanEpsDef, meanEpsMid, meanEpsLarge)
-            tagg(minLdaNoise, minLda, minEpsSmall, minEpsDef, minEpsMid, minEpsLarge)
-            tagg(maxLdaNoise, maxLda, maxEpsSmall, maxEpsDef, maxEpsMid, maxEpsLarge)
+            # eps = 0.5 (default)
+            if EPS_FREQ == 3:
+                meanEpsDef[trial, l] = meanLda[l]
+                minEpsDef[trial, l] = minLda[l]
+                maxEpsDef[trial, l] = maxLda[l]
 
+            # eps = 1.5 (mid)
+            if EPS_FREQ == 6:
+                meanEpsMid[trial, l] = meanLda[l]
+                minEpsMid[trial, l] = minLda[l]
+                maxEpsMid[trial, l] = maxLda[l]
+
+            # eps = 3 (large)
+            if EPS_FREQ == 10:
+                meanEpsLarge[trial, l] = meanLda[l]
+                minEpsLarge[trial, l] = minLda[l]
+                maxEpsLarge[trial, l] = maxLda[l]
+
+        # find lambda that produces minimum error
+        meanLdaIndex = np.argmin(meanLda)
+        minLdaIndex = np.argmin(minLda)
+        maxLdaIndex = np.argmin(maxLda)
+
+        meanMinError = meanLda[meanLdaIndex]
+        minMinError = minLda[minLdaIndex]
+        maxMinError = maxLda[maxLdaIndex]
+
+        # mean / min / max across clients for optimum lambda
+        meanEst[trial, EPS_FREQ] = meanMinError
+        minEst[trial, EPS_FREQ] = minMinError
+        maxEst[trial, EPS_FREQ] = maxMinError
+
+        # optimum lambda
         ldaStep = 0.05
+        meanLdaOpt[trial, EPS_FREQ] = meanLdaIndex * ldaStep
+        minLdaOpt[trial, EPS_FREQ] = minLdaIndex * ldaStep
+        maxLdaOpt[trial, EPS_FREQ] = maxLdaIndex * ldaStep
 
-        def opt_lda(mlda, mest, mldaopt, mestzero, mestone):
-            """Method to find lambda that produces minimum error."""
-            mldaindex = np.argmin(mlda)
-            mminerror = mlda[mldaindex]
-            mest[trial, EPS_FREQ] = mminerror
-            mldaopt[trial, EPS_FREQ] = mldaindex * ldaStep
+        # lambda = 0
+        meanEstZero[trial, EPS_FREQ] = meanLda[0]
+        minEstZero[trial, EPS_FREQ] = minLda[0]
+        maxEstZero[trial, EPS_FREQ] = maxLda[0]
 
-            # estimates for lambda = 0 and 1
-            mestzero[trial, EPS_FREQ] = mlda[0]
-            mestone[trial, EPS_FREQ] = mlda[LS-1]
+        # lambda = 1
+        meanEstOne[trial, EPS_FREQ] = meanLda[LS-1]
+        minEstOne[trial, EPS_FREQ] = minLda[LS-1]
+        maxEstOne[trial, EPS_FREQ] = maxLda[LS-1]
 
-        opt_lda(meanLda, meanEst, meanLdaOpt, meanEstZero, meanEstOne)
-        opt_lda(minLda, minEst, minLdaOpt, minEstZero, minEstOne)
-        opt_lda(maxLda, maxEst, maxLdaOpt, maxEstZero, maxEstOne)
-
+        # "Trusted" (server adds Laplace noise term to final result)
         if trial == 2:
             lapNoise = tfp.distributions.Laplace(loc = A, scale = b1)
             meanNoise = lapNoise.sample(sample_shape = (1,))
             minNoise = lapNoise.sample(sample_shape = (1,))
             maxNoise = lapNoise.sample(sample_shape = (1,))
+            meanZeroNoise = lapNoise.sample(sample_shape = (1,))
+            minZeroNoise = lapNoise.sample(sample_shape = (1,))
+            maxZeroNoise = lapNoise.sample(sample_shape = (1,))
+            meanOneNoise = lapNoise.sample(sample_shape = (1,))
+            minOneNoise = lapNoise.sample(sample_shape = (1,))
+            maxOneNoise = lapNoise.sample(sample_shape = (1,))
 
-            def trusted(mest, mnoise, mestzero, mestone, mvalue):
-                """Trusted: Server adds Laplace noise term to final result."""
-                mzeronoise = lapNoise.sample(sample_shape = (1,))
-                monenoise = lapNoise.sample(sample_shape = (1,))
+            # define error = squared difference between estimator and ground truth
+            meanEst[trial, EPS_FREQ] = (meanEst[trial, EPS_FREQ] + meanNoise - meanValue[trial, EPS_FREQ])**2
+            minEst[trial, EPS_FREQ] = (minEst[trial, EPS_FREQ] + minNoise - minValue[trial, EPS_FREQ])**2
+            maxEst[trial, EPS_FREQ] = (maxEst[trial, EPS_FREQ] + maxNoise - maxValue[trial, EPS_FREQ])**2
 
-                # define error = squared difference between estimator and ground truth
-                mest[trial, EPS_FREQ] = (mest[trial, EPS_FREQ] + mnoise - mvalue[trial, EPS_FREQ])**2
-                mestzero[trial, EPS_FREQ] = (mestzero[trial, EPS_FREQ] + mzeronoise - mvalue[trial, EPS_FREQ])**2
-                mestone[trial, EPS_FREQ] = (mestone[trial, EPS_FREQ] + monenoise - mvalue[trial, EPS_FREQ])**2
-            
-            trusted(meanEst, meanNoise, meanValue, meanEstZero, meanEstOne)
-            trusted(minEst, minNoise, minValue, minEstZero, minEstOne)
-            trusted(maxEst, maxNoise, maxValue, maxEstZero, maxEstOne)
+            # lambda = 0
+            meanEstZero[trial, EPS_FREQ] = (meanEstZero[trial, EPS_FREQ] + meanZeroNoise - meanValue[trial, EPS_FREQ])**2
+            minEstZero[trial, EPS_FREQ] = (minEstZero[trial, EPS_FREQ] + minZeroNoise - minValue[trial, EPS_FREQ])**2
+            maxEstZero[trial, EPS_FREQ] = (maxEstZero[trial, EPS_FREQ] + maxZeroNoise - maxValue[trial, EPS_FREQ])**2
+
+            # lambda = 1
+            meanEstOne[trial, EPS_FREQ] = (meanEstOne[trial, EPS_FREQ] + meanOneNoise - meanValue[trial, EPS_FREQ])**2
+            minEstOne[trial, EPS_FREQ] = (minEstOne[trial, EPS_FREQ] + minOneNoise - minValue[trial, EPS_FREQ])**2
+            maxEstOne[trial, EPS_FREQ] = (maxEstOne[trial, EPS_FREQ] + maxOneNoise - maxValue[trial, EPS_FREQ])**2
 
             for l in range(LS):
-                
-                def trusted_eps(mepssmall, mepsdef, mepsmid, mepslarge, mvalue):
-                    """Trusted method for cases where eps is constant and lda is changing."""
-                    # eps = 0.05 (small)
-                    if EPS_FREQ == 0:
-                        msmallnoise = lapNoise.sample(sample_shape = (1,))
-                        mepssmall[trial, l] = (mepssmall[trial, l] + msmallnoise - mvalue[trial, EPS_FREQ])**2
+        
+                # eps = 0.05 (small)
+                if EPS_FREQ == 0:
+                    meanSmallNoise = lapNoise.sample(sample_shape = (1,))
+                    minSmallNoise = lapNoise.sample(sample_shape = (1,))
+                    maxSmallNoise = lapNoise.sample(sample_shape = (1,))
+                    meanEpsSmall[trial, l] = (meanEpsSmall[trial, l] + meanSmallNoise - meanValue[trial, EPS_FREQ])**2
+                    minEpsSmall[trial, l] = (minEpsSmall[trial, l] + minSmallNoise - minValue[trial, EPS_FREQ])**2
+                    maxEpsSmall[trial, l] = (maxEpsSmall[trial, l] + maxSmallNoise - maxValue[trial, EPS_FREQ])**2
 
-                    # eps = 0.5 (def)
-                    if EPS_FREQ == 3:
-                        mdefnoise = lapNoise.sample(sample_shape = (1,))
-                        mepsdef[trial, l] = (mepsdef[trial, l] + mdefnoise - mvalue[trial, EPS_FREQ])**2
+                # eps = 0.5 (def)
+                if EPS_FREQ == 3:
+                    meanDefNoise = lapNoise.sample(sample_shape = (1,))
+                    minDefNoise = lapNoise.sample(sample_shape = (1,))
+                    maxDefNoise = lapNoise.sample(sample_shape = (1,))
+                    meanEpsDef[trial, l] = (meanEpsDef[trial, l] + meanDefNoise - meanValue[trial, EPS_FREQ])**2
+                    minEpsDef[trial, l] = (minEpsDef[trial, l] + minDefNoise - minValue[trial, EPS_FREQ])**2
+                    maxEpsDef[trial, l] = (maxEpsDef[trial, l] + maxDefNoise - maxValue[trial, EPS_FREQ])**2
 
-                    # eps = 1.5 (mid)
-                    if EPS_FREQ == 6:
-                        mmidnoise = lapNoise.sample(sample_shape = (1,))
-                        mepsmid[trial, l] = (mepsmid[trial, l] + mmidnoise - mvalue[trial, EPS_FREQ])**2
+                # eps = 1.5 (mid)
+                if EPS_FREQ == 6:
+                    meanMidNoise = lapNoise.sample(sample_shape = (1,))
+                    minMidNoise = lapNoise.sample(sample_shape = (1,))
+                    maxMidNoise = lapNoise.sample(sample_shape = (1,))
+                    meanEpsMid[trial, l] = (meanEpsMid[trial, l] + meanMidNoise - meanValue[trial, EPS_FREQ])**2
+                    minEpsMid[trial, l] = (minEpsMid[trial, l] + minMidNoise - minValue[trial, EPS_FREQ])**2
+                    maxEpsMid[trial, l] = (maxEpsMid[trial, l] + maxMidNoise - maxValue[trial, EPS_FREQ])**2
 
-                    # eps = 3 (large)
-                    if EPS_FREQ == 10:
-                        mlargenoise = lapNoise.sample(sample_shape = (1,))
-                        mepslarge[trial, l] = (mepslarge[trial, l] + mlargenoise - mvalue[trial, EPS_FREQ])**2
-
-                trusted_eps(meanEpsSmall, meanEpsDef, meanEpsMid, meanEpsLarge, meanValue)
-                trusted_eps(minEpsSmall, minEpsDef, minEpsMid, minEpsLarge, minValue)
-                trusted_eps(maxEpsSmall, maxEpsDef, maxEpsMid, maxEpsLarge, maxValue)
-
+                # eps = 3 (large)
+                if EPS_FREQ == 10:
+                    meanLargeNoise = lapNoise.sample(sample_shape = (1,))
+                    minLargeNoise = lapNoise.sample(sample_shape = (1,))
+                    maxLargeNoise = lapNoise.sample(sample_shape = (1,))
+                    meanEpsLarge[trial, l] = (meanEpsLarge[trial, l] + meanLargeNoise - meanValue[trial, EPS_FREQ])**2
+                    minEpsLarge[trial, l] = (minEpsLarge[trial, l] + minLargeNoise - minValue[trial, EPS_FREQ])**2
+                    maxEpsLarge[trial, l] = (maxEpsLarge[trial, l] + maxLargeNoise - maxValue[trial, EPS_FREQ])**2
+        
+        # clients or intermediate server already added Gaussian noise term
         else:
-            
-            def trusted_else(mest, mvalue, mestzero, mestone, mepssmall, mepsdef, mepsmid, mepslarge):
-                """Method for when clients or intermediate server already added Gaussian noise term."""
-                mest[trial, EPS_FREQ] = (mest[trial, EPS_FREQ] - mvalue[trial, EPS_FREQ])**2
-                mestzero[trial, EPS_FREQ] = (mestzero[trial, EPS_FREQ] - mvalue[trial, EPS_FREQ])**2
-                mestone[trial, EPS_FREQ] = (mestone[trial, EPS_FREQ] - mvalue[trial, EPS_FREQ])**2
+            meanEst[trial, EPS_FREQ] = (meanEst[trial, EPS_FREQ] - meanValue[trial, EPS_FREQ])**2
+            minEst[trial, EPS_FREQ] = (minEst[trial, EPS_FREQ] - minValue[trial, EPS_FREQ])**2
+            maxEst[trial, EPS_FREQ] = (maxEst[trial, EPS_FREQ] - maxValue[trial, EPS_FREQ])**2
 
-                for l in range(LS):
-                    mepssmall[trial, l] = (mepssmall[trial, l] - mvalue[trial, EPS_FREQ])**2
-                    mepsdef[trial, l] = (mepsdef[trial, l] - mvalue[trial, EPS_FREQ])**2
-                    mepsmid[trial, l] = (mepsmid[trial, l] - mvalue[trial, EPS_FREQ])**2
-                    mepslarge[trial, l] = (mepslarge[trial, l] - mvalue[trial, EPS_FREQ])**2
-            
-            trusted_else(meanEst, meanValue, meanEstZero, meanEstOne, meanEpsSmall, meanEpsDef, meanEpsMid, meanEpsLarge)
-            trusted_else(minEst, minValue, minEstZero, minEstOne, minEpsSmall, minEpsDef, minEpsMid, minEpsLarge)
-            trusted_else(maxEst, maxValue, maxEstZero, maxEstOne, maxEpsSmall, maxEpsDef, maxEpsMid, maxEpsLarge)
+            # lambda = 0
+            meanEstZero[trial, EPS_FREQ] = (meanEstZero[trial, EPS_FREQ] - meanValue[trial, EPS_FREQ])**2
+            minEstZero[trial, EPS_FREQ] = (minEstZero[trial, EPS_FREQ] - minValue[trial, EPS_FREQ])**2
+            maxEstZero[trial, EPS_FREQ] = (maxEstZero[trial, EPS_FREQ] - maxValue[trial, EPS_FREQ])**2
+
+            # lambda = 1
+            meanEstOne[trial, EPS_FREQ] = (meanEstOne[trial, EPS_FREQ] - meanValue[trial, EPS_FREQ])**2
+            minEstOne[trial, EPS_FREQ] = (minEstOne[trial, EPS_FREQ] - minValue[trial, EPS_FREQ])**2
+            maxEstOne[trial, EPS_FREQ] = (maxEstOne[trial, EPS_FREQ] - maxValue[trial, EPS_FREQ])**2
+
+            for l in range(LS):
+        
+                # eps = 0.05 (small)
+                if EPS_FREQ == 0:
+                    meanEpsSmall[trial, l] = (meanEpsSmall[trial, l] - meanValue[trial, EPS_FREQ])**2
+                    minEpsSmall[trial, l] = (minEpsSmall[trial, l] - minValue[trial, EPS_FREQ])**2
+                    maxEpsSmall[trial, l] = (maxEpsSmall[trial, l] - maxValue[trial, EPS_FREQ])**2
+
+                # eps = 0.5 (def)
+                if EPS_FREQ == 3:
+                    meanEpsDef[trial, l] = (meanEpsDef[trial, l] - meanValue[trial, EPS_FREQ])**2
+                    minEpsDef[trial, l] = (minEpsDef[trial, l] - minValue[trial, EPS_FREQ])**2
+                    maxEpsDef[trial, l] = (maxEpsDef[trial, l] - maxValue[trial, EPS_FREQ])**2
+
+                # eps = 1.5 (mid)
+                if EPS_FREQ == 6:
+                    meanEpsMid[trial, l] = (meanEpsMid[trial, l] - meanValue[trial, EPS_FREQ])**2
+                    minEpsMid[trial, l] = (minEpsMid[trial, l] - minValue[trial, EPS_FREQ])**2
+                    maxEpsMid[trial, l] = (maxEpsMid[trial, l] - maxValue[trial, EPS_FREQ])**2
+
+                # eps = 3 (large)
+                if EPS_FREQ == 10:
+                    meanEpsLarge[trial, l] = (meanEpsLarge[trial, l] - meanValue[trial, EPS_FREQ])**2
+                    minEpsLarge[trial, l] = (minEpsLarge[trial, l] - minValue[trial, EPS_FREQ])**2
+                    maxEpsLarge[trial, l] = (maxEpsLarge[trial, l] - maxValue[trial, EPS_FREQ])**2
 
         if eps == epsset[0]:
             meanfile.write(f"FEMNIST: Eps = {eps}\n")
