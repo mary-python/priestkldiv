@@ -40,6 +40,16 @@ trialset = ["Dist", "TAgg", "Trusted", "NoAlgo"]
 LS = len(ldaset)
 TS = len(trialset)
 
+# global parameters
+ALPHA = 0.01 # smoothing parameter
+E = 17 # size of subset for k3 estimator
+EPS = 0.5
+DTA = 0.1
+A = 0 # parameter for addition of noise
+R1 = 90
+ldaStep = 0.05
+RS = 10
+
 # to store statistics related to mean estimates
 meanValue = np.zeros((TS, ES))
 meanEst = np.zeros((TS, ES))
@@ -51,6 +61,16 @@ meanTSmall = np.zeros((TS, LS))
 meanTDef = np.zeros((TS, LS))
 meanTMid = np.zeros((TS, LS))
 meanTLarge = np.zeros((TS, LS))
+
+meanEstRange = np.zeros((TS, LS))
+meanLdaOptRange = np.zeros((TS, LS))
+meanEstZeroRange = np.zeros((TS, ES))
+meanEstOneRange = np.zeros((TS, ES))
+meanPercRange = np.zeros((TS, ES))
+meanTSmallRange = np.zeros((TS, LS))
+meanTDefRange = np.zeros((TS, LS))
+meanTMidRange = np.zeros((TS, LS))
+meanTLargeRange = np.zeros((TS, LS))
 
 # related to min pairs
 minValue = np.zeros((TS, ES))
@@ -64,6 +84,16 @@ minTDef = np.zeros((TS, LS))
 minTMid = np.zeros((TS, LS))
 minTLarge = np.zeros((TS, LS))
 
+minEstRange = np.zeros((TS, LS))
+minLdaOptRange = np.zeros((TS, LS))
+minEstZeroRange = np.zeros((TS, ES))
+minEstOneRange = np.zeros((TS, ES))
+minPercRange = np.zeros((TS, ES))
+minTSmallRange = np.zeros((TS, LS))
+minTDefRange = np.zeros((TS, LS))
+minTMidRange = np.zeros((TS, LS))
+minTLargeRange = np.zeros((TS, LS))
+
 # related to max pairs
 maxValue = np.zeros((TS, ES))
 maxEst = np.zeros((TS, ES))
@@ -76,482 +106,613 @@ maxTDef = np.zeros((TS, LS))
 maxTMid = np.zeros((TS, LS))
 maxTLarge = np.zeros((TS, LS))
 
+maxEstRange = np.zeros((TS, LS))
+maxLdaOptRange = np.zeros((TS, LS))
+maxEstZeroRange = np.zeros((TS, ES))
+maxEstOneRange = np.zeros((TS, ES))
+maxPercRange = np.zeros((TS, ES))
+maxTSmallRange = np.zeros((TS, LS))
+maxTDefRange = np.zeros((TS, LS))
+maxTMidRange = np.zeros((TS, LS))
+maxTLargeRange = np.zeros((TS, LS))
+
 for trial in range(4):
-    
-    print(f"\nTrial {trial + 1}: {trialset[trial]}")
     meanfile = open(f"femnist_T_{trialset[trial]}_mean.txt", "w", encoding = 'utf-8')
     minfile = open(f"femnist_T_{trialset[trial]}_min.txt", "w", encoding = 'utf-8')
     maxfile = open(f"femnist_T_{trialset[trial]}_max.txt", "w", encoding = 'utf-8')
     T_FREQ = 0
 
     for T in Tset:
-        print(f"Trial {trial + 1}: T = {T}...")
+        print(f"\nTrial {trial + 1}: {trialset[trial]}")
 
-        # store T images corresponding to each digit
-        sampledWriters = np.random.choice(numWriters, T, replace = False)
-        totalDigits = np.zeros(10, dtype = int)
+        for rep in range(RS):      
+            print(f"\nT = {T}, repeat {rep + 1}...")
 
-        # compute the frequency of each digit
-        for i in sampledWriters:
-            tempDataset = file[writers[i]]
-
-            for pic in range(len(tempDataset['labels'])):
-
-                for freq in range(10):
-                    if tempDataset['labels'][pic] == freq:
-                        totalDigits[freq] = totalDigits[freq] + 1
-
-        # create image store of appropriate dimensions for each digit
-        zeroSet = np.ones((totalDigits[0], 4, 4), dtype = int)
-        oneSet = np.ones((totalDigits[1], 4, 4), dtype = int)
-        twoSet = np.ones((totalDigits[2], 4, 4), dtype = int)
-        threeSet = np.ones((totalDigits[3], 4, 4), dtype = int)
-        fourSet = np.ones((totalDigits[4], 4, 4), dtype = int)
-        fiveSet = np.ones((totalDigits[5], 4, 4), dtype = int)
-        sixSet = np.ones((totalDigits[6], 4, 4), dtype = int)
-        sevenSet = np.ones((totalDigits[7], 4, 4), dtype = int)
-        eightSet = np.ones((totalDigits[8], 4, 4), dtype = int)
-        nineSet = np.ones((totalDigits[9], 4, 4), dtype = int)
-
-        # to store condensed image and frequency of each digit
-        smallPic = np.ones((4, 4), dtype = int)
-        digFreq = np.zeros(10, dtype = int)
-
-        def add_digit(dset):
-            """Method to add digit to set corresponding to label."""
-            dset[digFreq[label]] = smallPic
-
-        for i in sampledWriters:
-
-            tempDataset = file[writers[i]]
-            PIC_FREQ = 0
-
-            for pic in tempDataset['images']:
-
-                # partition each image into 16 7x7 subimages
-                for a in range(4):
-                    for b in range(4):
-                        subImage = pic[7*a : 7*(a + 1), 7*b : 7*(b + 1)]
-
-                        # save rounded mean of each subimage into corresponding cell of smallpic
-                        meanSubImage = np.mean(subImage)
-                        if meanSubImage == 255:
-                            smallPic[a, b] = 1
-                        else:
-                            smallPic[a, b] = 0
-
-                label = tempDataset['labels'][PIC_FREQ]
-
-                # split images according to label
-                if label == 0:
-                    add_digit(zeroSet)
-                elif label == 1:
-                    add_digit(oneSet)
-                elif label == 2:
-                    add_digit(twoSet)
-                elif label == 3:
-                    add_digit(threeSet)
-                elif label == 4:
-                    add_digit(fourSet)
-                elif label == 5:
-                    add_digit(fiveSet)
-                elif label == 6:
-                    add_digit(sixSet)
-                elif label == 7:
-                    add_digit(sevenSet)
-                elif label == 8:
-                    add_digit(eightSet)
-                elif label == 9:
-                    add_digit(nineSet)
-
-                digFreq[label] = digFreq[label] + 1
-                PIC_FREQ = PIC_FREQ + 1
-
-        # store frequency of unique images corresponding to each digit
-        sizeUSet = np.zeros(11)
-
-        def unique_images(dg, dset):
-            """Method to return unique images of set corresponding to digit."""
-            uset = np.unique(dset, axis = 0)
-            sizeUSet[dg] = len(uset)
-            return uset
-
-        uZeroSet = unique_images(0, zeroSet)
-        uOneSet = unique_images(1, oneSet)
-        uTwoSet = unique_images(2, twoSet)
-        uThreeSet = unique_images(3, threeSet)
-        uFourSet = unique_images(4, fourSet)
-        uFiveSet = unique_images(5, fiveSet)
-        uSixSet = unique_images(6, sixSet)
-        uSevenSet = unique_images(7, sevenSet)
-        uEightSet = unique_images(8, eightSet)
-        uNineSet = unique_images(9, nineSet)
-
-        # store frequency of unique images in total
-        uTotalFreq = int(sum(sizeUSet))
-        uTotalSet = np.ones((uTotalFreq, 4, 4), dtype = int)
-        TOTAL_FREQ = 0
-
-        def total_set(uset, tset, tfreq):
-            """Method to add each of the unique images for each digit."""
-            for im in uset:
-                tset[tfreq] = im
-                tfreq = tfreq + 1
-            return tfreq
-
-        TOTAL_FREQ = total_set(uZeroSet, uTotalSet, TOTAL_FREQ)
-        TOTAL_FREQ = total_set(uOneSet, uTotalSet, TOTAL_FREQ)
-        TOTAL_FREQ = total_set(uTwoSet, uTotalSet, TOTAL_FREQ)
-        TOTAL_FREQ = total_set(uThreeSet, uTotalSet, TOTAL_FREQ)
-        TOTAL_FREQ = total_set(uFourSet, uTotalSet, TOTAL_FREQ)
-        TOTAL_FREQ = total_set(uFiveSet, uTotalSet, TOTAL_FREQ)
-        TOTAL_FREQ = total_set(uSixSet, uTotalSet, TOTAL_FREQ)
-        TOTAL_FREQ = total_set(uSevenSet, uTotalSet, TOTAL_FREQ)
-        TOTAL_FREQ = total_set(uEightSet, uTotalSet, TOTAL_FREQ)
-        TOTAL_FREQ = total_set(uNineSet, uTotalSet, TOTAL_FREQ)
-
-        uTotalSet = unique_images(10, uTotalSet)
-
-        # domain for each digit distribution is number of unique images
-        U = len(uTotalSet)
-
-        # store frequencies of unique images for each digit
-        uImageSet = np.ones((10, U, 4, 4))
-        uFreqSet = np.zeros((10, U))
-        uProbsSet = np.zeros((10, U))
-        T1 = 11*T # change this term so probabilities add up to 1
-
-        # smoothing parameter: 0.1 and 1 are too large
-        ALPHA = 0.01
-
-        def smoothed_prob(dset, dig, im, ufreq):
-            """Method to compute frequencies of unique images and return smoothed probabilities."""
-            where = np.where(np.all(im == dset, axis = (1, 2)))
-            freq = len(where[0])
-            uImageSet[dig, ufreq] = im
-            uFreqSet[dig, ufreq] = int(freq)
-            uProbsSet[dig, ufreq] = float((freq + ALPHA)/(T1 + (ALPHA*(digFreq[dig]))))
-
-        for D in range(0, 10):
-            UNIQUE_FREQ = 0
-
-            # store image and smoothed probability as well as frequency
-            for image in uTotalSet:
-                if D == 0:
-                    smoothed_prob(zeroSet, 0, image, UNIQUE_FREQ)
-                elif D == 1:
-                    smoothed_prob(oneSet, 1, image, UNIQUE_FREQ)
-                elif D == 2:
-                    smoothed_prob(twoSet, 2, image, UNIQUE_FREQ)
-                elif D == 3:
-                    smoothed_prob(threeSet, 3, image, UNIQUE_FREQ)
-                elif D == 4:
-                    smoothed_prob(fourSet, 4, image, UNIQUE_FREQ)
-                elif D == 5:
-                    smoothed_prob(fiveSet, 5, image, UNIQUE_FREQ)
-                elif D == 6:
-                    smoothed_prob(sixSet, 6, image, UNIQUE_FREQ)
-                elif D == 7:
-                    smoothed_prob(sevenSet, 7, image, UNIQUE_FREQ)
-                elif D == 8:
-                    smoothed_prob(eightSet, 8, image, UNIQUE_FREQ)
-                elif D == 9:
-                    smoothed_prob(nineSet, 9, image, UNIQUE_FREQ)
-
-                UNIQUE_FREQ = UNIQUE_FREQ + 1
-
-        # for k3 estimator (Schulman) take a small sample of unique images
-        E = 17
-
-        # store images, frequencies and probabilities for this subset
-        eImageSet = np.ones((10, E, 4, 4))
-        eFreqSet = np.zeros((10, E))
-        eProbsSet = np.zeros((10, E))
-        eTotalFreq = np.zeros(10)
-
-        uSampledSet = np.random.choice(U, E, replace = False)
-        T2 = (11/3)*T*(E/U) # change this term so probabilities add up to 1
-
-        # borrow data from corresponding indices of main image and frequency sets
-        for D in range(0, 10):
-            for i in range(E):
-                eImageSet[D, i] = uImageSet[D, uSampledSet[i]]
-                eFreqSet[D, i] = uFreqSet[D, uSampledSet[i]]
-                eTotalFreq[D] = sum(eFreqSet[D])
-                eProbsSet[D, i] = float((eFreqSet[D, i] + ALPHA)/(T2 + (ALPHA*(eTotalFreq[D]))))
-        
-        # parameters for the addition of Laplace and Gaussian noise
-        EPS = 0.5
-        DTA = 0.1
-        A = 0
-        R1 = 90
-
-        b1 = (1 + log(2)) / EPS
-        b2 = (2*((log(1.25))/DTA)*b1) / EPS
-
-        # load Gaussian noise distribution for intermediate server
-        if trial < 2:
-            s = b2 * (np.sqrt(2) / R1)
-            probGaussNoise = tfp.distributions.Normal(loc = A, scale = s / 100)
-            gaussNoise = tfp.distributions.Normal(loc = A, scale = s)
-
-        # stores for exact unknown distributions
-        uDist = np.zeros((10, 10, U))
-        nDist = np.zeros((10, 10, E))
-        uList = []
-        uCDList = []         
-        rList = []
-        startNoise = []
-
-        # for each comparison digit compute exact unknown distributions for all digits
-        for C in range(0, 10):
-            for D in range(0, 10):
-
-                for i in range(0, U):
-                    uDist[C, D, i] = uProbsSet[D, i] * (np.log((uProbsSet[D, i]) / (uProbsSet[C, i])))
-
-                # eliminate all zero values when digits are identical
-                if sum(uDist[C, D]) != 0.0:
-                    uList.append(sum(uDist[C, D]))
-                    uCDList.append((C, D))
-
-                for j in range(0, E):
-                    nDist[C, D, j] = eProbsSet[D, j] * (np.log((eProbsSet[D, j]) / (eProbsSet[C, j])))
-
-                # compute ratio between exact unknown distributions
-                ratio = abs(sum(nDist[C, D]) / sum(uDist[C, D]))
-
-                # eliminate all divide by zero errors
-                if ratio != 0.0 and sum(uDist[C, D]) != 0.0:
-
-                    # "Dist" (each client adds Gaussian noise term)
-                    if trial == 0:
-                        startSample = abs(probGaussNoise.sample(sample_shape = (1,)))
-                        startNoise.append(startSample)
-                        ratio = ratio + startSample
-                    
-                    rList.append(ratio)
-
-        # store for PRIEST-KLD
-        R2 = len(rList)
-        uEst = np.zeros((LS, R2))
-        R_FREQ = 0
-
-        for row in range(0, R2):
-            uLogr = np.log(rList[row])
-            LDA_FREQ = 0
-
-            # explore lambdas in a range
-            for lda in ldaset:
-
-                # compute k3 estimator
-                uRangeEst = lda * (np.exp(uLogr) - 1) - uLogr
-
-                # share PRIEST-KLD with intermediate server
-                uEst[LDA_FREQ, R_FREQ] = uRangeEst
-                LDA_FREQ = LDA_FREQ + 1
-
-            R_FREQ = R_FREQ + 1
-        
-        # extract position and identity of max and min pairs
-        minIndex = np.argmin(uList)
-        maxIndex = np.argmax(uList)
-        minPair = uCDList[minIndex]
-        maxPair = uCDList[maxIndex]
-
-        # extract ground truths
-        meanValue[trial, T_FREQ] = np.mean(uList)
-        minValue[trial, T_FREQ] = uList[minIndex]
-        maxValue[trial, T_FREQ] = uList[maxIndex]
-
-        meanLda = np.zeros(LS)
-        minLda = np.zeros(LS)
-        maxLda = np.zeros(LS)
-
-        meanLdaNoise = np.zeros(LS)
-        minLdaNoise = np.zeros(LS)
-        maxLdaNoise = np.zeros(LS)
-
-        # compute mean error of PRIEST-KLD for each lambda
-        for l in range(0, LS):
-            meanLda[l] = np.mean(uEst[l])
-
-            # extract error for max and min pairs
-            minLda[l] = uEst[l, minIndex]
-            maxLda[l] = uEst[l, maxIndex]
-
-            # "TAgg" (intermediate server adds Gaussian noise term)
-            if trial == 1:
-                meanLdaNoise[l] = gaussNoise.sample(sample_shape = (1,))
-                minLdaNoise[l] = gaussNoise.sample(sample_shape = (1,))
-                maxLdaNoise[l] = gaussNoise.sample(sample_shape = (1,))
-
-                meanLda[l] = meanLda[l] + meanLdaNoise[l]
-                minLda[l] = minLda[l] + minLdaNoise[l]
-                maxLda[l] = maxLda[l] + maxLdaNoise[l]
+            # temporary stores for each repeat
+            tempMeanValue = np.zeros(RS)
+            tempMeanEst = np.zeros(RS)
+            tempMeanLdaOpt = np.zeros(RS)
+            tempMeanEstZero = np.zeros(RS)
+            tempMeanEstOne = np.zeros(RS)
+            tempMeanPerc = np.zeros(RS)
+            tempMeanTSmall = np.zeros((LS, RS))
+            tempMeanTDef = np.zeros((LS, RS))
+            tempMeanTMid = np.zeros((LS, RS))
+            tempMeanTLarge = np.zeros((LS, RS))
             
-            # mean / min / max across lambdas for T = 36 (~1% of clients, small)
-            if T_FREQ == 0:
-                meanTSmall[trial, l] = meanLda[l]
-                minTSmall[trial, l] = minLda[l]
-                maxTSmall[trial, l] = maxLda[l]
+            tempMinValue = np.zeros(RS)
+            tempMinEst = np.zeros(RS)
+            tempMinLdaOpt = np.zeros(RS)
+            tempMinEstZero = np.zeros(RS)
+            tempMinEstOne = np.zeros(RS)
+            tempMinPerc = np.zeros(RS)
+            tempMinTSmall = np.zeros((LS, RS))
+            tempMinTDef = np.zeros((LS, RS))
+            tempMinTMid = np.zeros((LS, RS))
+            tempMinTLarge = np.zeros((LS, RS))
 
-            # T = 180 (~5% of clients, default)
-            if T_FREQ == 4:
-                meanTDef[trial, l] = meanLda[l]
-                minTDef[trial, l] = minLda[l]
-                maxTDef[trial, l] = maxLda[l]
+            tempMaxValue = np.zeros(RS)
+            tempMaxEst = np.zeros(RS)
+            tempMaxLdaOpt = np.zeros(RS)
+            tempMaxEstZero = np.zeros(RS)
+            tempMaxEstOne = np.zeros(RS)
+            tempMaxPerc = np.zeros(RS)
+            tempMaxTSmall = np.zeros((LS, RS))
+            tempMaxTDef = np.zeros((LS, RS))
+            tempMaxTMid = np.zeros((LS, RS))
+            tempMaxTLarge = np.zeros((LS, RS))
 
-            # T = 360 (~10% of clients, mid)
-            if T_FREQ == 7:
-                meanTMid[trial, l] = meanLda[l]
-                minTMid[trial, l] = minLda[l]
-                maxTMid[trial, l] = maxLda[l]
+            # store T images corresponding to each digit
+            sampledWriters = np.random.choice(numWriters, T, replace = False)
+            totalDigits = np.zeros(10, dtype = int)
 
-            # T = 600 (~16.6% of clients, large)
-            if T_FREQ == 10:
-                meanTLarge[trial, l] = meanLda[l]
-                minTLarge[trial, l] = minLda[l]
-                maxTLarge[trial, l] = maxLda[l]
+            # compute the frequency of each digit
+            for i in sampledWriters:
+                tempDataset = file[writers[i]]
 
-        # find lambda that produces minimum error
-        meanLdaIndex = np.argmin(meanLda)
-        minLdaIndex = np.argmin(minLda)
-        maxLdaIndex = np.argmin(maxLda)
+                for pic in range(len(tempDataset['labels'])):
 
-        meanMinError = meanLda[meanLdaIndex]
-        minMinError = minLda[minLdaIndex]
-        maxMinError = maxLda[maxLdaIndex]
+                    for freq in range(10):
+                        if tempDataset['labels'][pic] == freq:
+                            totalDigits[freq] = totalDigits[freq] + 1
 
-        # mean / min / max across clients for optimum lambda
-        meanEst[trial, T_FREQ] = meanMinError
-        minEst[trial, T_FREQ] = minMinError
-        maxEst[trial, T_FREQ] = maxMinError
+            # create image store of appropriate dimensions for each digit
+            zeroSet = np.ones((totalDigits[0], 4, 4), dtype = int)
+            oneSet = np.ones((totalDigits[1], 4, 4), dtype = int)
+            twoSet = np.ones((totalDigits[2], 4, 4), dtype = int)
+            threeSet = np.ones((totalDigits[3], 4, 4), dtype = int)
+            fourSet = np.ones((totalDigits[4], 4, 4), dtype = int)
+            fiveSet = np.ones((totalDigits[5], 4, 4), dtype = int)
+            sixSet = np.ones((totalDigits[6], 4, 4), dtype = int)
+            sevenSet = np.ones((totalDigits[7], 4, 4), dtype = int)
+            eightSet = np.ones((totalDigits[8], 4, 4), dtype = int)
+            nineSet = np.ones((totalDigits[9], 4, 4), dtype = int)
 
-        # optimum lambda
-        ldaStep = 0.05
-        meanLdaOpt[trial, T_FREQ] = meanLdaIndex * ldaStep
-        minLdaOpt[trial, T_FREQ] = minLdaIndex * ldaStep
-        maxLdaOpt[trial, T_FREQ] = maxLdaIndex * ldaStep
+            # to store condensed image and frequency of each digit
+            smallPic = np.ones((4, 4), dtype = int)
+            digFreq = np.zeros(10, dtype = int)
 
-        # lambda = 0
-        meanEstZero[trial, T_FREQ] = meanLda[0]
-        minEstZero[trial, T_FREQ] = minLda[0]
-        maxEstZero[trial, T_FREQ] = maxLda[0]
+            def add_digit(dset):
+                """Method to add digit to set corresponding to label."""
+                dset[digFreq[label]] = smallPic
 
-        # lambda = 1
-        meanEstOne[trial, T_FREQ] = meanLda[LS-1]
-        minEstOne[trial, T_FREQ] = minLda[LS-1]
-        maxEstOne[trial, T_FREQ] = maxLda[LS-1]
+            for i in sampledWriters:
 
-        # "Trusted" (server adds Laplace noise term to final result)
-        if trial == 2:
-            lapNoise = tfp.distributions.Normal(loc = A, scale = b2)
-            meanNoise = lapNoise.sample(sample_shape = (1,))
-            minNoise = lapNoise.sample(sample_shape = (1,))
-            maxNoise = lapNoise.sample(sample_shape = (1,))
-            meanZeroNoise = lapNoise.sample(sample_shape = (1,))
-            minZeroNoise = lapNoise.sample(sample_shape = (1,))
-            maxZeroNoise = lapNoise.sample(sample_shape = (1,))
-            meanOneNoise = lapNoise.sample(sample_shape = (1,))
-            minOneNoise = lapNoise.sample(sample_shape = (1,))
-            maxOneNoise = lapNoise.sample(sample_shape = (1,))
+                tempDataset = file[writers[i]]
+                PIC_FREQ = 0
 
-            # define error = squared difference between estimator and ground truth
-            meanEst[trial, T_FREQ] = (meanEst[trial, T_FREQ] + meanNoise - meanValue[trial, T_FREQ])**2
-            minEst[trial, T_FREQ] = (minEst[trial, T_FREQ] + minNoise - minValue[trial, T_FREQ])**2
-            maxEst[trial, T_FREQ] = (maxEst[trial, T_FREQ] + maxNoise - maxValue[trial, T_FREQ])**2
+                for pic in tempDataset['images']:
+
+                    # partition each image into 16 7x7 subimages
+                    for a in range(4):
+                        for b in range(4):
+                            subImage = pic[7*a : 7*(a + 1), 7*b : 7*(b + 1)]
+
+                            # save rounded mean of each subimage into corresponding cell of smallpic
+                            meanSubImage = np.mean(subImage)
+                            if meanSubImage == 255:
+                                smallPic[a, b] = 1
+                            else:
+                                smallPic[a, b] = 0
+
+                    label = tempDataset['labels'][PIC_FREQ]
+
+                    # split images according to label
+                    if label == 0:
+                        add_digit(zeroSet)
+                    elif label == 1:
+                        add_digit(oneSet)
+                    elif label == 2:
+                        add_digit(twoSet)
+                    elif label == 3:
+                        add_digit(threeSet)
+                    elif label == 4:
+                        add_digit(fourSet)
+                    elif label == 5:
+                        add_digit(fiveSet)
+                    elif label == 6:
+                        add_digit(sixSet)
+                    elif label == 7:
+                        add_digit(sevenSet)
+                    elif label == 8:
+                        add_digit(eightSet)
+                    elif label == 9:
+                        add_digit(nineSet)
+
+                    digFreq[label] = digFreq[label] + 1
+                    PIC_FREQ = PIC_FREQ + 1
+
+            # store frequency of unique images corresponding to each digit
+            sizeUSet = np.zeros(11)
+
+            def unique_images(dg, dset):
+                """Method to return unique images of set corresponding to digit."""
+                uset = np.unique(dset, axis = 0)
+                sizeUSet[dg] = len(uset)
+                return uset
+
+            uZeroSet = unique_images(0, zeroSet)
+            uOneSet = unique_images(1, oneSet)
+            uTwoSet = unique_images(2, twoSet)
+            uThreeSet = unique_images(3, threeSet)
+            uFourSet = unique_images(4, fourSet)
+            uFiveSet = unique_images(5, fiveSet)
+            uSixSet = unique_images(6, sixSet)
+            uSevenSet = unique_images(7, sevenSet)
+            uEightSet = unique_images(8, eightSet)
+            uNineSet = unique_images(9, nineSet)
+
+            # store frequency of unique images in total
+            uTotalFreq = int(sum(sizeUSet))
+            uTotalSet = np.ones((uTotalFreq, 4, 4), dtype = int)
+            TOTAL_FREQ = 0
+
+            def total_set(uset, tset, tfreq):
+                """Method to add each of the unique images for each digit."""
+                for im in uset:
+                    tset[tfreq] = im
+                    tfreq = tfreq + 1
+                return tfreq
+
+            TOTAL_FREQ = total_set(uZeroSet, uTotalSet, TOTAL_FREQ)
+            TOTAL_FREQ = total_set(uOneSet, uTotalSet, TOTAL_FREQ)
+            TOTAL_FREQ = total_set(uTwoSet, uTotalSet, TOTAL_FREQ)
+            TOTAL_FREQ = total_set(uThreeSet, uTotalSet, TOTAL_FREQ)
+            TOTAL_FREQ = total_set(uFourSet, uTotalSet, TOTAL_FREQ)
+            TOTAL_FREQ = total_set(uFiveSet, uTotalSet, TOTAL_FREQ)
+            TOTAL_FREQ = total_set(uSixSet, uTotalSet, TOTAL_FREQ)
+            TOTAL_FREQ = total_set(uSevenSet, uTotalSet, TOTAL_FREQ)
+            TOTAL_FREQ = total_set(uEightSet, uTotalSet, TOTAL_FREQ)
+            TOTAL_FREQ = total_set(uNineSet, uTotalSet, TOTAL_FREQ)
+
+            uTotalSet = unique_images(10, uTotalSet)
+
+            # domain for each digit distribution is number of unique images
+            U = len(uTotalSet)
+
+            # store frequencies of unique images for each digit
+            uImageSet = np.ones((10, U, 4, 4))
+            uFreqSet = np.zeros((10, U))
+            uProbsSet = np.zeros((10, U))
+            T1 = 11*T
+
+            def smoothed_prob(dset, dig, im, ufreq):
+                """Method to compute frequencies of unique images and return smoothed probabilities."""
+                where = np.where(np.all(im == dset, axis = (1, 2)))
+                freq = len(where[0])
+                uImageSet[dig, ufreq] = im
+                uFreqSet[dig, ufreq] = int(freq)
+                uProbsSet[dig, ufreq] = float((freq + ALPHA)/(T1 + (ALPHA*(digFreq[dig]))))
+
+            for D in range(0, 10):
+                UNIQUE_FREQ = 0
+
+                # store image and smoothed probability as well as frequency
+                for image in uTotalSet:
+                    if D == 0:
+                        smoothed_prob(zeroSet, 0, image, UNIQUE_FREQ)
+                    elif D == 1:
+                        smoothed_prob(oneSet, 1, image, UNIQUE_FREQ)
+                    elif D == 2:
+                        smoothed_prob(twoSet, 2, image, UNIQUE_FREQ)
+                    elif D == 3:
+                        smoothed_prob(threeSet, 3, image, UNIQUE_FREQ)
+                    elif D == 4:
+                        smoothed_prob(fourSet, 4, image, UNIQUE_FREQ)
+                    elif D == 5:
+                        smoothed_prob(fiveSet, 5, image, UNIQUE_FREQ)
+                    elif D == 6:
+                        smoothed_prob(sixSet, 6, image, UNIQUE_FREQ)
+                    elif D == 7:
+                        smoothed_prob(sevenSet, 7, image, UNIQUE_FREQ)
+                    elif D == 8:
+                        smoothed_prob(eightSet, 8, image, UNIQUE_FREQ)
+                    elif D == 9:
+                        smoothed_prob(nineSet, 9, image, UNIQUE_FREQ)
+
+                    UNIQUE_FREQ = UNIQUE_FREQ + 1
+
+            # store images, frequencies and probabilities for this subset
+            eImageSet = np.ones((10, E, 4, 4))
+            eFreqSet = np.zeros((10, E))
+            eProbsSet = np.zeros((10, E))
+            eTotalFreq = np.zeros(10)
+
+            uSampledSet = np.random.choice(U, E, replace = False)
+            T2 = (11/3)*T*(E/U) # change this term so probabilities add up to 1
+
+            # borrow data from corresponding indices of main image and frequency sets
+            for D in range(0, 10):
+                for i in range(E):
+                    eImageSet[D, i] = uImageSet[D, uSampledSet[i]]
+                    eFreqSet[D, i] = uFreqSet[D, uSampledSet[i]]
+                    eTotalFreq[D] = sum(eFreqSet[D])
+                    eProbsSet[D, i] = float((eFreqSet[D, i] + ALPHA)/(T2 + (ALPHA*(eTotalFreq[D]))))
+
+            # load Gaussian noise distributions for clients and intermediate server
+            b1 = (1 + log(2)) / EPS
+            b2 = (2*((log(1.25))/DTA)*b1) / EPS
+
+            if trial < 2:
+                s = b2 * (np.sqrt(2) / R1)
+                probGaussNoise = tfp.distributions.Normal(loc = A, scale = s / 100)
+                gaussNoise = tfp.distributions.Normal(loc = A, scale = s)
+
+            # stores for exact unknown distributions
+            uDist = np.zeros((10, 10, U))
+            nDist = np.zeros((10, 10, E))
+            uList = []
+            uCDList = []         
+            rList = []
+            startNoise = []
+
+            # for each comparison digit compute exact unknown distributions for all digits
+            for C in range(0, 10):
+                for D in range(0, 10):
+
+                    for i in range(0, U):
+                        uDist[C, D, i] = uProbsSet[D, i] * (np.log((uProbsSet[D, i]) / (uProbsSet[C, i])))
+
+                    # eliminate all zero values when digits are identical
+                    if sum(uDist[C, D]) != 0.0:
+                        uList.append(sum(uDist[C, D]))
+                        uCDList.append((C, D))
+
+                    for j in range(0, E):
+                        nDist[C, D, j] = eProbsSet[D, j] * (np.log((eProbsSet[D, j]) / (eProbsSet[C, j])))
+
+                    # compute ratio between exact unknown distributions
+                    ratio = abs(sum(nDist[C, D]) / sum(uDist[C, D]))
+
+                    # eliminate all divide by zero errors
+                    if ratio != 0.0 and sum(uDist[C, D]) != 0.0:
+
+                        # "Dist" (each client adds Gaussian noise term)
+                        if trial == 0:
+                            startSample = abs(probGaussNoise.sample(sample_shape = (1,)))
+                            startNoise.append(startSample)
+                            ratio = ratio + startSample
+                    
+                        rList.append(ratio)
+
+            # store for PRIEST-KLD
+            R2 = len(rList)
+            uEst = np.zeros((LS, R2))
+            R_FREQ = 0
+
+            for row in range(0, R2):
+                uLogr = np.log(rList[row])
+                LDA_FREQ = 0
+
+                # explore lambdas in a range
+                for lda in ldaset:
+
+                    # compute k3 estimator
+                    uRangeEst = lda * (np.exp(uLogr) - 1) - uLogr
+
+                    # share PRIEST-KLD with intermediate server
+                    uEst[LDA_FREQ, R_FREQ] = uRangeEst
+                    LDA_FREQ = LDA_FREQ + 1
+
+                R_FREQ = R_FREQ + 1
+        
+            # extract position and identity of max and min pairs
+            minIndex = np.argmin(uList)
+            maxIndex = np.argmax(uList)
+            minPair = uCDList[minIndex]
+            maxPair = uCDList[maxIndex]
+
+            # extract ground truths
+            tempMeanValue[rep] = np.mean(uList)
+            tempMinValue[rep] = uList[minIndex]
+            tempMaxValue[rep] = uList[maxIndex]
+
+            meanLda = np.zeros(LS)
+            minLda = np.zeros(LS)
+            maxLda = np.zeros(LS)
+
+            meanLdaNoise = np.zeros(LS)
+            minLdaNoise = np.zeros(LS)
+            maxLdaNoise = np.zeros(LS)
+
+            # compute mean error of PRIEST-KLD for each lambda
+            for l in range(0, LS):
+                meanLda[l] = np.mean(uEst[l])
+
+                # extract error for max and min pairs
+                minLda[l] = uEst[l, minIndex]
+                maxLda[l] = uEst[l, maxIndex]
+
+                # "TAgg" (intermediate server adds Gaussian noise term)
+                if trial == 1:
+                    meanLdaNoise[l] = gaussNoise.sample(sample_shape = (1,))
+                    minLdaNoise[l] = gaussNoise.sample(sample_shape = (1,))
+                    maxLdaNoise[l] = gaussNoise.sample(sample_shape = (1,))
+
+                    meanLda[l] = meanLda[l] + meanLdaNoise[l]
+                    minLda[l] = minLda[l] + minLdaNoise[l]
+                    maxLda[l] = maxLda[l] + maxLdaNoise[l]
+            
+                # mean / min / max across lambdas for T = 36 (~1% of clients, small)
+                if T_FREQ == 0:
+                    tempMeanTSmall[l, rep] = meanLda[l]
+                    tempMinTSmall[l, rep] = minLda[l]
+                    tempMaxTSmall[l, rep] = maxLda[l]
+
+                # T = 180 (~5% of clients, default)
+                if T_FREQ == 4:
+                    tempMeanTDef[l, rep] = meanLda[l]
+                    tempMinTDef[l, rep] = minLda[l]
+                    tempMaxTDef[l, rep] = maxLda[l]
+
+                # T = 360 (~10% of clients, mid)
+                if T_FREQ == 7:
+                    tempMeanTMid[l, rep] = meanLda[l]
+                    tempMinTMid[l, rep] = minLda[l]
+                    tempMaxTMid[l, rep] = maxLda[l]
+
+                # T = 600 (~16.6% of clients, large)
+                if T_FREQ == 10:
+                    tempMeanTLarge[l, rep] = meanLda[l]
+                    tempMinTLarge[l, rep] = minLda[l]
+                    tempMaxTLarge[l, rep] = maxLda[l]
+
+            # find lambda that produces minimum error
+            meanLdaIndex = np.argmin(meanLda)
+            minLdaIndex = np.argmin(minLda)
+            maxLdaIndex = np.argmin(maxLda)
+
+            meanMinError = meanLda[meanLdaIndex]
+            minMinError = minLda[minLdaIndex]
+            maxMinError = maxLda[maxLdaIndex]
+
+            # mean / min / max across clients for optimum lambda
+            tempMeanEst[rep] = meanMinError
+            tempMinEst[rep] = minMinError
+            tempMaxEst[rep] = maxMinError
+
+            # optimum lambda
+            tempMeanLdaOpt[rep] = meanLdaIndex * ldaStep
+            tempMinLdaOpt[rep] = minLdaIndex * ldaStep
+            tempMaxLdaOpt[rep] = maxLdaIndex * ldaStep
 
             # lambda = 0
-            meanEstZero[trial, T_FREQ] = (meanEstZero[trial, T_FREQ] + meanZeroNoise - meanValue[trial, T_FREQ])**2
-            minEstZero[trial, T_FREQ] = (minEstZero[trial, T_FREQ] + minZeroNoise - minValue[trial, T_FREQ])**2
-            maxEstZero[trial, T_FREQ] = (maxEstZero[trial, T_FREQ] + maxZeroNoise - maxValue[trial, T_FREQ])**2
+            tempMeanEstZero[rep] = meanLda[0]
+            tempMinEstZero[rep] = minLda[0]
+            tempMaxEstZero[rep] = maxLda[0]
 
             # lambda = 1
-            meanEstOne[trial, T_FREQ] = (meanEstOne[trial, T_FREQ] + meanOneNoise - meanValue[trial, T_FREQ])**2
-            minEstOne[trial, T_FREQ] = (minEstOne[trial, T_FREQ] + minOneNoise - minValue[trial, T_FREQ])**2
-            maxEstOne[trial, T_FREQ] = (maxEstOne[trial, T_FREQ] + maxOneNoise - maxValue[trial, T_FREQ])**2
+            tempMeanEstOne[rep] = meanLda[LS-1]
+            tempMinEstOne[rep] = minLda[LS-1]
+            tempMaxEstOne[rep] = maxLda[LS-1]
 
-            for l in range(LS):
+            # "Trusted" (server adds Laplace noise term to final result)
+            if trial == 2:
+                lapNoise = tfp.distributions.Normal(loc = A, scale = b2)
+                meanNoise = lapNoise.sample(sample_shape = (1,))
+                minNoise = lapNoise.sample(sample_shape = (1,))
+                maxNoise = lapNoise.sample(sample_shape = (1,))
+                meanZeroNoise = lapNoise.sample(sample_shape = (1,))
+                minZeroNoise = lapNoise.sample(sample_shape = (1,))
+                maxZeroNoise = lapNoise.sample(sample_shape = (1,))
+                meanOneNoise = lapNoise.sample(sample_shape = (1,))
+                minOneNoise = lapNoise.sample(sample_shape = (1,))
+                maxOneNoise = lapNoise.sample(sample_shape = (1,))
+
+                # define error = squared difference between estimator and ground truth
+                tempMeanEst[rep] = (tempMeanEst[rep] + meanNoise - tempMeanValue[rep])**2
+                tempMinEst[rep] = (tempMinEst[rep] + minNoise - tempMinValue[rep])**2
+                tempMaxEst[rep] = (tempMaxEst[rep] + maxNoise - tempMaxValue[rep])**2
+
+                # lambda = 0
+                tempMeanEstZero[rep] = (tempMeanEstZero[rep] + meanZeroNoise - tempMeanValue[rep])**2
+                tempMinEstZero[rep] = (tempMinEstZero[rep] + minZeroNoise - tempMinValue[rep])**2
+                tempMaxEstZero[rep] = (tempMaxEstZero[rep] + maxZeroNoise - tempMaxValue[rep])**2
+
+                # lambda = 1
+                tempMeanEstOne[rep] = (tempMeanEstOne[rep] + meanOneNoise - tempMeanValue[rep])**2
+                tempMinEstOne[rep] = (tempMinEstOne[rep] + minOneNoise - tempMinValue[rep])**2
+                tempMaxEstOne[rep] = (tempMaxEstOne[rep] + maxOneNoise - tempMaxValue[rep])**2
+
+                for l in range(LS):
         
-                # T = 36 (small)
-                if T_FREQ == 0:
-                    meanSmallNoise = lapNoise.sample(sample_shape = (1,))
-                    minSmallNoise = lapNoise.sample(sample_shape = (1,))
-                    maxSmallNoise = lapNoise.sample(sample_shape = (1,))
-                    meanTSmall[trial, l] = (meanTSmall[trial, l] + meanSmallNoise - meanValue[trial, T_FREQ])**2
-                    minTSmall[trial, l] = (minTSmall[trial, l] + minSmallNoise - minValue[trial, T_FREQ])**2
-                    maxTSmall[trial, l] = (maxTSmall[trial, l] + maxSmallNoise - maxValue[trial, T_FREQ])**2
+                    # T = 36 (small)
+                    if T_FREQ == 0:
+                        meanSmallNoise = lapNoise.sample(sample_shape = (1,))
+                        minSmallNoise = lapNoise.sample(sample_shape = (1,))
+                        maxSmallNoise = lapNoise.sample(sample_shape = (1,))
+                        tempMeanTSmall[l, rep] = (tempMeanTSmall[l, rep] + meanSmallNoise - tempMeanValue[rep])**2
+                        tempMinTSmall[l, rep] = (tempMinTSmall[l, rep] + minSmallNoise - tempMinValue[rep])**2
+                        tempMaxTSmall[l, rep] = (tempMaxTSmall[l, rep] + maxSmallNoise - tempMaxValue[rep])**2
 
-                # T = 180 (def)
-                if T_FREQ == 4:
-                    meanDefNoise = lapNoise.sample(sample_shape = (1,))
-                    minDefNoise = lapNoise.sample(sample_shape = (1,))
-                    maxDefNoise = lapNoise.sample(sample_shape = (1,))
-                    meanTDef[trial, l] = (meanTDef[trial, l] + meanDefNoise - meanValue[trial, T_FREQ])**2
-                    minTDef[trial, l] = (minTDef[trial, l] + minDefNoise - minValue[trial, T_FREQ])**2
-                    maxTDef[trial, l] = (maxTDef[trial, l] + maxDefNoise - maxValue[trial, T_FREQ])**2
+                    # T = 180 (def)
+                    if T_FREQ == 4:
+                        meanDefNoise = lapNoise.sample(sample_shape = (1,))
+                        minDefNoise = lapNoise.sample(sample_shape = (1,))
+                        maxDefNoise = lapNoise.sample(sample_shape = (1,))
+                        tempMeanTDef[l, rep] = (tempMeanTDef[l, rep] + meanDefNoise - tempMeanValue[rep])**2
+                        tempMinTDef[l, rep] = (tempMinTDef[l, rep] + minDefNoise - tempMinValue[rep])**2
+                        tempMaxTDef[l, rep] = (tempMaxTDef[l, rep] + maxDefNoise - tempMaxValue[rep])**2
 
-                # T = 360 (mid)
-                if T_FREQ == 7:
-                    meanMidNoise = lapNoise.sample(sample_shape = (1,))
-                    minMidNoise = lapNoise.sample(sample_shape = (1,))
-                    maxMidNoise = lapNoise.sample(sample_shape = (1,))
-                    meanTMid[trial, l] = (meanTMid[trial, l] + meanMidNoise - meanValue[trial, T_FREQ])**2
-                    minTMid[trial, l] = (minTMid[trial, l] + minMidNoise - minValue[trial, T_FREQ])**2
-                    maxTMid[trial, l] = (maxTMid[trial, l] + maxMidNoise - maxValue[trial, T_FREQ])**2
+                    # T = 360 (mid)
+                    if T_FREQ == 7:
+                        meanMidNoise = lapNoise.sample(sample_shape = (1,))
+                        minMidNoise = lapNoise.sample(sample_shape = (1,))
+                        maxMidNoise = lapNoise.sample(sample_shape = (1,))
+                        tempMeanTMid[l, rep] = (tempMeanTMid[l, rep] + meanMidNoise - tempMeanValue[rep])**2
+                        tempMinTMid[l, rep] = (tempMinTMid[l, rep] + minMidNoise - tempMinValue[rep])**2
+                        tempMaxTMid[l, rep] = (tempMaxTMid[l, rep] + maxMidNoise - tempMaxValue[rep])**2
 
-                # T = 600 (large)
-                if T_FREQ == 10:
-                    meanLargeNoise = lapNoise.sample(sample_shape = (1,))
-                    minLargeNoise = lapNoise.sample(sample_shape = (1,))
-                    maxLargeNoise = lapNoise.sample(sample_shape = (1,))
-                    meanTLarge[trial, l] = (meanTLarge[trial, l] + meanLargeNoise - meanValue[trial, T_FREQ])**2
-                    minTLarge[trial, l] = (minTLarge[trial, l] + minLargeNoise - minValue[trial, T_FREQ])**2
-                    maxTLarge[trial, l] = (maxTLarge[trial, l] + maxLargeNoise - maxValue[trial, T_FREQ])**2
+                    # T = 600 (large)
+                    if T_FREQ == 10:
+                        meanLargeNoise = lapNoise.sample(sample_shape = (1,))
+                        minLargeNoise = lapNoise.sample(sample_shape = (1,))
+                        maxLargeNoise = lapNoise.sample(sample_shape = (1,))
+                        tempMeanTLarge[l, rep] = (tempMeanTLarge[l, rep] + meanLargeNoise - tempMeanValue[rep])**2
+                        tempMinTLarge[l, rep] = (tempMinTLarge[l, rep] + minLargeNoise - tempMinValue[rep])**2
+                        tempMaxTLarge[l, rep] = (tempMaxTLarge[l, rep] + maxLargeNoise - tempMaxValue[rep])**2
         
-        # clients or intermediate server already added Gaussian noise term
-        else:
-            meanEst[trial, T_FREQ] = (meanEst[trial, T_FREQ] - meanValue[trial, T_FREQ])**2
-            minEst[trial, T_FREQ] = (minEst[trial, T_FREQ] - minValue[trial, T_FREQ])**2
-            maxEst[trial, T_FREQ] = (maxEst[trial, T_FREQ] - maxValue[trial, T_FREQ])**2
+            # clients or intermediate server already added Gaussian noise term
+            else:
+                tempMeanEst[rep] = (tempMeanEst[rep] - tempMeanValue[rep])**2
+                tempMinEst[rep] = (tempMinEst[rep] - tempMinValue[rep])**2
+                tempMaxEst[rep] = (tempMaxEst[rep] - tempMaxValue[rep])**2
 
-            # lambda = 0
-            meanEstZero[trial, T_FREQ] = (meanEstZero[trial, T_FREQ] - meanValue[trial, T_FREQ])**2
-            minEstZero[trial, T_FREQ] = (minEstZero[trial, T_FREQ] - minValue[trial, T_FREQ])**2
-            maxEstZero[trial, T_FREQ] = (maxEstZero[trial, T_FREQ] - maxValue[trial, T_FREQ])**2
+                # lambda = 0
+                tempMeanEstZero[rep] = (tempMeanEstZero[rep] - tempMeanValue[rep])**2
+                tempMinEstZero[rep] = (tempMinEstZero[rep] - tempMinValue[rep])**2
+                tempMaxEstZero[rep] = (tempMaxEstZero[rep] - tempMaxValue[rep])**2
 
-            # lambda = 1
-            meanEstOne[trial, T_FREQ] = (meanEstOne[trial, T_FREQ] - meanValue[trial, T_FREQ])**2
-            minEstOne[trial, T_FREQ] = (minEstOne[trial, T_FREQ] - minValue[trial, T_FREQ])**2
-            maxEstOne[trial, T_FREQ] = (maxEstOne[trial, T_FREQ] - maxValue[trial, T_FREQ])**2
+                # lambda = 1
+                tempMeanEstOne[rep] = (tempMeanEstOne[rep] - tempMeanValue[rep])**2
+                tempMinEstOne[rep] = (tempMinEstOne[rep] - tempMinValue[rep])**2
+                tempMaxEstOne[rep] = (tempMaxEstOne[rep] - tempMaxValue[rep])**2
 
-            for l in range(LS):
+                for l in range(LS):
 
-                # T = 36 (small)
-                if T_FREQ == 0:
-                    meanTSmall[trial, l] = (meanTSmall[trial, l] - meanValue[trial, T_FREQ])**2
-                    minTSmall[trial, l] = (minTSmall[trial, l] - minValue[trial, T_FREQ])**2
-                    maxTSmall[trial, l] = (maxTSmall[trial, l] - maxValue[trial, T_FREQ])**2
+                    # T = 36 (small)
+                    if T_FREQ == 0:
+                        tempMeanTSmall[l, rep] = (tempMeanTSmall[l, rep] - tempMeanValue[rep])**2
+                        tempMinTSmall[l, rep] = (tempMinTSmall[l, rep] - tempMinValue[rep])**2
+                        tempMaxTSmall[l, rep] = (tempMaxTSmall[l, rep] - tempMaxValue[rep])**2
 
-                # T = 180 (def)
-                if T_FREQ == 4:
-                    meanTDef[trial, l] = (meanTDef[trial, l] - meanValue[trial, T_FREQ])**2
-                    minTDef[trial, l] = (minTDef[trial, l] - minValue[trial, T_FREQ])**2
-                    maxTDef[trial, l] = (maxTDef[trial, l] - maxValue[trial, T_FREQ])**2
+                    # T = 180 (def)
+                    if T_FREQ == 4:
+                        tempMeanTDef[l, rep] = (tempMeanTDef[l, rep] - tempMeanValue[rep])**2
+                        tempMinTDef[l, rep] = (tempMinTDef[l, rep] - tempMinValue[rep])**2
+                        tempMaxTDef[l, rep] = (tempMaxTDef[l, rep] - tempMaxValue[rep])**2
 
-                # T = 360 (mid)
-                if T_FREQ == 7:
-                    meanTMid[trial, l] = (meanTMid[trial, l] - meanValue[trial, T_FREQ])**2
-                    minTMid[trial, l] = (minTMid[trial, l] - minValue[trial, T_FREQ])**2
-                    maxTMid[trial, l] = (maxTMid[trial, l] - maxValue[trial, T_FREQ])**2
+                    # T = 360 (mid)
+                    if T_FREQ == 7:
+                        tempMeanTMid[l, rep] = (tempMeanTMid[l, rep] - tempMeanValue[rep])**2
+                        tempMinTMid[l, rep] = (tempMinTMid[l, rep] - tempMinValue[rep])**2
+                        tempMaxTMid[l, rep] = (tempMaxTMid[l, rep] - tempMaxValue[rep])**2
 
-                # T = 600 (large)
-                if T_FREQ == 10:
-                    meanTLarge[trial, l] = (meanTLarge[trial, l] - meanValue[trial, T_FREQ])**2
-                    minTLarge[trial, l] = (minTLarge[trial, l] - minValue[trial, T_FREQ])**2
-                    maxTLarge[trial, l] = (maxTLarge[trial, l] - maxValue[trial, T_FREQ])**2
+                    # T = 600 (large)
+                    if T_FREQ == 10:
+                        tempMeanTLarge[l, rep] = (tempMeanTLarge[l, rep] - tempMeanValue[rep])**2
+                        tempMinTLarge[l, rep] = (tempMinTLarge[l, rep] - tempMinValue[rep])**2
+                        tempMaxTLarge[l, rep] = (tempMaxTLarge[l, rep] - tempMaxValue[rep])**2
 
+            # compute % of noise vs ground truth
+            if trial == 0:
+                tempMeanPerc[rep] = float(abs(np.array(sum(startNoise)) / (np.array(sum(startNoise)) + tempMeanValue[rep])))*100
+            if trial == 1:
+                tempMeanPerc[rep] = abs((np.sum(meanLdaNoise)) / (np.sum(meanLdaNoise) + tempMeanValue[rep]))*100
+            if trial == 2:
+                tempMeanPerc[rep] = float(abs(np.array(meanNoise) / (np.array(meanNoise) + tempMeanValue[rep])))*100
+
+            if trial == 0:
+                tempMinPerc[rep] = float(abs(np.array(sum(startNoise)) / (np.array(sum(startNoise)) + tempMinValue[rep])))*100
+            if trial == 1:
+                tempMinPerc[rep] = abs((np.sum(meanLdaNoise)) / (np.sum(meanLdaNoise) + tempMinValue[rep]))*100
+            if trial == 2:
+                tempMinPerc[rep] = float(abs(np.array(meanNoise) / (np.array(meanNoise) + tempMinValue[rep])))*100
+
+            if trial == 0:
+                tempMaxPerc[rep] = float(abs(np.array(sum(startNoise)) / (np.array(sum(startNoise)) + tempMaxValue[rep])))*100
+            if trial == 1:
+                tempMaxPerc[rep] = abs((np.sum(meanLdaNoise)) / (np.sum(meanLdaNoise) + tempMaxValue[rep]))*100
+            if trial == 2:
+                tempMaxPerc[rep] = float(abs(np.array(meanNoise) / (np.array(meanNoise) + tempMaxValue[rep])))*100
+        # compute mean of repeats
+        meanValue[trial, T_FREQ] = np.mean(tempMeanValue)
+        meanEst[trial, T_FREQ] = np.mean(tempMeanEst)
+        meanLdaOpt[trial, T_FREQ] = np.mean(tempMeanLdaOpt)
+        meanEstZero[trial, T_FREQ] = np.mean(tempMeanEstZero)
+        meanEstOne[trial, T_FREQ] = np.mean(tempMeanEstOne)
+        meanPerc[trial, T_FREQ] = np.mean(tempMeanPerc)
+
+        for l in range(LS):
+            meanTSmall[trial, l] = np.mean(tempMeanTSmall[l])
+            meanTDef[trial, l] = np.mean(tempMeanTDef[l])
+            meanTMid[trial, l] = np.mean(tempMeanTMid[l])
+            meanTLarge[trial, l] = np.mean(tempMeanTLarge[l])
+
+        minValue[trial, T_FREQ] = np.mean(tempMinValue)
+        minEst[trial, T_FREQ] = np.mean(tempMinEst)
+        minLdaOpt[trial, T_FREQ] = np.mean(tempMinLdaOpt)
+        minEstZero[trial, T_FREQ] = np.mean(tempMinEstZero)
+        minEstOne[trial, T_FREQ] = np.mean(tempMeanEstOne)
+        minPerc[trial, T_FREQ] = np.mean(tempMinPerc)
+
+        for l in range(LS):
+            minTSmall[trial, l] = np.mean(tempMinTSmall[l])
+            minTDef[trial, l] = np.mean(tempMinTDef[l])
+            minTMid[trial, l] = np.mean(tempMinTMid[l])
+            minTLarge[trial, l] = np.mean(tempMinTLarge[l])
+
+        maxValue[trial, T_FREQ] = np.mean(tempMaxValue)
+        maxEst[trial, T_FREQ] = np.mean(tempMaxEst)
+        maxLdaOpt[trial, T_FREQ] = np.mean(tempMaxLdaOpt)
+        maxEstZero[trial, T_FREQ] = np.mean(tempMaxEstZero)
+        maxEstOne[trial, T_FREQ] = np.mean(tempMaxEstOne)
+        maxPerc[trial, T_FREQ] = np.mean(tempMaxPerc)
+
+        for l in range(LS):
+            maxTSmall[trial, l] = np.mean(tempMaxTSmall[l])
+            maxTDef[trial, l] = np.mean(tempMaxTDef[l])
+            maxTMid[trial, l] = np.mean(tempMaxTMid[l])
+            maxTLarge[trial, l] = np.mean(tempMaxTLarge[l])
+
+        # compute standard deviation of repeats
+        meanEstRange[trial, T_FREQ] = np.std(tempMeanEst)
+        meanLdaOptRange[trial, T_FREQ] = np.std(tempMeanLdaOpt)
+        meanEstZeroRange[trial, T_FREQ] = np.std(tempMeanEstZero)
+        meanEstOneRange[trial, T_FREQ] = np.std(tempMeanEstOne)
+        meanPercRange[trial, T_FREQ] = np.std(tempMeanPerc)
+
+        for l in range(LS):
+            meanTSmallRange[trial, l] = np.std(tempMeanTSmall[l])
+            meanTDefRange[trial, l] = np.std(tempMeanTDef[l])
+            meanTMidRange[trial, l] = np.std(tempMeanTMid[l])
+            meanTLargeRange[trial, l] = np.std(tempMeanTLarge[l])
+
+        minEstRange[trial, T_FREQ] = np.std(tempMinEst)
+        minLdaOptRange[trial, T_FREQ] = np.std(tempMinLdaOpt)
+        minEstZeroRange[trial, T_FREQ] = np.std(tempMinEstZero)
+        minEstOneRange[trial, T_FREQ] = np.std(tempMinEstOne)
+        minPercRange[trial, T_FREQ] = np.std(tempMinPerc)
+
+        for l in range(LS):
+            minTSmallRange[trial, l] = np.std(tempMinTSmall[l])
+            minTDefRange[trial, l] = np.std(tempMinTDef[l])
+            minTMidRange[trial, l] = np.std(tempMinTMid[l])
+            minTLargeRange[trial, l] = np.std(tempMinTLarge[l])
+
+        maxEstRange[trial, T_FREQ] = np.std(tempMaxEst)
+        maxLdaOptRange[trial, T_FREQ] = np.std(tempMaxLdaOpt)
+        maxEstZeroRange[trial, T_FREQ] = np.std(tempMaxEstZero)
+        maxEstOneRange[trial, T_FREQ] = np.std(tempMaxEstOne)
+        maxPercRange[trial, T_FREQ] = np.std(tempMaxPerc)
+
+        for l in range(LS):
+            maxTSmallRange[trial, l] = np.std(tempMaxTSmall[l])
+            maxTDefRange[trial, l] = np.std(tempMaxTDef[l])
+            maxTMidRange[trial, l] = np.std(tempMaxTMid[l])
+            maxTLargeRange[trial, l] = np.std(tempMaxTLarge[l])
+
+        # write statistics on data files
         if T == Tset[0]:
             meanfile.write(f"FEMNIST: T = {T}\n")
             minfile.write(f"FEMNIST: T = {T}\n")
@@ -560,61 +721,31 @@ for trial in range(4):
             meanfile.write(f"\nT = {T}\n")
             minfile.write(f"\nT = {T}\n")
             maxfile.write(f"\nT = {T}\n")
-        
+  
         meanfile.write(f"\nMean Error: {round(meanEst[trial, T_FREQ], 2)}\n")
         meanfile.write(f"Optimal Lambda: {round(meanLdaOpt[trial, T_FREQ], 2)}\n")
         meanfile.write(f"Ground Truth: {round(meanValue[trial, T_FREQ], 2)}\n")
-
-        # compute % of noise vs ground truth (mean)
-        if trial == 0:
-            meanPerc[trial, T_FREQ] = float(abs(np.array(sum(startNoise)) / (np.array(sum(startNoise)) + meanValue[trial, T_FREQ])))*100
-            meanfile.write(f"Noise: {np.round(meanPerc[trial, T_FREQ], 2)}%\n")
-        if trial == 1:
-            meanPerc[trial, T_FREQ] = abs((np.sum(meanLdaNoise)) / (np.sum(meanLdaNoise) + meanValue[trial, T_FREQ]))*100
-            meanfile.write(f"Noise: {round(meanPerc[trial, T_FREQ], 2)}%\n")
-        if trial == 2:
-            meanPerc[trial, T_FREQ] = float(abs(np.array(meanNoise) / (np.array(meanNoise) + meanValue[trial, T_FREQ])))*100
-            meanfile.write(f"Noise: {np.round(meanPerc[trial, T_FREQ], 2)}%\n")
+        meanfile.write(f"Noise: {np.round(meanPerc[trial, T_FREQ], 2)}%\n")
 
         minfile.write(f"\nMin Pair: {minPair}\n")
         minfile.write(f"Min Error: {round(minEst[trial, T_FREQ], 2)}\n")
         minfile.write(f"Optimal Lambda: {round(minLdaOpt[trial, T_FREQ], 2)}\n")
         minfile.write(f"Ground Truth: {round(minValue[trial, T_FREQ], 2)}\n")
-
-        # compute % of noise vs ground truth (min pair)
-        if trial == 0:
-            minPerc[trial, T_FREQ] = float(abs(np.array(sum(startNoise)) / (np.array(sum(startNoise)) + minValue[trial, T_FREQ])))*100
-            minfile.write(f"Noise: {np.round(minPerc[trial, T_FREQ], 2)}%\n")
-        if trial == 1:
-            minPerc[trial, T_FREQ] = abs((np.sum(meanLdaNoise)) / (np.sum(meanLdaNoise) + minValue[trial, T_FREQ]))*100
-            minfile.write(f"Noise: {round(minPerc[trial, T_FREQ], 2)}%\n")
-        if trial == 2:
-            minPerc[trial, T_FREQ] = float(abs(np.array(meanNoise) / (np.array(meanNoise) + minValue[trial, T_FREQ])))*100
-            minfile.write(f"Noise: {np.round(minPerc[trial, T_FREQ], 2)}%\n")
+        minfile.write(f"Noise: {np.round(minPerc[trial, T_FREQ], 2)}%\n")
 
         minfile.write(f"\nMax Pair: {maxPair}\n")
         maxfile.write(f"Max Error: {round(maxEst[trial, T_FREQ], 2)}\n")
         maxfile.write(f"Optimal Lambda: {round(maxLdaOpt[trial, T_FREQ], 2)}\n")
         maxfile.write(f"Ground Truth: {round(maxValue[trial, T_FREQ], 2)}\n")
-
-        # compute % of noise vs ground truth (max pair)
-        if trial == 0:
-            maxPerc[trial, T_FREQ] = float(abs(np.array(sum(startNoise)) / (np.array(sum(startNoise)) + maxValue[trial, T_FREQ])))*100
-            maxfile.write(f"Noise: {np.round(maxPerc[trial, T_FREQ], 2)}%\n")
-        if trial == 1:
-            maxPerc[trial, T_FREQ] = abs((np.sum(meanLdaNoise)) / (np.sum(meanLdaNoise) + maxValue[trial, T_FREQ]))*100
-            maxfile.write(f"Noise: {round(maxPerc[trial, T_FREQ], 2)}%\n")
-        if trial == 2:
-            maxPerc[trial, T_FREQ] = float(abs(np.array(meanNoise) / (np.array(meanNoise) + maxValue[trial, T_FREQ])))*100
-            maxfile.write(f"Noise: {np.round(maxPerc[trial, T_FREQ], 2)}%\n")
+        maxfile.write(f"Noise: {np.round(maxPerc[trial, T_FREQ], 2)}%\n")
 
         T_FREQ = T_FREQ + 1
 
 # plot error of PRIEST-KLD for each T (mean)
-plt.errorbar(Tset, meanEst[0], yerr = np.minimum(np.sqrt(meanEst[0]), np.divide(meanEst[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(Tset, meanEst[1], yerr = np.minimum(np.sqrt(meanEst[1]), np.divide(meanEst[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(Tset, meanEst[2], yerr = np.minimum(np.sqrt(meanEst[2]), np.divide(meanEst[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.errorbar(Tset, meanEst[3], yerr = np.minimum(np.sqrt(meanEst[3]), np.divide(meanEst[3], 2)), color = 'red', marker = '*', label = "NoAlgo")
+plt.errorbar(Tset, meanEst[0], yerr = meanEstRange[0], color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(Tset, meanEst[1], yerr = meanEstRange[1], color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(Tset, meanEst[2], yerr = meanEstRange[2], color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(Tset, meanEst[3], yerr = meanEstRange[3], color = 'red', marker = '*', label = "NoAlgo")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of T")
@@ -623,10 +754,10 @@ plt.savefig("Femnist_T_est_mean.png")
 plt.clf()
 
 # plot error of PRIEST-KLD for each T (min pair)
-plt.errorbar(Tset, minEst[0], yerr = np.minimum(np.sqrt(minEst[0]), np.divide(minEst[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(Tset, minEst[1], yerr = np.minimum(np.sqrt(minEst[1]), np.divide(minEst[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(Tset, minEst[2], yerr = np.minimum(np.sqrt(minEst[2]), np.divide(minEst[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.errorbar(Tset, minEst[3], yerr = np.minimum(np.sqrt(minEst[3]), np.divide(minEst[3], 2)), color = 'red', marker = '*', label = "NoAlgo")
+plt.errorbar(Tset, minEst[0], yerr = minEstRange[0], color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(Tset, minEst[1], yerr = minEstRange[1], color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(Tset, minEst[2], yerr = minEstRange[2], color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(Tset, minEst[3], yerr = minEstRange[3], color = 'red', marker = '*', label = "NoAlgo")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of T")
@@ -635,10 +766,10 @@ plt.savefig("Femnist_T_est_min.png")
 plt.clf()
 
 # plot error of PRIEST-KLD for each T (max pair)
-plt.errorbar(Tset, maxEst[0], yerr = np.minimum(np.sqrt(maxEst[0]), np.divide(maxEst[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(Tset, maxEst[1], yerr = np.minimum(np.sqrt(maxEst[1]), np.divide(maxEst[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(Tset, maxEst[2], yerr = np.minimum(np.sqrt(maxEst[2]), np.divide(maxEst[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.errorbar(Tset, maxEst[3], yerr = np.minimum(np.sqrt(maxEst[3]), np.divide(maxEst[3], 2)), color = 'red', marker = '*', label = "NoAlgo")
+plt.errorbar(Tset, maxEst[0], yerr = maxEstRange[0], color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(Tset, maxEst[1], yerr = maxEstRange[1], color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(Tset, maxEst[2], yerr = maxEstRange[2], color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(Tset, maxEst[3], yerr = maxEstRange[3], color = 'red', marker = '*', label = "NoAlgo")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of T")
@@ -647,10 +778,10 @@ plt.savefig("Femnist_T_est_max.png")
 plt.clf()
 
 # plot optimum lambda for each T (mean)
-plt.plot(Tset, meanLdaOpt[0], color = 'blue', marker = 'o', label = "Dist")
-plt.plot(Tset, meanLdaOpt[1], color = 'green', marker = 'o', label = "TAgg")
-plt.plot(Tset, meanLdaOpt[2], color = 'orange', marker = 'o', label = "Trusted")
-plt.plot(Tset, meanLdaOpt[3], color = 'red', marker = '*', label = "NoAlgo")
+plt.errorbar(Tset, meanLdaOpt[0], yerr = meanLdaOptRange[0], color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(Tset, meanLdaOpt[1], yerr = meanLdaOptRange[1], color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(Tset, meanLdaOpt[2], yerr = meanLdaOptRange[2], color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(Tset, meanLdaOpt[3], yerr = meanLdaOptRange[3], color = 'red', marker = '*', label = "NoAlgo")
 plt.legend(loc = 'best')
 plt.xlabel("Value of T")
 plt.ylabel("Lambda to minimise error of PRIEST-KLD")
@@ -658,10 +789,10 @@ plt.savefig("Femnist_T_lda_opt_mean.png")
 plt.clf()
 
 # plot optimum lambda for each T (min pair)
-plt.plot(Tset, minLdaOpt[0], color = 'blue', marker = 'o', label = "Dist")
-plt.plot(Tset, minLdaOpt[1], color = 'green', marker = 'o', label = "TAgg")
-plt.plot(Tset, minLdaOpt[2], color = 'orange', marker = 'o', label = "Trusted")
-plt.plot(Tset, minLdaOpt[3], color = 'red', marker = '*', label = "NoAlgo")
+plt.errorbar(Tset, minLdaOpt[0], yerr = minLdaOptRange[0], color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(Tset, minLdaOpt[1], yerr = minLdaOptRange[1], color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(Tset, minLdaOpt[2], yerr = minLdaOptRange[2], color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(Tset, minLdaOpt[3], yerr = minLdaOptRange[3], color = 'red', marker = '*', label = "NoAlgo")
 plt.legend(loc = 'best')
 plt.xlabel("Value of T")
 plt.ylabel("Lambda to minimise error of PRIEST-KLD")
@@ -669,10 +800,10 @@ plt.savefig("Femnist_T_lda_opt_min.png")
 plt.clf()
 
 # plot optimum lambda for each T (max pair)
-plt.plot(Tset, maxLdaOpt[0], color = 'blue', marker = 'o', label = "Dist")
-plt.plot(Tset, maxLdaOpt[1], color = 'green', marker = 'o', label = "TAgg")
-plt.plot(Tset, maxLdaOpt[2], color = 'orange', marker = 'o', label = "Trusted")
-plt.plot(Tset, maxLdaOpt[3], color = 'red', marker = '*', label = "NoAlgo")
+plt.errorbar(Tset, maxLdaOpt[0], yerr = maxLdaOptRange[0], color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(Tset, maxLdaOpt[1], yerr = maxLdaOptRange[1], color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(Tset, maxLdaOpt[2], yerr = maxLdaOptRange[2], color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(Tset, maxLdaOpt[3], yerr = maxLdaOptRange[3], color = 'red', marker = '*', label = "NoAlgo")
 plt.legend(loc = 'best')
 plt.xlabel("Value of T")
 plt.ylabel("Lambda to minimise error of PRIEST-KLD")
@@ -680,10 +811,10 @@ plt.savefig("Femnist_T_lda_opt_max.png")
 plt.clf()
 
 # plot error of PRIEST-KLD when lambda = 0 for each T (mean)
-plt.errorbar(Tset, meanEstZero[0], yerr = np.minimum(np.sqrt(meanEstZero[0]), np.divide(meanEstZero[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(Tset, meanEstZero[1], yerr = np.minimum(np.sqrt(meanEstZero[1]), np.divide(meanEstZero[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(Tset, meanEstZero[2], yerr = np.minimum(np.sqrt(meanEstZero[2]), np.divide(meanEstZero[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.errorbar(Tset, meanEstZero[3], yerr = np.minimum(np.sqrt(meanEstZero[3]), np.divide(meanEstZero[3], 2)),  color = 'red', marker = '*', label = "NoAlgo")
+plt.errorbar(Tset, meanEstZero[0], yerr = meanEstZeroRange[0], color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(Tset, meanEstZero[1], yerr = meanEstZeroRange[1], color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(Tset, meanEstZero[2], yerr = meanEstZeroRange[2], color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(Tset, meanEstZero[3], yerr = meanEstZeroRange[3], color = 'red', marker = '*', label = "NoAlgo")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of T")
@@ -692,10 +823,10 @@ plt.savefig("Femnist_T_est_mean_lda_zero.png")
 plt.clf()
 
 # plot error oF PRIEST-KLD when lambda = 0 for each T (min pair)
-plt.errorbar(Tset, minEstZero[0], yerr = np.minimum(np.sqrt(minEstZero[0]), np.divide(minEstZero[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(Tset, minEstZero[1], yerr = np.minimum(np.sqrt(minEstZero[1]), np.divide(minEstZero[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(Tset, minEstZero[2], yerr = np.minimum(np.sqrt(minEstZero[2]), np.divide(minEstZero[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.errorbar(Tset, minEstZero[3], yerr = np.minimum(np.sqrt(minEstZero[3]), np.divide(minEstZero[3], 2)), color = 'red', marker = '*', label = "NoAlgo")
+plt.errorbar(Tset, minEstZero[0], yerr = minEstZeroRange[0], color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(Tset, minEstZero[1], yerr = minEstZeroRange[1], color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(Tset, minEstZero[2], yerr = minEstZeroRange[2], color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(Tset, minEstZero[3], yerr = minEstZeroRange[3], color = 'red', marker = '*', label = "NoAlgo")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of T")
@@ -704,10 +835,10 @@ plt.savefig("Femnist_T_est_min_lda_zero.png")
 plt.clf()
 
 # plot error oF PRIEST-KLD when lambda = 0 for each T (max pair)
-plt.errorbar(Tset, maxEstZero[0], yerr = np.minimum(np.sqrt(maxEstZero[0]), np.divide(maxEstZero[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(Tset, maxEstZero[1], yerr = np.minimum(np.sqrt(maxEstZero[1]), np.divide(maxEstZero[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(Tset, maxEstZero[2], yerr = np.minimum(np.sqrt(maxEstZero[2]), np.divide(maxEstZero[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.errorbar(Tset, maxEstZero[3], yerr = np.minimum(np.sqrt(maxEstZero[3]), np.divide(maxEstZero[3], 2)), color = 'red', marker = '*', label = "NoAlgo")
+plt.errorbar(Tset, maxEstZero[0], yerr = maxEstZeroRange[0], color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(Tset, maxEstZero[1], yerr = maxEstZeroRange[1], color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(Tset, maxEstZero[2], yerr = maxEstZeroRange[2], color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(Tset, maxEstZero[3], yerr = maxEstZeroRange[3], color = 'red', marker = '*', label = "NoAlgo")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of T")
@@ -716,10 +847,10 @@ plt.savefig("Femnist_T_est_max_lda_zero.png")
 plt.clf()
 
 # plot error of PRIEST-KLD when lambda = 1 for each T (mean)
-plt.errorbar(Tset, meanEstOne[0], yerr = np.minimum(np.sqrt(meanEstOne[0]), np.divide(meanEstOne[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(Tset, meanEstOne[1], yerr = np.minimum(np.sqrt(meanEstOne[1]), np.divide(meanEstOne[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(Tset, meanEstOne[2], yerr = np.minimum(np.sqrt(meanEstOne[2]), np.divide(meanEstOne[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.errorbar(Tset, meanEstOne[3], yerr = np.minimum(np.sqrt(meanEstOne[3]), np.divide(meanEstOne[3], 2)),  color = 'red', marker = '*', label = "NoAlgo")
+plt.errorbar(Tset, meanEstOne[0], yerr = meanEstOneRange[0], color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(Tset, meanEstOne[1], yerr = meanEstOneRange[1], color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(Tset, meanEstOne[2], yerr = meanEstOneRange[2], color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(Tset, meanEstOne[3], yerr = meanEstOneRange[3],  color = 'red', marker = '*', label = "NoAlgo")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of T")
@@ -728,10 +859,10 @@ plt.savefig("Femnist_T_est_mean_lda_one.png")
 plt.clf()
 
 # plot error oF PRIEST-KLD when lambda = 1 for each T (min pair)
-plt.errorbar(Tset, minEstOne[0], yerr = np.minimum(np.sqrt(minEstOne[0]), np.divide(minEstOne[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(Tset, minEstOne[1], yerr = np.minimum(np.sqrt(minEstOne[1]), np.divide(minEstOne[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(Tset, minEstOne[2], yerr = np.minimum(np.sqrt(minEstOne[2]), np.divide(minEstOne[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.errorbar(Tset, minEstOne[3], yerr = np.minimum(np.sqrt(minEstOne[3]), np.divide(minEstOne[3], 2)), color = 'red', marker = '*', label = "NoAlgo")
+plt.errorbar(Tset, minEstOne[0], yerr = minEstOneRange[0], color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(Tset, minEstOne[1], yerr = minEstOneRange[1], color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(Tset, minEstOne[2], yerr = minEstOneRange[2], color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(Tset, minEstOne[3], yerr = minEstOneRange[3], color = 'red', marker = '*', label = "NoAlgo")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of T")
@@ -740,10 +871,10 @@ plt.savefig("Femnist_T_est_min_lda_one.png")
 plt.clf()
 
 # plot error oF PRIEST-KLD when lambda = 1 for each T (max pair)
-plt.errorbar(Tset, maxEstOne[0], yerr = np.minimum(np.sqrt(maxEstOne[0]), np.divide(maxEstOne[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(Tset, maxEstOne[1], yerr = np.minimum(np.sqrt(maxEstOne[1]), np.divide(maxEstOne[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(Tset, maxEstOne[2], yerr = np.minimum(np.sqrt(maxEstOne[2]), np.divide(maxEstOne[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.errorbar(Tset, maxEstOne[3], yerr = np.minimum(np.sqrt(maxEstOne[3]), np.divide(maxEstOne[3], 2)), color = 'red', marker = '*', label = "NoAlgo")
+plt.errorbar(Tset, maxEstOne[0], yerr = maxEstOneRange[0], color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(Tset, maxEstOne[1], yerr = maxEstOneRange[1], color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(Tset, maxEstOne[2], yerr = maxEstOneRange[2], color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(Tset, maxEstOne[3], yerr = maxEstOneRange[3], color = 'red', marker = '*', label = "NoAlgo")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of T")
@@ -752,10 +883,10 @@ plt.savefig("Femnist_T_est_max_lda_one.png")
 plt.clf()
 
 # plot error of PRIEST-KLD when T = 36 (mean)
-plt.errorbar(ldaset, meanTSmall[0], yerr = np.minimum(np.sqrt(meanTSmall[0]), np.divide(meanTSmall[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(ldaset, meanTSmall[1], yerr = np.minimum(np.sqrt(meanTSmall[1]), np.divide(meanTSmall[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(ldaset, meanTSmall[2], yerr = np.minimum(np.sqrt(meanTSmall[2]), np.divide(meanTSmall[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.errorbar(ldaset, meanTSmall[3], yerr = np.minimum(np.sqrt(meanTSmall[3]), np.divide(meanTSmall[3], 2)), color = 'red', marker = '*', label = "NoAlgo")
+plt.errorbar(ldaset, meanTSmall[0], yerr = meanTSmallRange[0], color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(ldaset, meanTSmall[1], yerr = meanTSmallRange[1], color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(ldaset, meanTSmall[2], yerr = meanTSmallRange[2], color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(ldaset, meanTSmall[3], yerr = meanTSmallRange[3], color = 'red', marker = '*', label = "NoAlgo")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
@@ -764,10 +895,10 @@ plt.savefig("Femnist_T_est_mean_T_small.png")
 plt.clf()
 
 # plot error of PRIEST-KLD when T = 36 (min pair)
-plt.errorbar(ldaset, minTSmall[0], yerr = np.minimum(np.sqrt(minTSmall[0]), np.divide(minTSmall[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(ldaset, minTSmall[1], yerr = np.minimum(np.sqrt(minTSmall[1]), np.divide(minTSmall[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(ldaset, minTSmall[2], yerr = np.minimum(np.sqrt(minTSmall[2]), np.divide(minTSmall[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.errorbar(ldaset, minTSmall[3], yerr = np.minimum(np.sqrt(minTSmall[3]), np.divide(minTSmall[3], 2)), color = 'red', marker = '*', label = "NoAlgo")
+plt.errorbar(ldaset, minTSmall[0], yerr = minTSmallRange[0], color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(ldaset, minTSmall[1], yerr = minTSmallRange[1], color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(ldaset, minTSmall[2], yerr = minTSmallRange[2], color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(ldaset, minTSmall[3], yerr = minTSmallRange[3], color = 'red', marker = '*', label = "NoAlgo")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
@@ -776,10 +907,10 @@ plt.savefig("Femnist_T_est_min_T_small.png")
 plt.clf()
 
 # plot error of PRIEST-KLD when T = 36 (max pair)
-plt.errorbar(ldaset, maxTSmall[0], yerr = np.minimum(np.sqrt(maxTSmall[0]), np.divide(maxTSmall[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(ldaset, maxTSmall[1], yerr = np.minimum(np.sqrt(maxTSmall[1]), np.divide(maxTSmall[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(ldaset, maxTSmall[2], yerr = np.minimum(np.sqrt(maxTSmall[2]), np.divide(maxTSmall[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.errorbar(ldaset, maxTSmall[3], yerr = np.minimum(np.sqrt(maxTSmall[3]), np.divide(maxTSmall[3], 2)), color = 'red', marker = '*', label = "NoAlgo")
+plt.errorbar(ldaset, maxTSmall[0], yerr = maxTSmallRange[0], color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(ldaset, maxTSmall[1], yerr = maxTSmallRange[1], color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(ldaset, maxTSmall[2], yerr = maxTSmallRange[2], color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(ldaset, maxTSmall[3], yerr = maxTSmallRange[3], color = 'red', marker = '*', label = "NoAlgo")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
@@ -788,10 +919,10 @@ plt.savefig("Femnist_T_est_max_T_small.png")
 plt.clf()
 
 # plot error of PRIEST-KLD when T = 180 (mean)
-plt.errorbar(ldaset, meanTDef[0], yerr = np.minimum(np.sqrt(meanTDef[0]), np.divide(meanTDef[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(ldaset, meanTDef[1], yerr = np.minimum(np.sqrt(meanTDef[1]), np.divide(meanTDef[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(ldaset, meanTDef[2], yerr = np.minimum(np.sqrt(meanTDef[2]), np.divide(meanTDef[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.errorbar(ldaset, meanTDef[3], yerr = np.minimum(np.sqrt(meanTDef[3]), np.divide(meanTDef[3], 2)), color = 'red', marker = '*', label = "NoAlgo")
+plt.errorbar(ldaset, meanTDef[0], yerr = meanTDefRange[0], color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(ldaset, meanTDef[1], yerr = meanTDefRange[1], color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(ldaset, meanTDef[2], yerr = meanTDefRange[2], color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(ldaset, meanTDef[3], yerr = meanTDefRange[3], color = 'red', marker = '*', label = "NoAlgo")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
@@ -800,10 +931,10 @@ plt.savefig("Femnist_T_est_mean_T_def.png")
 plt.clf()
 
 # plot error of PRIEST-KLD when T = 180 (min pair)
-plt.errorbar(ldaset, minTDef[0], yerr = np.minimum(np.sqrt(minTDef[0]), np.divide(minTDef[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(ldaset, minTDef[1], yerr = np.minimum(np.sqrt(minTDef[1]), np.divide(minTDef[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(ldaset, minTDef[2], yerr = np.minimum(np.sqrt(minTDef[2]), np.divide(minTDef[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.errorbar(ldaset, minTDef[3], yerr = np.minimum(np.sqrt(minTDef[3]), np.divide(minTDef[3], 2)), color = 'red', marker = '*', label = "NoAlgo")
+plt.errorbar(ldaset, minTDef[0], yerr = minTDefRange[0], color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(ldaset, minTDef[1], yerr = minTDefRange[1], color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(ldaset, minTDef[2], yerr = minTDefRange[2], color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(ldaset, minTDef[3], yerr = minTDefRange[3], color = 'red', marker = '*', label = "NoAlgo")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
@@ -812,10 +943,10 @@ plt.savefig("Femnist_T_est_min_T_def.png")
 plt.clf()
 
 # plot error of PRIEST-KLD when T = 180 (max pair)
-plt.errorbar(ldaset, maxTDef[0], yerr = np.minimum(np.sqrt(maxTDef[0]), np.divide(maxTDef[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(ldaset, maxTDef[1], yerr = np.minimum(np.sqrt(maxTDef[1]), np.divide(maxTDef[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(ldaset, maxTDef[2], yerr = np.minimum(np.sqrt(maxTDef[2]), np.divide(maxTDef[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.errorbar(ldaset, maxTDef[3], yerr = np.minimum(np.sqrt(maxTDef[3]), np.divide(maxTDef[3], 2)), color = 'red', marker = '*', label = "NoAlgo")
+plt.errorbar(ldaset, maxTDef[0], yerr = maxTDefRange[0], color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(ldaset, maxTDef[1], yerr = maxTDefRange[1], color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(ldaset, maxTDef[2], yerr = maxTDefRange[2], color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(ldaset, maxTDef[3], yerr = maxTDefRange[3], color = 'red', marker = '*', label = "NoAlgo")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
@@ -824,10 +955,10 @@ plt.savefig("Femnist_T_est_max_T_def.png")
 plt.clf()
 
 # plot error of PRIEST-KLD when T = 360 (mean)
-plt.errorbar(ldaset, meanTMid[0], yerr = np.minimum(np.sqrt(meanTMid[0]), np.divide(meanTMid[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(ldaset, meanTMid[1], yerr = np.minimum(np.sqrt(meanTMid[1]), np.divide(meanTMid[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(ldaset, meanTMid[2], yerr = np.minimum(np.sqrt(meanTMid[2]), np.divide(meanTMid[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.errorbar(ldaset, meanTMid[3], yerr = np.minimum(np.sqrt(meanTMid[3]), np.divide(meanTMid[3], 2)), color = 'red', marker = '*', label = "NoAlgo")
+plt.errorbar(ldaset, meanTMid[0], yerr = meanTMidRange[0], color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(ldaset, meanTMid[1], yerr = meanTMidRange[1], color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(ldaset, meanTMid[2], yerr = meanTMidRange[2], color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(ldaset, meanTMid[3], yerr = meanTMidRange[3], color = 'red', marker = '*', label = "NoAlgo")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
@@ -836,10 +967,10 @@ plt.savefig("Femnist_T_est_mean_T_mid.png")
 plt.clf()
 
 # plot error of PRIEST-KLD when T = 360 (min pair)
-plt.errorbar(ldaset, minTMid[0], yerr = np.minimum(np.sqrt(minTMid[0]), np.divide(minTMid[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(ldaset, minTMid[1], yerr = np.minimum(np.sqrt(minTMid[1]), np.divide(minTMid[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(ldaset, minTMid[2], yerr = np.minimum(np.sqrt(minTMid[2]), np.divide(minTMid[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.errorbar(ldaset, minTMid[3], yerr = np.minimum(np.sqrt(minTMid[3]), np.divide(minTMid[3], 2)), color = 'red', marker = '*', label = "NoAlgo")
+plt.errorbar(ldaset, minTMid[0], yerr = minTMidRange[0], color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(ldaset, minTMid[1], yerr = minTMidRange[1], color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(ldaset, minTMid[2], yerr = minTMidRange[2], color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(ldaset, minTMid[3], yerr = minTMidRange[3], color = 'red', marker = '*', label = "NoAlgo")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
@@ -848,10 +979,10 @@ plt.savefig("Femnist_T_est_min_T_mid.png")
 plt.clf()
 
 # plot error of PRIEST-KLD when T = 360 (max pair)
-plt.errorbar(ldaset, maxTMid[0], yerr = np.minimum(np.sqrt(maxTMid[0]), np.divide(maxTMid[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(ldaset, maxTMid[1], yerr = np.minimum(np.sqrt(maxTMid[1]), np.divide(maxTMid[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(ldaset, maxTMid[2], yerr = np.minimum(np.sqrt(maxTMid[2]), np.divide(maxTMid[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.errorbar(ldaset, maxTMid[3], yerr = np.minimum(np.sqrt(maxTMid[3]), np.divide(maxTMid[3], 2)), color = 'red', marker = '*', label = "NoAlgo")
+plt.errorbar(ldaset, maxTMid[0], yerr = maxTMidRange[0], color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(ldaset, maxTMid[1], yerr = maxTMidRange[1], color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(ldaset, maxTMid[2], yerr = maxTMidRange[2], color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(ldaset, maxTMid[3], yerr = maxTMidRange[3], color = 'red', marker = '*', label = "NoAlgo")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
@@ -860,10 +991,10 @@ plt.savefig("Femnist_T_est_max_T_mid.png")
 plt.clf()
 
 # plot error of PRIEST-KLD when T = 600 (mean)
-plt.errorbar(ldaset, meanTLarge[0], yerr = np.minimum(np.sqrt(meanTLarge[0]), np.divide(meanTLarge[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(ldaset, meanTLarge[1], yerr = np.minimum(np.sqrt(meanTLarge[1]), np.divide(meanTLarge[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(ldaset, meanTLarge[2], yerr = np.minimum(np.sqrt(meanTLarge[2]), np.divide(meanTLarge[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.errorbar(ldaset, meanTLarge[3], yerr = np.minimum(np.sqrt(meanTLarge[3]), np.divide(meanTLarge[3], 2)), color = 'red', marker = '*', label = "NoAlgo")
+plt.errorbar(ldaset, meanTLarge[0], yerr = meanTLargeRange[0], color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(ldaset, meanTLarge[1], yerr = meanTLargeRange[1], color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(ldaset, meanTLarge[2], yerr = meanTLargeRange[2], color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(ldaset, meanTLarge[3], yerr = meanTLargeRange[3], color = 'red', marker = '*', label = "NoAlgo")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
@@ -872,10 +1003,10 @@ plt.savefig("Femnist_T_est_mean_T_large.png")
 plt.clf()
 
 # plot error of PRIEST-KLD when T = 600 (min pair)
-plt.errorbar(ldaset, minTLarge[0], yerr = np.minimum(np.sqrt(minTLarge[0]), np.divide(minTLarge[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(ldaset, minTLarge[1], yerr = np.minimum(np.sqrt(minTLarge[1]), np.divide(minTLarge[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(ldaset, minTLarge[2], yerr = np.minimum(np.sqrt(minTLarge[2]), np.divide(minTLarge[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.errorbar(ldaset, minTLarge[3], yerr = np.minimum(np.sqrt(minTLarge[3]), np.divide(minTLarge[3], 2)), color = 'red', marker = '*', label = "NoAlgo")
+plt.errorbar(ldaset, minTLarge[0], yerr = minTLargeRange[0], color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(ldaset, minTLarge[1], yerr = minTLargeRange[1], color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(ldaset, minTLarge[2], yerr = minTLargeRange[2], color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(ldaset, minTLarge[3], yerr = minTLargeRange[3], color = 'red', marker = '*', label = "NoAlgo")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
@@ -884,10 +1015,10 @@ plt.savefig("Femnist_T_est_min_T_large.png")
 plt.clf()
 
 # plot error of PRIEST-KLD when T = 600 (max pair)
-plt.errorbar(ldaset, maxTLarge[0], yerr = np.minimum(np.sqrt(maxTLarge[0]), np.divide(maxTLarge[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(ldaset, maxTLarge[1], yerr = np.minimum(np.sqrt(maxTLarge[1]), np.divide(maxTLarge[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(ldaset, maxTLarge[2], yerr = np.minimum(np.sqrt(maxTLarge[2]), np.divide(maxTLarge[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.errorbar(ldaset, maxTLarge[3], yerr = np.minimum(np.sqrt(maxTLarge[3]), np.divide(maxTLarge[3], 2)), color = 'red', marker = '*', label = "NoAlgo")
+plt.errorbar(ldaset, maxTLarge[0], yerr = maxTLargeRange[0], color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(ldaset, maxTLarge[1], yerr = maxTLargeRange[1], color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(ldaset, maxTLarge[2], yerr = maxTLargeRange[2], color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(ldaset, maxTLarge[3], yerr = maxTLargeRange[3], color = 'red', marker = '*', label = "NoAlgo")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
@@ -896,9 +1027,9 @@ plt.savefig("Femnist_T_est_max_T_large.png")
 plt.clf()
 
 # plot % of noise vs ground truth for each T (mean)
-plt.plot(Tset, meanPerc[0], color = 'blue', marker = 'o', label = "Dist")
-plt.plot(Tset, meanPerc[1], color = 'green', marker = 'o', label = "TAgg")
-plt.plot(Tset, meanPerc[2], color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(Tset, meanPerc[0], yerr = meanPercRange[0], color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(Tset, meanPerc[1], yerr = meanPercRange[1], color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(Tset, meanPerc[2], yerr = meanPercRange[2], color = 'orange', marker = 'o', label = "Trusted")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.yticks([10, 100, 1000])
@@ -910,9 +1041,9 @@ plt.savefig("Femnist_T_perc_mean.png")
 plt.clf()
 
 # plot % of noise vs ground truth for each T (min pair)
-plt.plot(Tset, minPerc[0], color = 'blue', marker = 'o', label = "Dist")
-plt.plot(Tset, minPerc[1], color = 'green', marker = 'o', label = "TAgg")
-plt.plot(Tset, minPerc[2], color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(Tset, minPerc[0], yerr = minPercRange[0], color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(Tset, minPerc[1], yerr = minPercRange[1], color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(Tset, minPerc[2], yerr = minPercRange[2], color = 'orange', marker = 'o', label = "Trusted")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.yticks([30, 100, 1000, 6000])
@@ -924,9 +1055,9 @@ plt.savefig("Femnist_T_perc_min.png")
 plt.clf()
 
 # plot % of noise vs ground truth for each T (max pair)
-plt.plot(Tset, maxPerc[0], color = 'blue', marker = 'o', label = "Dist")
-plt.plot(Tset, maxPerc[1], color = 'green', marker = 'o', label = "TAgg")
-plt.plot(Tset, maxPerc[2], color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(Tset, maxPerc[0], yerr = maxPercRange[0], color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(Tset, maxPerc[1], yerr = maxPercRange[1], color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(Tset, maxPerc[2], yerr = maxPercRange[2], color = 'orange', marker = 'o', label = "Trusted")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.yticks([2, 10, 100, 600])
@@ -937,10 +1068,24 @@ plt.ylabel("Noise (%)")
 plt.savefig("Femnist_T_perc_max.png")
 plt.clf()
 
-# compute total runtime in minutes and seconds
+# compute total runtime
 totalTime = time.perf_counter() - startTime
+hours = totalTime // 3600
+minutes = totalTime % 3600
+seconds = totalTime % 60
 
-if (totalTime // 60) == 1:
-    print(f"\nRuntime: {round(totalTime // 60)} minute {round((totalTime % 60), 2)} seconds.\n")
+if hours == 0:
+    if minutes == 1:
+        print(f"\nRuntime: {round(minutes)} minute {round(seconds, 2)} seconds.\n")
+    else:
+        print(f"\nRuntime: {round(minutes)} minutes {round(seconds, 2)} seconds.\n")
+elif hours == 1:
+    if minutes == 1:
+        print(f"\nRuntime: {round(hours)} hour {round(minutes)} minute {round(seconds, 2)} seconds.\n")
+    else:
+        print(f"\nRuntime: {round(hours)} hour {round(minutes)} minutes {round(seconds, 2)} seconds.\n")
 else:
-    print(f"\nRuntime: {round(totalTime // 60)} minutes {round((totalTime % 60), 2)} seconds.\n")
+    if minutes == 1:
+        print(f"\nRuntime: {round(hours)} hour {round(minutes)} minute {round(seconds, 2)} seconds.\n")
+    else:
+        print(f"\nRuntime: {round(hours)} hour {round(minutes)} minutes {round(seconds, 2)} seconds.\n")
