@@ -124,46 +124,46 @@ for trial in range(4):
     for T in Tset:
         print(f"\nTrial {trial + 1}: {trialset[trial]}")
 
+        # temporary stores for each repeat
+        tempMeanValue = np.zeros(RS)
+        tempMeanEst = np.zeros(RS)
+        tempMeanLdaOpt = np.zeros(RS)
+        tempMeanEstZero = np.zeros(RS)
+        tempMeanEstOne = np.zeros(RS)
+        tempMeanPerc = np.zeros(RS)
+        tempMeanTSmall = np.zeros((LS, RS))
+        tempMeanTDef = np.zeros((LS, RS))
+        tempMeanTMid = np.zeros((LS, RS))
+        tempMeanTLarge = np.zeros((LS, RS))
+            
+        tempMinValue = np.zeros(RS)
+        tempMinEst = np.zeros(RS)
+        tempMinLdaOpt = np.zeros(RS)
+        tempMinEstZero = np.zeros(RS)
+        tempMinEstOne = np.zeros(RS)
+        tempMinPerc = np.zeros(RS)
+        tempMinTSmall = np.zeros((LS, RS))
+        tempMinTDef = np.zeros((LS, RS))
+        tempMinTMid = np.zeros((LS, RS))
+        tempMinTLarge = np.zeros((LS, RS))
+
+        tempMaxValue = np.zeros(RS)
+        tempMaxEst = np.zeros(RS)
+        tempMaxLdaOpt = np.zeros(RS)
+        tempMaxEstZero = np.zeros(RS)
+        tempMaxEstOne = np.zeros(RS)
+        tempMaxPerc = np.zeros(RS)
+        tempMaxTSmall = np.zeros((LS, RS))
+        tempMaxTDef = np.zeros((LS, RS))
+        tempMaxTMid = np.zeros((LS, RS))
+        tempMaxTLarge = np.zeros((LS, RS))
+
         for rep in range(RS):      
             print(f"\nT = {T}, repeat {rep + 1}...")
 
             # initialising seeds for random sampling
             tf.random.set_seed(SEED_FREQ)
             np.random.seed(SEED_FREQ)
-
-            # temporary stores for each repeat
-            tempMeanValue = np.zeros(RS)
-            tempMeanEst = np.zeros(RS)
-            tempMeanLdaOpt = np.zeros(RS)
-            tempMeanEstZero = np.zeros(RS)
-            tempMeanEstOne = np.zeros(RS)
-            tempMeanPerc = np.zeros(RS)
-            tempMeanTSmall = np.zeros((LS, RS))
-            tempMeanTDef = np.zeros((LS, RS))
-            tempMeanTMid = np.zeros((LS, RS))
-            tempMeanTLarge = np.zeros((LS, RS))
-            
-            tempMinValue = np.zeros(RS)
-            tempMinEst = np.zeros(RS)
-            tempMinLdaOpt = np.zeros(RS)
-            tempMinEstZero = np.zeros(RS)
-            tempMinEstOne = np.zeros(RS)
-            tempMinPerc = np.zeros(RS)
-            tempMinTSmall = np.zeros((LS, RS))
-            tempMinTDef = np.zeros((LS, RS))
-            tempMinTMid = np.zeros((LS, RS))
-            tempMinTLarge = np.zeros((LS, RS))
-
-            tempMaxValue = np.zeros(RS)
-            tempMaxEst = np.zeros(RS)
-            tempMaxLdaOpt = np.zeros(RS)
-            tempMaxEstZero = np.zeros(RS)
-            tempMaxEstOne = np.zeros(RS)
-            tempMaxPerc = np.zeros(RS)
-            tempMaxTSmall = np.zeros((LS, RS))
-            tempMaxTDef = np.zeros((LS, RS))
-            tempMaxTMid = np.zeros((LS, RS))
-            tempMaxTLarge = np.zeros((LS, RS))
 
             # store T images corresponding to each digit
             sampledWriters = np.random.choice(numWriters, T, replace = False)
