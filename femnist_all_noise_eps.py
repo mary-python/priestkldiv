@@ -113,6 +113,10 @@ R1 = 90
 ldaStep = 0.05
 RS = 10
 SEED_FREQ = 0
+SMALL_INDEX = 0
+DEF_INDEX = 3
+MID_INDEX = 6
+LARGE_INDEX = 10
 
 for trial in range(4):
     meanfile = open(f"femnist_eps_{trialset[trial]}_mean.txt", "w", encoding = 'utf-8')
@@ -455,25 +459,25 @@ for trial in range(4):
                     maxLda[l] = maxLda[l] + maxLdaNoise[l]
             
                 # mean / min / max across lambdas for eps = 0.05 (small)
-                if EPS_FREQ == 0:
+                if EPS_FREQ == SMALL_INDEX:
                     tempMeanEpsSmall[l, rep] = meanLda[l]
                     tempMinEpsSmall[l, rep] = minLda[l]
                     tempMaxEpsSmall[l, rep] = maxLda[l]
 
                 # eps = 0.5 (default)
-                if EPS_FREQ == 3:
+                if EPS_FREQ == DEF_INDEX:
                     tempMeanEpsDef[l, rep] = meanLda[l]
                     tempMinEpsDef[l, rep] = minLda[l]
                     tempMaxEpsDef[l, rep] = maxLda[l]
 
                 # eps = 1.5 (mid)
-                if EPS_FREQ == 6:
+                if EPS_FREQ == MID_INDEX:
                     tempMeanEpsMid[l, rep] = meanLda[l]
                     tempMinEpsMid[l, rep] = minLda[l]
                     tempMaxEpsMid[l, rep] = maxLda[l]
 
                 # eps = 3 (large)
-                if EPS_FREQ == 10:
+                if EPS_FREQ == LARGE_INDEX:
                     tempMeanEpsLarge[l, rep] = meanLda[l]
                     tempMinEpsLarge[l, rep] = minLda[l]
                     tempMaxEpsLarge[l, rep] = maxLda[l]
@@ -538,7 +542,7 @@ for trial in range(4):
                 for l in range(LS):
         
                     # eps = 0.05 (small)
-                    if EPS_FREQ == 0:
+                    if EPS_FREQ == SMALL_INDEX:
                         meanSmallNoise = lapNoise.sample(sample_shape = (1,))
                         minSmallNoise = lapNoise.sample(sample_shape = (1,))
                         maxSmallNoise = lapNoise.sample(sample_shape = (1,))
@@ -547,7 +551,7 @@ for trial in range(4):
                         tempMaxEpsSmall[l, rep] = (tempMaxEpsSmall[l, rep] + maxSmallNoise - tempMaxValue[rep])**2
 
                     # eps = 0.5 (def)
-                    if EPS_FREQ == 3:
+                    if EPS_FREQ == DEF_INDEX:
                         meanDefNoise = lapNoise.sample(sample_shape = (1,))
                         minDefNoise = lapNoise.sample(sample_shape = (1,))
                         maxDefNoise = lapNoise.sample(sample_shape = (1,))
@@ -556,7 +560,7 @@ for trial in range(4):
                         tempMaxEpsDef[l, rep] = (tempMaxEpsDef[l, rep] + maxDefNoise - tempMaxValue[rep])**2
 
                     # eps = 1.5 (mid)
-                    if EPS_FREQ == 6:
+                    if EPS_FREQ == MID_INDEX:
                         meanMidNoise = lapNoise.sample(sample_shape = (1,))
                         minMidNoise = lapNoise.sample(sample_shape = (1,))
                         maxMidNoise = lapNoise.sample(sample_shape = (1,))
@@ -565,7 +569,7 @@ for trial in range(4):
                         tempMaxEpsMid[l, rep] = (tempMaxEpsMid[l, rep] + maxMidNoise - tempMaxValue[rep])**2
 
                     # eps = 3 (large)
-                    if EPS_FREQ == 10:
+                    if EPS_FREQ == LARGE_INDEX:
                         meanLargeNoise = lapNoise.sample(sample_shape = (1,))
                         minLargeNoise = lapNoise.sample(sample_shape = (1,))
                         maxLargeNoise = lapNoise.sample(sample_shape = (1,))
@@ -592,25 +596,25 @@ for trial in range(4):
                 for l in range(LS):
         
                     # eps = 0.05 (small)
-                    if EPS_FREQ == 0:
+                    if EPS_FREQ == SMALL_INDEX:
                         tempMeanEpsSmall[l, rep] = (tempMeanEpsSmall[l, rep] - tempMeanValue[rep])**2
                         tempMinEpsSmall[l, rep] = (tempMinEpsSmall[l, rep] - tempMinValue[rep])**2
                         tempMaxEpsSmall[l, rep] = (tempMaxEpsSmall[l, rep] - tempMaxValue[rep])**2
 
                     # eps = 0.5 (def)
-                    if EPS_FREQ == 3:
+                    if EPS_FREQ == DEF_INDEX:
                         tempMeanEpsDef[l, rep] = (tempMeanEpsDef[l, rep] - tempMeanValue[rep])**2
                         tempMinEpsDef[l, rep] = (tempMinEpsDef[l, rep] - tempMinValue[rep])**2
                         tempMaxEpsDef[l, rep] = (tempMaxEpsDef[l, rep] - tempMaxValue[rep])**2
 
                     # eps = 1.5 (mid)
-                    if EPS_FREQ == 6:
+                    if EPS_FREQ == MID_INDEX:
                         tempMeanEpsMid[l, rep] = (tempMeanEpsMid[l, rep] - tempMeanValue[rep])**2
                         tempMinEpsMid[l, rep] = (tempMinEpsMid[l, rep] - tempMinValue[rep])**2
                         tempMaxEpsMid[l, rep] = (tempMaxEpsMid[l, rep] - tempMaxValue[rep])**2
 
                     # eps = 3 (large)
-                    if EPS_FREQ == 10:
+                    if EPS_FREQ == LARGE_INDEX:
                         tempMeanEpsLarge[l, rep] = (tempMeanEpsLarge[l, rep] - tempMeanValue[rep])**2
                         tempMinEpsLarge[l, rep] = (tempMinEpsLarge[l, rep] - tempMinValue[rep])**2
                         tempMaxEpsLarge[l, rep] = (tempMaxEpsLarge[l, rep] - tempMaxValue[rep])**2
@@ -648,10 +652,14 @@ for trial in range(4):
         meanPerc[trial, EPS_FREQ] = np.mean(tempMeanPerc)
 
         for l in range(LS):
-            meanEpsSmall[trial, l] = np.mean(tempMeanEpsSmall[l])
-            meanEpsDef[trial, l] = np.mean(tempMeanEpsDef[l])
-            meanEpsMid[trial, l] = np.mean(tempMeanEpsMid[l])
-            meanEpsLarge[trial, l] = np.mean(tempMeanEpsLarge[l])
+            if EPS_FREQ == SMALL_INDEX:
+                meanEpsSmall[trial, l] = np.mean(tempMeanEpsSmall[l])
+            if EPS_FREQ == DEF_INDEX:
+                meanEpsDef[trial, l] = np.mean(tempMeanEpsDef[l])
+            if EPS_FREQ == MID_INDEX:
+                meanEpsMid[trial, l] = np.mean(tempMeanEpsMid[l])
+            if EPS_FREQ == LARGE_INDEX:
+                meanEpsLarge[trial, l] = np.mean(tempMeanEpsLarge[l])
 
         minValue[trial, EPS_FREQ] = np.mean(tempMinValue)
         minEst[trial, EPS_FREQ] = np.mean(tempMinEst)
@@ -661,10 +669,14 @@ for trial in range(4):
         minPerc[trial, EPS_FREQ] = np.mean(tempMinPerc)
 
         for l in range(LS):
-            minEpsSmall[trial, l] = np.mean(tempMinEpsSmall[l])
-            minEpsDef[trial, l] = np.mean(tempMinEpsDef[l])
-            minEpsMid[trial, l] = np.mean(tempMinEpsMid[l])
-            minEpsLarge[trial, l] = np.mean(tempMinEpsLarge[l])
+            if EPS_FREQ == SMALL_INDEX:
+                minEpsSmall[trial, l] = np.mean(tempMinEpsSmall[l])
+            if EPS_FREQ == DEF_INDEX:
+                minEpsDef[trial, l] = np.mean(tempMinEpsDef[l])
+            if EPS_FREQ == MID_INDEX:
+                minEpsMid[trial, l] = np.mean(tempMinEpsMid[l])
+            if EPS_FREQ == LARGE_INDEX:
+                minEpsLarge[trial, l] = np.mean(tempMinEpsLarge[l])
 
         maxValue[trial, EPS_FREQ] = np.mean(tempMaxValue)
         maxEst[trial, EPS_FREQ] = np.mean(tempMaxEst)
@@ -674,10 +686,14 @@ for trial in range(4):
         maxPerc[trial, EPS_FREQ] = np.mean(tempMaxPerc)
 
         for l in range(LS):
-            maxEpsSmall[trial, l] = np.mean(tempMaxEpsSmall[l])
-            maxEpsDef[trial, l] = np.mean(tempMaxEpsDef[l])
-            maxEpsMid[trial, l] = np.mean(tempMaxEpsMid[l])
-            maxEpsLarge[trial, l] = np.mean(tempMaxEpsLarge[l])
+            if EPS_FREQ == SMALL_INDEX:
+                maxEpsSmall[trial, l] = np.mean(tempMaxEpsSmall[l])
+            if EPS_FREQ == DEF_INDEX:
+                maxEpsDef[trial, l] = np.mean(tempMaxEpsDef[l])
+            if EPS_FREQ == MID_INDEX:
+                maxEpsMid[trial, l] = np.mean(tempMaxEpsMid[l])
+            if EPS_FREQ == LARGE_INDEX:
+                maxEpsLarge[trial, l] = np.mean(tempMaxEpsLarge[l])
 
         # compute standard deviation of repeats
         meanEstRange[trial, EPS_FREQ] = np.std(tempMeanEst)
@@ -687,10 +703,14 @@ for trial in range(4):
         meanPercRange[trial, EPS_FREQ] = np.std(tempMeanPerc)
 
         for l in range(LS):
-            meanEpsSmallRange[trial, l] = np.std(tempMeanEpsSmall[l])
-            meanEpsDefRange[trial, l] = np.std(tempMeanEpsDef[l])
-            meanEpsMidRange[trial, l] = np.std(tempMeanEpsMid[l])
-            meanEpsLargeRange[trial, l] = np.std(tempMeanEpsLarge[l])
+            if EPS_FREQ == SMALL_INDEX:
+                meanEpsSmallRange[trial, l] = np.std(tempMeanEpsSmall[l])
+            if EPS_FREQ == DEF_INDEX:
+                meanEpsDefRange[trial, l] = np.std(tempMeanEpsDef[l])
+            if EPS_FREQ == MID_INDEX:
+                meanEpsMidRange[trial, l] = np.std(tempMeanEpsMid[l])
+            if EPS_FREQ == LARGE_INDEX:
+                meanEpsLargeRange[trial, l] = np.std(tempMeanEpsLarge[l])
 
         minEstRange[trial, EPS_FREQ] = np.std(tempMinEst)
         minLdaOptRange[trial, EPS_FREQ] = np.std(tempMinLdaOpt)
@@ -699,10 +719,14 @@ for trial in range(4):
         minPercRange[trial, EPS_FREQ] = np.std(tempMinPerc)
 
         for l in range(LS):
-            minEpsSmallRange[trial, l] = np.std(tempMinEpsSmall[l])
-            minEpsDefRange[trial, l] = np.std(tempMinEpsDef[l])
-            minEpsMidRange[trial, l] = np.std(tempMinEpsMid[l])
-            minEpsLargeRange[trial, l] = np.std(tempMinEpsLarge[l])
+            if EPS_FREQ == SMALL_INDEX:
+                minEpsSmallRange[trial, l] = np.std(tempMinEpsSmall[l])
+            if EPS_FREQ == DEF_INDEX:
+                minEpsDefRange[trial, l] = np.std(tempMinEpsDef[l])
+            if EPS_FREQ == MID_INDEX:
+                minEpsMidRange[trial, l] = np.std(tempMinEpsMid[l])
+            if EPS_FREQ == LARGE_INDEX:
+                minEpsLargeRange[trial, l] = np.std(tempMinEpsLarge[l])
 
         maxEstRange[trial, EPS_FREQ] = np.std(tempMaxEst)
         maxLdaOptRange[trial, EPS_FREQ] = np.std(tempMaxLdaOpt)
@@ -711,10 +735,14 @@ for trial in range(4):
         maxPercRange[trial, EPS_FREQ] = np.std(tempMaxPerc)
 
         for l in range(LS):
-            maxEpsSmallRange[trial, l] = np.std(tempMaxEpsSmall[l])
-            maxEpsDefRange[trial, l] = np.std(tempMaxEpsDef[l])
-            maxEpsMidRange[trial, l] = np.std(tempMaxEpsMid[l])
-            maxEpsLargeRange[trial, l] = np.std(tempMaxEpsLarge[l])
+            if EPS_FREQ == SMALL_INDEX:
+                maxEpsSmallRange[trial, l] = np.std(tempMaxEpsSmall[l])
+            if EPS_FREQ == DEF_INDEX:
+                maxEpsDefRange[trial, l] = np.std(tempMaxEpsDef[l])
+            if EPS_FREQ == MID_INDEX:
+                maxEpsMidRange[trial, l] = np.std(tempMaxEpsMid[l])
+            if EPS_FREQ == LARGE_INDEX:
+                maxEpsLargeRange[trial, l] = np.std(tempMaxEpsLarge[l])
 
         # write statistics on data files
         if eps == epsset[0]:
@@ -745,9 +773,9 @@ for trial in range(4):
 
         EPS_FREQ = EPS_FREQ + 1
 
-        print(f"\ntempMeanEst: {tempMeanEst}")
-        print(f"\nmeanEst: {meanEst}")
-        print(f"\nmeanEstRange: {meanEstRange}")
+        print(f"\ntempMeanEpsSmall: {tempMeanEpsSmall}")
+        print(f"\nmeanEpsSmall: {meanEpsSmall}")
+        print(f"\nmeanEpsSmallRange: {meanEpsSmallRange}")
 
 # plot error of PRIEST-KLD for each epsilon (mean)
 plt.errorbar(epsset, meanEst[0], yerr = meanEstRange[0], color = 'blue', marker = 'o', label = "Dist")

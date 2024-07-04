@@ -114,6 +114,10 @@ R1 = 90
 ldaStep = 0.05
 RS = 10
 SEED_FREQ = 0
+SMALL_INDEX = 0
+DEF_INDEX = 4
+MID_INDEX = 7
+LARGE_INDEX = 10
 
 for trial in range(4):
     meanfile = open(f"femnist_T_{trialset[trial]}_mean.txt", "w", encoding = 'utf-8')
@@ -457,25 +461,25 @@ for trial in range(4):
                     maxLda[l] = maxLda[l] + maxLdaNoise[l]
             
                 # mean / min / max across lambdas for T = 36 (~1% of clients, small)
-                if T_FREQ == 0:
+                if T_FREQ == SMALL_INDEX:
                     tempMeanTSmall[l, rep] = meanLda[l]
                     tempMinTSmall[l, rep] = minLda[l]
                     tempMaxTSmall[l, rep] = maxLda[l]
 
                 # T = 180 (~5% of clients, default)
-                if T_FREQ == 4:
+                if T_FREQ == DEF_INDEX:
                     tempMeanTDef[l, rep] = meanLda[l]
                     tempMinTDef[l, rep] = minLda[l]
                     tempMaxTDef[l, rep] = maxLda[l]
 
                 # T = 360 (~10% of clients, mid)
-                if T_FREQ == 7:
+                if T_FREQ == MID_INDEX:
                     tempMeanTMid[l, rep] = meanLda[l]
                     tempMinTMid[l, rep] = minLda[l]
                     tempMaxTMid[l, rep] = maxLda[l]
 
                 # T = 600 (~16.6% of clients, large)
-                if T_FREQ == 10:
+                if T_FREQ == LARGE_INDEX:
                     tempMeanTLarge[l, rep] = meanLda[l]
                     tempMinTLarge[l, rep] = minLda[l]
                     tempMaxTLarge[l, rep] = maxLda[l]
@@ -540,7 +544,7 @@ for trial in range(4):
                 for l in range(LS):
         
                     # T = 36 (small)
-                    if T_FREQ == 0:
+                    if T_FREQ == SMALL_INDEX:
                         meanSmallNoise = lapNoise.sample(sample_shape = (1,))
                         minSmallNoise = lapNoise.sample(sample_shape = (1,))
                         maxSmallNoise = lapNoise.sample(sample_shape = (1,))
@@ -549,7 +553,7 @@ for trial in range(4):
                         tempMaxTSmall[l, rep] = (tempMaxTSmall[l, rep] + maxSmallNoise - tempMaxValue[rep])**2
 
                     # T = 180 (def)
-                    if T_FREQ == 4:
+                    if T_FREQ == DEF_INDEX:
                         meanDefNoise = lapNoise.sample(sample_shape = (1,))
                         minDefNoise = lapNoise.sample(sample_shape = (1,))
                         maxDefNoise = lapNoise.sample(sample_shape = (1,))
@@ -558,7 +562,7 @@ for trial in range(4):
                         tempMaxTDef[l, rep] = (tempMaxTDef[l, rep] + maxDefNoise - tempMaxValue[rep])**2
 
                     # T = 360 (mid)
-                    if T_FREQ == 7:
+                    if T_FREQ == MID_INDEX:
                         meanMidNoise = lapNoise.sample(sample_shape = (1,))
                         minMidNoise = lapNoise.sample(sample_shape = (1,))
                         maxMidNoise = lapNoise.sample(sample_shape = (1,))
@@ -567,7 +571,7 @@ for trial in range(4):
                         tempMaxTMid[l, rep] = (tempMaxTMid[l, rep] + maxMidNoise - tempMaxValue[rep])**2
 
                     # T = 600 (large)
-                    if T_FREQ == 10:
+                    if T_FREQ == LARGE_INDEX:
                         meanLargeNoise = lapNoise.sample(sample_shape = (1,))
                         minLargeNoise = lapNoise.sample(sample_shape = (1,))
                         maxLargeNoise = lapNoise.sample(sample_shape = (1,))
@@ -594,25 +598,25 @@ for trial in range(4):
                 for l in range(LS):
 
                     # T = 36 (small)
-                    if T_FREQ == 0:
+                    if T_FREQ == SMALL_INDEX:
                         tempMeanTSmall[l, rep] = (tempMeanTSmall[l, rep] - tempMeanValue[rep])**2
                         tempMinTSmall[l, rep] = (tempMinTSmall[l, rep] - tempMinValue[rep])**2
                         tempMaxTSmall[l, rep] = (tempMaxTSmall[l, rep] - tempMaxValue[rep])**2
 
                     # T = 180 (def)
-                    if T_FREQ == 4:
+                    if T_FREQ == DEF_INDEX:
                         tempMeanTDef[l, rep] = (tempMeanTDef[l, rep] - tempMeanValue[rep])**2
                         tempMinTDef[l, rep] = (tempMinTDef[l, rep] - tempMinValue[rep])**2
                         tempMaxTDef[l, rep] = (tempMaxTDef[l, rep] - tempMaxValue[rep])**2
 
                     # T = 360 (mid)
-                    if T_FREQ == 7:
+                    if T_FREQ == MID_INDEX:
                         tempMeanTMid[l, rep] = (tempMeanTMid[l, rep] - tempMeanValue[rep])**2
                         tempMinTMid[l, rep] = (tempMinTMid[l, rep] - tempMinValue[rep])**2
                         tempMaxTMid[l, rep] = (tempMaxTMid[l, rep] - tempMaxValue[rep])**2
 
                     # T = 600 (large)
-                    if T_FREQ == 10:
+                    if T_FREQ == LARGE_INDEX:
                         tempMeanTLarge[l, rep] = (tempMeanTLarge[l, rep] - tempMeanValue[rep])**2
                         tempMinTLarge[l, rep] = (tempMinTLarge[l, rep] - tempMinValue[rep])**2
                         tempMaxTLarge[l, rep] = (tempMaxTLarge[l, rep] - tempMaxValue[rep])**2
@@ -650,10 +654,14 @@ for trial in range(4):
         meanPerc[trial, T_FREQ] = np.mean(tempMeanPerc)
 
         for l in range(LS):
-            meanTSmall[trial, l] = np.mean(tempMeanTSmall[l])
-            meanTDef[trial, l] = np.mean(tempMeanTDef[l])
-            meanTMid[trial, l] = np.mean(tempMeanTMid[l])
-            meanTLarge[trial, l] = np.mean(tempMeanTLarge[l])
+            if T_FREQ == SMALL_INDEX:
+                meanTSmall[trial, l] = np.mean(tempMeanTSmall[l])
+            if T_FREQ == DEF_INDEX:
+                meanTDef[trial, l] = np.mean(tempMeanTDef[l])
+            if T_FREQ == MID_INDEX:
+                meanTMid[trial, l] = np.mean(tempMeanTMid[l])
+            if T_FREQ == LARGE_INDEX:
+                meanTLarge[trial, l] = np.mean(tempMeanTLarge[l])
 
         minValue[trial, T_FREQ] = np.mean(tempMinValue)
         minEst[trial, T_FREQ] = np.mean(tempMinEst)
@@ -663,10 +671,14 @@ for trial in range(4):
         minPerc[trial, T_FREQ] = np.mean(tempMinPerc)
 
         for l in range(LS):
-            minTSmall[trial, l] = np.mean(tempMinTSmall[l])
-            minTDef[trial, l] = np.mean(tempMinTDef[l])
-            minTMid[trial, l] = np.mean(tempMinTMid[l])
-            minTLarge[trial, l] = np.mean(tempMinTLarge[l])
+            if T_FREQ == SMALL_INDEX:
+                minTSmall[trial, l] = np.mean(tempMinTSmall[l])
+            if T_FREQ == DEF_INDEX:
+                minTDef[trial, l] = np.mean(tempMinTDef[l])
+            if T_FREQ == MID_INDEX:
+                minTMid[trial, l] = np.mean(tempMinTMid[l])
+            if T_FREQ == LARGE_INDEX:
+                minTLarge[trial, l] = np.mean(tempMinTLarge[l])
 
         maxValue[trial, T_FREQ] = np.mean(tempMaxValue)
         maxEst[trial, T_FREQ] = np.mean(tempMaxEst)
@@ -676,10 +688,14 @@ for trial in range(4):
         maxPerc[trial, T_FREQ] = np.mean(tempMaxPerc)
 
         for l in range(LS):
-            maxTSmall[trial, l] = np.mean(tempMaxTSmall[l])
-            maxTDef[trial, l] = np.mean(tempMaxTDef[l])
-            maxTMid[trial, l] = np.mean(tempMaxTMid[l])
-            maxTLarge[trial, l] = np.mean(tempMaxTLarge[l])
+            if T_FREQ == SMALL_INDEX:
+                maxTSmall[trial, l] = np.mean(tempMaxTSmall[l])
+            if T_FREQ == DEF_INDEX:
+                maxTDef[trial, l] = np.mean(tempMaxTDef[l])
+            if T_FREQ == MID_INDEX:
+                maxTMid[trial, l] = np.mean(tempMaxTMid[l])
+            if T_FREQ == LARGE_INDEX:
+                maxTLarge[trial, l] = np.mean(tempMaxTLarge[l])
 
         # compute standard deviation of repeats
         meanEstRange[trial, T_FREQ] = np.std(tempMeanEst)
@@ -689,10 +705,14 @@ for trial in range(4):
         meanPercRange[trial, T_FREQ] = np.std(tempMeanPerc)
 
         for l in range(LS):
-            meanTSmallRange[trial, l] = np.std(tempMeanTSmall[l])
-            meanTDefRange[trial, l] = np.std(tempMeanTDef[l])
-            meanTMidRange[trial, l] = np.std(tempMeanTMid[l])
-            meanTLargeRange[trial, l] = np.std(tempMeanTLarge[l])
+            if T_FREQ == SMALL_INDEX:
+                meanTSmallRange[trial, l] = np.std(tempMeanTSmall[l])
+            if T_FREQ == DEF_INDEX:
+                meanTDefRange[trial, l] = np.std(tempMeanTDef[l])
+            if T_FREQ == MID_INDEX:
+                meanTMidRange[trial, l] = np.std(tempMeanTMid[l])
+            if T_FREQ == LARGE_INDEX:
+                meanTLargeRange[trial, l] = np.std(tempMeanTLarge[l])
 
         minEstRange[trial, T_FREQ] = np.std(tempMinEst)
         minLdaOptRange[trial, T_FREQ] = np.std(tempMinLdaOpt)
@@ -701,10 +721,14 @@ for trial in range(4):
         minPercRange[trial, T_FREQ] = np.std(tempMinPerc)
 
         for l in range(LS):
-            minTSmallRange[trial, l] = np.std(tempMinTSmall[l])
-            minTDefRange[trial, l] = np.std(tempMinTDef[l])
-            minTMidRange[trial, l] = np.std(tempMinTMid[l])
-            minTLargeRange[trial, l] = np.std(tempMinTLarge[l])
+            if T_FREQ == SMALL_INDEX:
+                minTSmallRange[trial, l] = np.std(tempMinTSmall[l])
+            if T_FREQ == DEF_INDEX:
+                minTDefRange[trial, l] = np.std(tempMinTDef[l])
+            if T_FREQ == MID_INDEX:
+                minTMidRange[trial, l] = np.std(tempMinTMid[l])
+            if T_FREQ == LARGE_INDEX:
+                minTLargeRange[trial, l] = np.std(tempMinTLarge[l])
 
         maxEstRange[trial, T_FREQ] = np.std(tempMaxEst)
         maxLdaOptRange[trial, T_FREQ] = np.std(tempMaxLdaOpt)
@@ -713,10 +737,14 @@ for trial in range(4):
         maxPercRange[trial, T_FREQ] = np.std(tempMaxPerc)
 
         for l in range(LS):
-            maxTSmallRange[trial, l] = np.std(tempMaxTSmall[l])
-            maxTDefRange[trial, l] = np.std(tempMaxTDef[l])
-            maxTMidRange[trial, l] = np.std(tempMaxTMid[l])
-            maxTLargeRange[trial, l] = np.std(tempMaxTLarge[l])
+            if T_FREQ == SMALL_INDEX:
+                maxTSmallRange[trial, l] = np.std(tempMaxTSmall[l])
+            if T_FREQ == DEF_INDEX:
+                maxTDefRange[trial, l] = np.std(tempMaxTDef[l])
+            if T_FREQ == MID_INDEX:
+                maxTMidRange[trial, l] = np.std(tempMaxTMid[l])
+            if T_FREQ == LARGE_INDEX:
+                maxTLargeRange[trial, l] = np.std(tempMaxTLarge[l])
 
         # write statistics on data files
         if T == Tset[0]:
