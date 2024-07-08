@@ -353,18 +353,18 @@ for trial in range(8):
 
             # compute % of noise vs ground truth
             if trial % 3 == 0 and trial != 6:
-                rMeanPerc[rep] = float(abs(np.array(sum(rStartNoise)) / (np.array(sum(rStartNoise) + groundTruth))))*100
+                rTempMeanPerc[rep] = float(abs(np.array(sum(rStartNoise)) / (np.array(sum(rStartNoise) + groundTruth))))*100
             if trial % 3 == 1 and trial != 7:
-                rMeanPerc[rep] = abs((np.sum(rMeanLdaNoise)) / (np.sum(rMeanLdaNoise) + groundTruth))*100
+                rTempMeanPerc[rep] = abs((np.sum(rMeanLdaNoise)) / (np.sum(rMeanLdaNoise) + groundTruth))*100
             if trial % 3 == 2:
-                rMeanPerc[rep] = float(abs(np.array(rMeanNoise) / (np.array(rMeanNoise + groundTruth))))*100
+                rTempMeanPerc[rep] = float(abs(np.array(rMeanNoise) / (np.array(rMeanNoise + groundTruth))))*100
 
             if trial % 3 == 0 and trial != 6:
-                oMeanPerc[rep] = float(abs(np.array(sum(oStartNoise)) / (np.array(sum(oStartNoise) + groundTruth))))*100
+                oTempMeanPerc[rep] = float(abs(np.array(sum(oStartNoise)) / (np.array(sum(oStartNoise) + groundTruth))))*100
             if trial % 3 == 1 and trial != 7:
-                oMeanPerc[rep] = abs((np.sum(oMeanLdaNoise)) / (np.sum(oMeanLdaNoise) + groundTruth))*100
+                oTempMeanPerc[rep] = abs((np.sum(oMeanLdaNoise)) / (np.sum(oMeanLdaNoise) + groundTruth))*100
             if trial % 3 == 2:
-                oMeanPerc[rep] = float(abs(np.array(oMeanNoise) / (np.array(oMeanNoise + groundTruth))))*100
+                oTempMeanPerc[rep] = float(abs(np.array(oMeanNoise) / (np.array(oMeanNoise + groundTruth))))*100
 
             SEED_FREQ = SEED_FREQ + 1
         

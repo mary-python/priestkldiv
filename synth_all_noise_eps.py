@@ -282,8 +282,8 @@ for trial in range(8):
                 oTempMeanEstZero[rep] = (oTempMeanEstZero[rep] + oMeanZeroNoise - groundTruth)**2
 
                 # lambda = 1
-                rTempMeanEstOne[rep] = (rMeanEstOne[rep] + rMeanOneNoise - groundTruth)**2
-                oTempMeanEstOne[rep] = (oMeanEstOne[rep] + oMeanOneNoise - groundTruth)**2
+                rTempMeanEstOne[rep] = (rTempMeanEstOne[rep] + rMeanOneNoise - groundTruth)**2
+                oTempMeanEstOne[rep] = (oTempMeanEstOne[rep] + oMeanOneNoise - groundTruth)**2
 
                 for l in range(LS):
             
