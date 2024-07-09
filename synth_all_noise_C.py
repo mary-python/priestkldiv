@@ -13,8 +13,9 @@ startTime = time.perf_counter()
 print("\nStarting...")
 
 # lists of the values of C and lambda, as well as the trials that will be explored
-Cset = [40, 80, 120, 160, 200, 260, 320, 400, 480, 560, 620, 680]
-ldaset = [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1]
+Cset = [40, 80, 120, 160, 200, 240, 280, 320, 360, 400, 440, 480, 520, 560, 600, 640, 680, 720, 760, 800, 840, 880, 920]
+ldaset = [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 
+          1, 1.05, 1.1, 1.15, 1.2, 1.25, 1.3, 1.35, 1.4, 1.45, 1.5, 1.55, 1.6, 1.65, 1.7, 1.75, 1.8, 1.85, 1.9, 1.95, 2]
 trialset = ["Dist_small", "TAgg_small", "Trusted_small", "Dist_large", "TAgg_large", "Trusted_large", "no_privacy_small", "no_privacy_large"]
 CS = len(Cset)
 LS = len(ldaset)
@@ -824,8 +825,6 @@ plt.errorbar(Cset, rMeanPerc[1], yerr = np.minimum(rMeanPercRange[1], np.sqrt(rM
 plt.errorbar(Cset, rMeanPerc[2], yerr = np.minimum(rMeanPercRange[2], np.sqrt(rMeanPerc[2]), np.divide(rMeanPerc[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
 plt.legend(loc = 'best')
 plt.yscale('log')
-plt.yticks([60, 100, 130])
-plt.ylim(60, 130)
 plt.gca().yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
 plt.xlabel("Value of C")
 plt.ylabel("Noise (%)")
@@ -838,8 +837,6 @@ plt.errorbar(Cset, oMeanPerc[1], yerr = np.minimum(oMeanPercRange[1], np.sqrt(rM
 plt.errorbar(Cset, oMeanPerc[2], yerr = np.minimum(oMeanPercRange[2], np.sqrt(rMeanPerc[2]), np.divide(rMeanPerc[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
 plt.legend(loc = 'best')
 plt.yscale('log')
-plt.yticks([50, 100, 500])
-plt.ylim(50, 500)
 plt.gca().yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
 plt.xlabel("Value of C")
 plt.ylabel("Noise (%)")
@@ -852,8 +849,6 @@ plt.errorbar(Cset, rMeanPerc[4], yerr = np.minimum(rMeanPercRange[4], np.sqrt(rM
 plt.errorbar(Cset, rMeanPerc[5], yerr = np.minimum(rMeanPercRange[5], np.sqrt(rMeanPerc[5]), np.divide(rMeanPerc[5], 2)), color = 'orange', marker = 'o', label = "Trusted")
 plt.legend(loc = 'best')
 plt.yscale('log')
-plt.yticks([40, 100, 500])
-plt.ylim(35, 550)
 plt.gca().yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
 plt.xlabel("Value of C")
 plt.ylabel("Noise (%)")
@@ -866,8 +861,6 @@ plt.errorbar(Cset, oMeanPerc[4], yerr = np.minimum(oMeanPercRange[4], np.sqrt(rM
 plt.errorbar(Cset, oMeanPerc[5], yerr = np.minimum(oMeanPercRange[5], np.sqrt(rMeanPerc[5]), np.divide(rMeanPerc[5], 2)), color = 'orange', marker = 'o', label = "Trusted")
 plt.legend(loc = 'best')
 plt.yscale('log')
-plt.yticks([25, 100, 800])
-plt.ylim(25, 800)
 plt.gca().yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
 plt.xlabel("Value of C")
 plt.ylabel("Noise (%)")

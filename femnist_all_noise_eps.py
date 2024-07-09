@@ -31,8 +31,9 @@ T = int(numWriters / 20)
 T1 = 11*T
 
 # lists of the values of epsilon and lambda, as well as the trials that will be explored
-epsset = [0.05, 0.1, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 2.5, 3, 4]
-ldaset = [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1]
+epsset = [0.05, 0.1, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 2.5, 3, 4, 5, 6, 7, 8, 9, 10]
+ldaset = [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 
+          1, 1.05, 1.1, 1.15, 1.2, 1.25, 1.3, 1.35, 1.4, 1.45, 1.5, 1.55, 1.6, 1.65, 1.7, 1.75, 1.8, 1.85, 1.9, 1.95, 2]
 trialset = ["Dist", "TAgg", "Trusted", "no_privacy"]
 ES = len(epsset)
 LS = len(ldaset)
@@ -807,9 +808,9 @@ plt.savefig("Femnist_eps_est_max.png")
 plt.clf()
 
 # plot optimum lambda for each epsilon (mean)
-plt.errorbar(epsset, meanLdaOpt[0], yerr = np.minimum(meanLdaOptRange[0], np.sqrt(meanLdaOpt[0]), np.divide(meanLdaOpt[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(epsset, meanLdaOpt[1], yerr = np.minimum(meanLdaOptRange[1], np.sqrt(meanLdaOpt[1]), np.divide(meanLdaOpt[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(epsset, meanLdaOpt[2], yerr = np.minimum(meanLdaOptRange[2], np.sqrt(meanLdaOpt[2]), np.divide(meanLdaOpt[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.plot(epsset, meanLdaOpt[0], color = 'blue', marker = 'o', label = "Dist")
+plt.plot(epsset, meanLdaOpt[1], color = 'green', marker = 'o', label = "TAgg")
+plt.plot(epsset, meanLdaOpt[2], color = 'orange', marker = 'o', label = "Trusted")
 plt.legend(loc = 'best')
 plt.xlabel("Value of epsilon")
 plt.ylabel("Lambda to minimise error of PRIEST-KLD")
@@ -817,9 +818,9 @@ plt.savefig("Femnist_eps_lda_opt_mean.png")
 plt.clf()
 
 # plot optimum lambda for each epsilon (min pair)
-plt.errorbar(epsset, minLdaOpt[0], yerr = np.minimum(minLdaOptRange[0], np.sqrt(minLdaOpt[0]), np.divide(minLdaOpt[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(epsset, minLdaOpt[1], yerr = np.minimum(minLdaOptRange[1], np.sqrt(minLdaOpt[1]), np.divide(minLdaOpt[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(epsset, minLdaOpt[2], yerr = np.minimum(minLdaOptRange[2], np.sqrt(minLdaOpt[2]), np.divide(minLdaOpt[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.plot(epsset, minLdaOpt[0], color = 'blue', marker = 'o', label = "Dist")
+plt.plot(epsset, minLdaOpt[1], color = 'green', marker = 'o', label = "TAgg")
+plt.plot(epsset, minLdaOpt[2], color = 'orange', marker = 'o', label = "Trusted")
 plt.legend(loc = 'best')
 plt.xlabel("Value of epsilon")
 plt.ylabel("Lambda to minimise error of PRIEST-KLD")
@@ -827,9 +828,9 @@ plt.savefig("Femnist_eps_lda_opt_min.png")
 plt.clf()
 
 # plot optimum lambda for each epsilon (max pair)
-plt.errorbar(epsset, maxLdaOpt[0], yerr = np.minimum(maxLdaOptRange[0], np.sqrt(meanLdaOpt[0]), np.divide(meanLdaOpt[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(epsset, maxLdaOpt[1], yerr = np.minimum(maxLdaOptRange[1], np.sqrt(meanLdaOpt[1]), np.divide(meanLdaOpt[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(epsset, maxLdaOpt[2], yerr = np.minimum(maxLdaOptRange[2], np.sqrt(meanLdaOpt[2]), np.divide(meanLdaOpt[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.plot(epsset, maxLdaOpt[0], color = 'blue', marker = 'o', label = "Dist")
+plt.plot(epsset, maxLdaOpt[1], color = 'green', marker = 'o', label = "TAgg")
+plt.plot(epsset, maxLdaOpt[2], color = 'orange', marker = 'o', label = "Trusted")
 plt.legend(loc = 'best')
 plt.xlabel("Value of epsilon")
 plt.ylabel("Lambda to minimise error of PRIEST-KLD")
@@ -1052,8 +1053,6 @@ plt.errorbar(epsset, meanPerc[1], yerr = np.minimum(meanPercRange[1], np.sqrt(me
 plt.errorbar(epsset, meanPerc[2], yerr = np.minimum(meanPercRange[2], np.sqrt(meanPerc[2]), np.divide(meanPerc[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
 plt.legend(loc = 'best')
 plt.yscale('log')
-plt.yticks([1, 10, 100, 1000, 2000])
-plt.ylim(0.2, 2000)
 plt.gca().yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
 plt.xlabel("Value of epsilon")
 plt.ylabel("Noise (%)")
@@ -1066,8 +1065,6 @@ plt.errorbar(epsset, minPerc[1], yerr = np.minimum(minPercRange[1], np.sqrt(minP
 plt.errorbar(epsset, minPerc[2], yerr = np.minimum(minPercRange[2], np.sqrt(minPerc[2]), np.divide(minPerc[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
 plt.legend(loc = 'best')
 plt.yscale('log')
-plt.yticks([1, 10, 100, 700])
-plt.ylim(1, 700)
 plt.gca().yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
 plt.xlabel("Value of epsilon")
 plt.ylabel("Noise (%)")
@@ -1080,8 +1077,6 @@ plt.errorbar(epsset, maxPerc[1], yerr = np.minimum(maxPercRange[1], np.sqrt(maxP
 plt.errorbar(epsset, maxPerc[2], yerr = np.minimum(maxPercRange[2], np.sqrt(maxPerc[2]), np.divide(maxPerc[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
 plt.legend(loc = 'best')
 plt.yscale('log')
-plt.yticks([1, 10, 100, 500])
-plt.ylim(0.1, 500)
 plt.gca().yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
 plt.xlabel("Value of epsilon")
 plt.ylabel("Noise (%)")

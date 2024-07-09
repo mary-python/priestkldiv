@@ -13,8 +13,9 @@ startTime = time.perf_counter()
 print("\nStarting...")
 
 # lists of the values of epsilon and lambda, as well as the trials that will be explored
-epsset = [0.05, 0.1, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 2.5, 3, 4]
-ldaset = [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1]
+epsset = [0.05, 0.1, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 2.5, 3, 4, 5, 6, 7, 8, 9, 10]
+ldaset = [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 
+          1, 1.05, 1.1, 1.15, 1.2, 1.25, 1.3, 1.35, 1.4, 1.45, 1.5, 1.55, 1.6, 1.65, 1.7, 1.75, 1.8, 1.85, 1.9, 1.95, 2]
 trialset = ["Dist_small", "TAgg_small", "Trusted_small", "Dist_large", "TAgg_large", "Trusted_large", "no_privacy_small", "no_privacy_large"]
 ES = len(epsset)
 LS = len(ldaset)
@@ -823,8 +824,6 @@ plt.errorbar(epsset, rMeanPerc[1], yerr = np.minimum(rMeanPercRange[1], np.sqrt(
 plt.errorbar(epsset, rMeanPerc[2], yerr = np.minimum(rMeanPercRange[2], np.sqrt(rMeanPerc[2]), np.divide(rMeanPerc[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
 plt.legend(loc = 'best')
 plt.yscale('log')
-plt.yticks([50, 100, 250])
-plt.ylim(50, 250)
 plt.gca().yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
 plt.xlabel("Value of epsilon")
 plt.ylabel("Noise (%)")
@@ -837,8 +836,6 @@ plt.errorbar(epsset, oMeanPerc[1], yerr = np.minimum(oMeanPercRange[1], np.sqrt(
 plt.errorbar(epsset, oMeanPerc[2], yerr = np.minimum(oMeanPercRange[2], np.sqrt(rMeanPerc[2]), np.divide(rMeanPerc[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
 plt.legend(loc = 'best')
 plt.yscale('log')
-plt.yticks([60, 100, 200])
-plt.ylim(60, 200)
 plt.gca().yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
 plt.xlabel("Value of epsilon")
 plt.ylabel("Noise (%)")
@@ -851,8 +848,6 @@ plt.errorbar(epsset, rMeanPerc[4], yerr = np.minimum(rMeanPercRange[4], np.sqrt(
 plt.errorbar(epsset, rMeanPerc[5], yerr = np.minimum(rMeanPercRange[5], np.sqrt(rMeanPerc[5]), np.divide(rMeanPerc[5], 2)), color = 'orange', marker = 'o', label = "Trusted")
 plt.legend(loc = 'best')
 plt.yscale('log')
-plt.yticks([20, 100, 300])
-plt.ylim(20, 300)
 plt.gca().yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
 plt.xlabel("Value of epsilon")
 plt.ylabel("Noise (%)")
@@ -865,8 +860,6 @@ plt.errorbar(epsset, oMeanPerc[4], yerr = np.minimum(oMeanPercRange[4], np.sqrt(
 plt.errorbar(epsset, oMeanPerc[5], yerr = np.minimum(oMeanPercRange[5], np.sqrt(rMeanPerc[5]), np.divide(rMeanPerc[5], 2)), color = 'orange', marker = 'o', label = "Trusted")
 plt.legend(loc = 'best')
 plt.yscale('log')
-plt.yticks([20, 100, 800])
-plt.ylim(20, 800)
 plt.gca().yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
 plt.xlabel("Value of epsilon")
 plt.ylabel("Noise (%)")

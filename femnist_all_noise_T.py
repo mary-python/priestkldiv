@@ -28,12 +28,13 @@ file = h5py.File(PATH, 'r')
 writers = sorted(file.keys())
 numWriters = len(writers)
 
-# investigate samples from approx 1% to approx 20% of writers
-Tset = [36, 72, 108, 144, 180, 225, 270, 360, 450, 540, 600, 660]
+# investigate samples from approx 1% to approx 25% of writers
+Tset = [36, 72, 108, 144, 180, 216, 252, 288, 324, 360, 396, 432, 468, 504, 540, 576, 612, 648, 684, 720, 756, 792, 828, 864, 900]
 ES = len(Tset)
 
 # list of the lambdas and trials that will be explored
-ldaset = [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1]
+ldaset = [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 
+          1, 1.05, 1.1, 1.15, 1.2, 1.25, 1.3, 1.35, 1.4, 1.45, 1.5, 1.55, 1.6, 1.65, 1.7, 1.75, 1.8, 1.85, 1.9, 1.95, 2]
 trialset = ["Dist", "TAgg", "Trusted", "no_privacy"]
 LS = len(ldaset)
 TS = len(trialset)
@@ -1054,8 +1055,6 @@ plt.errorbar(Tset, meanPerc[1], yerr = np.minimum(meanPercRange[1], np.sqrt(mean
 plt.errorbar(Tset, meanPerc[2], yerr = np.minimum(meanPercRange[2], np.sqrt(meanPerc[2]), np.divide(meanPerc[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
 plt.legend(loc = 'best')
 plt.yscale('log')
-plt.yticks([10, 100, 700])
-plt.ylim(10, 700)
 plt.gca().yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
 plt.xlabel("Value of T")
 plt.ylabel("Noise (%)")
@@ -1068,8 +1067,6 @@ plt.errorbar(Tset, minPerc[1], yerr = np.minimum(minPercRange[1], np.sqrt(minPer
 plt.errorbar(Tset, minPerc[2], yerr = np.minimum(minPercRange[2], np.sqrt(minPerc[2]), np.divide(minPerc[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
 plt.legend(loc = 'best')
 plt.yscale('log')
-plt.yticks([30, 60, 100, 200])
-plt.ylim(30, 200)
 plt.gca().yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
 plt.xlabel("Value of T")
 plt.ylabel("Noise (%)")
@@ -1082,8 +1079,6 @@ plt.errorbar(Tset, maxPerc[1], yerr = np.minimum(maxPercRange[1], np.sqrt(maxPer
 plt.errorbar(Tset, maxPerc[2], yerr = np.minimum(maxPercRange[2], np.sqrt(maxPerc[2]), np.divide(maxPerc[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
 plt.legend(loc = 'best')
 plt.yscale('log')
-plt.yticks([10, 100, 1000, 3000])
-plt.ylim(7, 3000)
 plt.gca().yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
 plt.xlabel("Value of T")
 plt.ylabel("Noise (%)")
