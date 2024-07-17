@@ -126,7 +126,7 @@ for trial in range(8):
                 else:
                     lapNoise = dis.Laplace(loc = A, scale = s1)
 
-            meanEst = np.zeros((LS, C))
+            meanRangeEst = np.zeros((LS, C))
             startNoise = []
 
             for j in range(C):
@@ -152,11 +152,11 @@ for trial in range(8):
                     rangeEst = lda * (np.exp(logr) - 1) - logr
 
                     # share PRIEST-KLD with server
-                    meanEst[LDA_COUNT, j] = rangeEst.mean()
+                    meanRangeEst[LDA_COUNT, j] = rangeEst.mean()
                     LDA_COUNT = LDA_COUNT + 1
 
             # compute mean of PRIEST-KLD across clients
-            meanLda = np.mean(meanEst, axis = 1)
+            meanLda = np.mean(meanRangeEst, axis = 1)
             meanLdaNoise = np.zeros(LS)
         
             for l in range(LS):
