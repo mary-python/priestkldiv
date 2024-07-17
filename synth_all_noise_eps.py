@@ -21,47 +21,26 @@ ES = len(epsset)
 LS = len(ldaset)
 TS = len(trialset)
 
-# to store statistics related to mean estimates (random +/-)
-rMeanEst = np.zeros((TS, ES))
-rLdaOpt = np.zeros((TS, ES))
-rMeanEstZero = np.zeros((TS, ES))
-rMeanEstOne = np.zeros((TS, ES))
-rMeanPerc = np.zeros((TS, ES))
-rMeanEpsSmall = np.zeros((TS, LS))
-rMeanEpsDef = np.zeros((TS, LS))
-rMeanEpsMid = np.zeros((TS, LS))
-rMeanEpsLarge = np.zeros((TS, LS))
+# to store statistics related to mean estimates
+meanEst = np.zeros((TS, ES))
+meanLdaOpt = np.zeros((TS, ES))
+meanEstZero = np.zeros((TS, ES))
+meanEstOne = np.zeros((TS, ES))
+meanPerc = np.zeros((TS, ES))
+meanEpsSmall = np.zeros((TS, LS))
+meanEpsDef = np.zeros((TS, LS))
+meanEpsMid = np.zeros((TS, LS))
+meanEpsLarge = np.zeros((TS, LS))
 
-rMeanEstRange = np.zeros((TS, ES))
-rLdaOptRange = np.zeros((TS, ES))
-rMeanEstZeroRange = np.zeros((TS, ES))
-rMeanEstOneRange = np.zeros((TS, ES))
-rMeanPercRange = np.zeros((TS, ES))
-rMeanEpsSmallRange = np.zeros((TS, LS))
-rMeanEpsDefRange = np.zeros((TS, LS))
-rMeanEpsMidRange = np.zeros((TS, LS))
-rMeanEpsLargeRange = np.zeros((TS, LS))
-
-# to store statistics related to mean estimates (ordered)
-oMeanEst = np.zeros((TS, ES))
-oLdaOpt = np.zeros((TS, ES))
-oMeanEstZero = np.zeros((TS, ES))
-oMeanEstOne = np.zeros((TS, ES))
-oMeanPerc = np.zeros((TS, ES))
-oMeanEpsSmall = np.zeros((TS, LS))
-oMeanEpsDef = np.zeros((TS, LS))
-oMeanEpsMid = np.zeros((TS, LS))
-oMeanEpsLarge = np.zeros((TS, LS))
-
-oMeanEstRange = np.zeros((TS, ES))
-oLdaOptRange = np.zeros((TS, ES))
-oMeanEstZeroRange = np.zeros((TS, ES))
-oMeanEstOneRange = np.zeros((TS, ES))
-oMeanPercRange = np.zeros((TS, ES))
-oMeanEpsSmallRange = np.zeros((TS, LS))
-oMeanEpsDefRange = np.zeros((TS, LS))
-oMeanEpsMidRange = np.zeros((TS, LS))
-oMeanEpsLargeRange = np.zeros((TS, LS))
+meanEstRange = np.zeros((TS, ES))
+meanLdaOptRange = np.zeros((TS, ES))
+meanEstZeroRange = np.zeros((TS, ES))
+meanEstOneRange = np.zeros((TS, ES))
+meanPercRange = np.zeros((TS, ES))
+meanEpsSmallRange = np.zeros((TS, LS))
+meanEpsDefRange = np.zeros((TS, LS))
+meanEpsMidRange = np.zeros((TS, LS))
+meanEpsLargeRange = np.zeros((TS, LS))
 
 # global parameters
 T = 500_000 # sample T points
@@ -79,8 +58,7 @@ MID_INDEX = 6
 LARGE_INDEX = 10
 
 for trial in range(8):
-    randfile = open(f"synth_eps_{trialset[trial]}_rand.txt", "w", encoding = 'utf-8')
-    ordfile = open(f"synth_eps_{trialset[trial]}_ord.txt", "w", encoding = 'utf-8')
+    ordfile = open(f"synth_eps_{trialset[trial]}.txt", "w", encoding = 'utf-8')
 
     # p is unknown distribution, q is known
     # distributions have small KL divergence
@@ -106,10 +84,8 @@ for trial in range(8):
     for i in qUniqueIndices:
         qRound = qRound[qRound != i]
 
-    # order the pre-processed sample and separate into + and - values
+    # order the pre-processed sample
     qOrderedRound = torch.sort(qRound)
-    qNegativeRound = qOrderedRound[0][0:249151]
-    qPositiveRound = qOrderedRound[0][249151:499947]
     
     if trial < 6:
         b1 = 1 + log(2)
@@ -120,25 +96,15 @@ for trial in range(8):
     for eps in epsset:
         print(f"\nTrial {trial + 1}: {trialset[trial]}")
 
-        rTempMeanEst = np.zeros(RS)
-        rTempLdaOpt = np.zeros(RS)
-        rTempMeanEstZero = np.zeros(RS)
-        rTempMeanEstOne = np.zeros(RS)
-        rTempMeanPerc = np.zeros(RS)
-        rTempMeanEpsSmall = np.zeros((LS, RS))
-        rTempMeanEpsDef = np.zeros((LS, RS))
-        rTempMeanEpsMid = np.zeros((LS, RS))
-        rTempMeanEpsLarge = np.zeros((LS, RS))
-
-        oTempMeanEst = np.zeros(RS)
-        oTempLdaOpt = np.zeros(RS)
-        oTempMeanEstZero = np.zeros(RS)
-        oTempMeanEstOne = np.zeros(RS)
-        oTempMeanPerc = np.zeros(RS)
-        oTempMeanEpsSmall = np.zeros((LS, RS))
-        oTempMeanEpsDef = np.zeros((LS, RS))
-        oTempMeanEpsMid = np.zeros((LS, RS))
-        oTempMeanEpsLarge = np.zeros((LS, RS))
+        tempMeanEst = np.zeros(RS)
+        tempMeanLdaOpt = np.zeros(RS)
+        tempMeanEstZero = np.zeros(RS)
+        tempMeanEstOne = np.zeros(RS)
+        tempMeanPerc = np.zeros(RS)
+        tempMeanEpsSmall = np.zeros((LS, RS))
+        tempMeanEpsDef = np.zeros((LS, RS))
+        tempMeanEpsMid = np.zeros((LS, RS))
+        tempMeanEpsLarge = np.zeros((LS, RS))
 
         for rep in range(RS):
             print(f"epsilon = {eps}, repeat = {rep + 1}...")
@@ -160,37 +126,22 @@ for trial in range(8):
                 else:
                     lapNoise = dis.Laplace(loc = A, scale = s1)
 
-            # numpy arrays
-            rEst = np.zeros((LS, C))
-            oEst = np.zeros((LS, C))
-            rStartNoise = []
-            oStartNoise = []
+            meanEst = np.zeros((LS, C))
+            startNoise = []
 
             for j in range(C):
 
-                # "RANDOM +/-": even clients get positive values, odd clients get negative values
-                if (j % 2) == 0:
-                    indices = torch.randperm(len(qPositiveRound))[:N]
-                    qClientSamp = qPositiveRound[indices]
-                else:
-                    indices = torch.randperm(len(qNegativeRound))[:N]
-                    qClientSamp = qNegativeRound[indices]
-
-                # "ORDERED": each client gets N points in order from ordered pre-processed sample
-                qOrdClientSamp = qOrderedRound[0][N*j : N*(j + 1)]
+                # "ORDERED": each client gets N points in order fro pre-processed sample
+                qClientSamp = qOrderedRound[0][N*j : N*(j + 1)]
 
                 # compute ratio between unknown and known distributions
-                rLogr = p.log_prob(qClientSamp) - q.log_prob(qClientSamp)
-                oLogr = p.log_prob(qOrdClientSamp) - q.log_prob(qOrdClientSamp)
+                logr = p.log_prob(qClientSamp) - q.log_prob(qClientSamp)
 
                 # "Dist" (each client adds Gaussian noise term)
                 if trial % 3 == 0 and trial != 6:
-                    rStartSample = abs(probGaussNoise.sample(sample_shape = (1,)))
-                    oStartSample = abs(probGaussNoise.sample(sample_shape = (1,)))
-                    rStartNoise.append(rStartSample)
-                    oStartNoise.append(oStartSample)
-                    rLogr = rLogr + rStartSample
-                    oLogr = oLogr + rStartSample
+                    startSample = abs(probGaussNoise.sample(sample_shape = (1,)))
+                    startNoise.append(startSample)
+                    logr = logr + startSample
 
                 LDA_COUNT = 0
 
@@ -198,672 +149,353 @@ for trial in range(8):
                 for lda in ldaset:
 
                     # compute k3 estimator
-                    rRangeEst = lda * (np.exp(rLogr) - 1) - rLogr
-                    oRangeEst = lda * (np.exp(oLogr) - 1) - oLogr
+                    rangeEst = lda * (np.exp(logr) - 1) - logr
 
                     # share PRIEST-KLD with server
-                    rEst[LDA_COUNT, j] = rRangeEst.mean()
-                    oEst[LDA_COUNT, j] = oRangeEst.mean()
+                    meanEst[LDA_COUNT, j] = rangeEst.mean()
                     LDA_COUNT = LDA_COUNT + 1
 
             # compute mean of PRIEST-KLD across clients
-            rMeanLda = np.mean(rEst, axis = 1)
-            oMeanLda = np.mean(oEst, axis = 1)
-
-            rMeanLdaNoise = np.zeros(LS)
-            oMeanLdaNoise = np.zeros(LS)
+            meanLda = np.mean(meanEst, axis = 1)
+            meanLdaNoise = np.zeros(LS)
         
             for l in range(LS):
 
                 # "TAgg" (intermediate server adds Gaussian noise term)
                 if trial % 3 == 1 and trial != 7:
-                    rMeanLdaNoise[l] = gaussNoise.sample(sample_shape = (1,))
-                    oMeanLdaNoise[l] = gaussNoise.sample(sample_shape = (1,))
-                    rMeanLda[l] = rMeanLda[l] + rMeanLdaNoise[l]
-                    oMeanLda[l] = oMeanLda[l] + oMeanLdaNoise[l]
+                    meanLdaNoise[l] = gaussNoise.sample(sample_shape = (1,))
+                    meanLda[l] = meanLda[l] + meanLdaNoise[l]
             
                 # mean across lambdas for eps = 0.05 (small)
                 if EPS_COUNT == SMALL_INDEX:
-                    rTempMeanEpsSmall[l, rep] = rMeanLda[l]
-                    oTempMeanEpsSmall[l, rep] = oMeanLda[l]
+                    tempMeanEpsSmall[l, rep] = meanLda[l]
 
                 # eps = 0.5 (default)
                 if EPS_COUNT == DEF_INDEX:
-                    rTempMeanEpsDef[l, rep] = rMeanLda[l]
-                    oTempMeanEpsDef[l, rep] = oMeanLda[l]
+                    tempMeanEpsDef[l, rep] = meanLda[l]
 
                 # eps = 1.5 (mid)
                 if EPS_COUNT == MID_INDEX:
-                    rTempMeanEpsMid[l, rep] = rMeanLda[l]
-                    oTempMeanEpsMid[l, rep] = oMeanLda[l]
+                    tempMeanEpsMid[l, rep] = meanLda[l]
 
                 # eps = 3 (large)
                 if EPS_COUNT == LARGE_INDEX:
-                    rTempMeanEpsLarge[l, rep] = rMeanLda[l]
-                    oTempMeanEpsLarge[l, rep] = oMeanLda[l]
+                    tempMeanEpsLarge[l, rep] = meanLda[l]
 
             # find lambda that produces minimum error
-            rLdaIndex = np.argmin(rMeanLda)
-            oLdaIndex = np.argmin(oMeanLda)
-
-            rMinMeanError = rMeanLda[rLdaIndex]
-            oMinMeanError = oMeanLda[oLdaIndex]
+            ldaIndex = np.argmin(meanLda)
+            minMeanError = meanLda[ldaIndex]
 
             # mean across clients for optimum lambda
-            rTempMeanEst[rep] = rMinMeanError
-            oTempMeanEst[rep] = oMinMeanError
+            tempMeanEst[rep] = minMeanError
 
             # optimum lambda
-            rTempLdaOpt[rep] = rLdaIndex * ldaStep
-            oTempLdaOpt[rep] = oLdaIndex * ldaStep
+            tempMeanLdaOpt[rep] = ldaIndex * ldaStep
 
             # lambda = 0
-            rTempMeanEstZero[rep] = rMeanLda[0]
-            oTempMeanEstZero[rep] = oMeanLda[0]
+            tempMeanEstZero[rep] = meanLda[0]
 
             # lambda = 1
-            rTempMeanEstOne[rep] = rMeanLda[LS-1]
-            oTempMeanEstOne[rep] = oMeanLda[LS-1]
+            tempMeanEstOne[rep] = meanLda[LS-1]
 
             # "Trusted" (server adds Laplace noise term to final result)
             if trial % 3 == 2:
-                rMeanNoise = lapNoise.sample(sample_shape = (1,))
-                oMeanNoise = lapNoise.sample(sample_shape = (1,))
-                rMeanZeroNoise = lapNoise.sample(sample_shape = (1,))
-                oMeanZeroNoise = lapNoise.sample(sample_shape = (1,))
-                rMeanOneNoise = lapNoise.sample(sample_shape = (1,))
-                oMeanOneNoise = lapNoise.sample(sample_shape = (1,))
+                meanNoise = lapNoise.sample(sample_shape = (1,))
+                meanZeroNoise = lapNoise.sample(sample_shape = (1,))
+                meanOneNoise = lapNoise.sample(sample_shape = (1,))
 
                 # define error = squared difference between estimator and ground truth
-                rTempMeanEst[rep] = (rTempMeanEst[rep] + rMeanNoise - groundTruth)**2
-                oTempMeanEst[rep] = (oTempMeanEst[rep] + oMeanNoise - groundTruth)**2
-
-                # lambda = 0
-                rTempMeanEstZero[rep] = (rTempMeanEstZero[rep] + rMeanZeroNoise - groundTruth)**2
-                oTempMeanEstZero[rep] = (oTempMeanEstZero[rep] + oMeanZeroNoise - groundTruth)**2
-
-                # lambda = 1
-                rTempMeanEstOne[rep] = (rTempMeanEstOne[rep] + rMeanOneNoise - groundTruth)**2
-                oTempMeanEstOne[rep] = (oTempMeanEstOne[rep] + oMeanOneNoise - groundTruth)**2
+                tempMeanEst[rep] = (tempMeanEst[rep] + meanNoise - groundTruth)**2
+                tempMeanEstZero[rep] = (tempMeanEstZero[rep] + meanZeroNoise - groundTruth)**2
+                tempMeanEstOne[rep] = (tempMeanEstOne[rep] + meanOneNoise - groundTruth)**2
 
                 for l in range(LS):
             
                     # eps = 0.05 (small)
                     if EPS_COUNT == 0:
-                        rMeanSmallNoise = lapNoise.sample(sample_shape = (1,))
-                        oMeanSmallNoise = lapNoise.sample(sample_shape = (1,))
-                        rTempMeanEpsSmall[l, rep] = (rTempMeanEpsSmall[l, rep] + rMeanSmallNoise - groundTruth)**2
-                        oTempMeanEpsSmall[l, rep] = (oTempMeanEpsSmall[l, rep] + oMeanSmallNoise - groundTruth)**2
+                        meanSmallNoise = lapNoise.sample(sample_shape = (1,))
+                        tempMeanEpsSmall[l, rep] = (tempMeanEpsSmall[l, rep] + meanSmallNoise - groundTruth)**2
 
                     # eps = 0.5 (def)
                     if EPS_COUNT == 3:
-                        rMeanDefNoise = lapNoise.sample(sample_shape = (1,))
-                        oMeanDefNoise = lapNoise.sample(sample_shape = (1,))
-                        rTempMeanEpsDef[l, rep] = (rTempMeanEpsDef[l, rep] + rMeanDefNoise - groundTruth)**2
-                        oTempMeanEpsDef[l, rep] = (oTempMeanEpsDef[l, rep] + oMeanDefNoise - groundTruth)**2
+                        meanDefNoise = lapNoise.sample(sample_shape = (1,))
+                        tempMeanEpsDef[l, rep] = (tempMeanEpsDef[l, rep] + meanDefNoise - groundTruth)**2
 
                     # eps = 1.5 (mid)
                     if EPS_COUNT == 6:
-                        rMeanMidNoise = lapNoise.sample(sample_shape = (1,))
-                        oMeanMidNoise = lapNoise.sample(sample_shape = (1,))
-                        rTempMeanEpsMid[l, rep] = (rTempMeanEpsMid[l, rep] + rMeanMidNoise - groundTruth)**2
-                        oTempMeanEpsMid[l, rep] = (oTempMeanEpsMid[l, rep] + oMeanMidNoise - groundTruth)**2
+                        meanMidNoise = lapNoise.sample(sample_shape = (1,))
+                        tempMeanEpsMid[l, rep] = (tempMeanEpsMid[l, rep] + meanMidNoise - groundTruth)**2
 
                     # eps = 3 (large)
                     if EPS_COUNT == 10:
-                        rMeanLargeNoise = lapNoise.sample(sample_shape = (1,))
-                        oMeanLargeNoise = lapNoise.sample(sample_shape = (1,))
-                        rTempMeanEpsLarge[l, rep] = (rTempMeanEpsLarge[l, rep] + rMeanLargeNoise - groundTruth)**2
-                        oTempMeanEpsLarge[l, rep] = (oTempMeanEpsLarge[l, rep] + oMeanLargeNoise - groundTruth)**2
+                        meanLargeNoise = lapNoise.sample(sample_shape = (1,))
+                        tempMeanEpsLarge[l, rep] = (tempMeanEpsLarge[l, rep] + meanLargeNoise - groundTruth)**2
 
             # clients or intermediate server already added Gaussian noise term
             else:
-                rTempMeanEst[rep] = (rTempMeanEst[rep] - groundTruth)**2
-                oTempMeanEst[rep] = (oTempMeanEst[rep] - groundTruth)**2
-
-                # lambda = 0
-                rTempMeanEstZero[rep] = (rTempMeanEstZero[rep] - groundTruth)**2
-                oTempMeanEstZero[rep] = (oTempMeanEstZero[rep] - groundTruth)**2
-
-                # lambda = 1
-                rTempMeanEstOne[rep] = (rTempMeanEstOne[rep] - groundTruth)**2
-                oTempMeanEstOne[rep] = (oTempMeanEstOne[rep] - groundTruth)**2
+                tempMeanEst[rep] = (tempMeanEst[rep] - groundTruth)**2
+                tempMeanEstZero[rep] = (tempMeanEstZero[rep] - groundTruth)**2
+                tempMeanEstOne[rep] = (tempMeanEstOne[rep] - groundTruth)**2
 
                 for l in range(LS):
             
                     # eps = 0.05 (small)
                     if EPS_COUNT == 0:
-                        rTempMeanEpsSmall[l, rep] = (rTempMeanEpsSmall[l, rep] - groundTruth)**2
-                        oTempMeanEpsSmall[l, rep] = (oTempMeanEpsSmall[l, rep] - groundTruth)**2
+                        tempMeanEpsSmall[l, rep] = (tempMeanEpsSmall[l, rep] - groundTruth)**2
 
                     # eps = 0.5 (def)
                     if EPS_COUNT == 3:
-                        rTempMeanEpsDef[l, rep] = (rTempMeanEpsDef[l, rep] - groundTruth)**2
-                        oTempMeanEpsDef[l, rep] = (oTempMeanEpsDef[l, rep] - groundTruth)**2
+                        tempMeanEpsDef[l, rep] = (tempMeanEpsDef[l, rep] - groundTruth)**2
 
                     # eps = 1.5 (mid)
                     if EPS_COUNT == 6:
-                        rTempMeanEpsMid[l, rep] = (rTempMeanEpsMid[l, rep] - groundTruth)**2
-                        oTempMeanEpsMid[l, rep] = (oTempMeanEpsMid[l, rep] - groundTruth)**2
+                        tempMeanEpsMid[l, rep] = (tempMeanEpsMid[l, rep] - groundTruth)**2
 
                     # eps = 3 (large)
                     if EPS_COUNT == 10:
-                        rTempMeanEpsLarge[l, rep] = (rTempMeanEpsLarge[l, rep] - groundTruth)**2
-                        oTempMeanEpsLarge[l, rep] = (oTempMeanEpsLarge[l, rep] - groundTruth)**2
+                        tempMeanEpsLarge[l, rep] = (tempMeanEpsLarge[l, rep] - groundTruth)**2
 
             # compute % of noise vs ground truth
             if trial % 3 == 0 and trial != 6:
-                rTempMeanPerc[rep] = float(abs(np.array(sum(rStartNoise)) / (np.array(sum(rStartNoise) + groundTruth))))*100
+                tempMeanPerc[rep] = float(abs(np.array(sum(startNoise)) / (np.array(sum(startNoise) + groundTruth))))*100
             if trial % 3 == 1 and trial != 7:
-                rTempMeanPerc[rep] = abs((np.sum(rMeanLdaNoise)) / (np.sum(rMeanLdaNoise) + groundTruth))*100
+                tempMeanPerc[rep] = abs((np.sum(meanLdaNoise)) / (np.sum(meanLdaNoise) + groundTruth))*100
             if trial % 3 == 2:
-                rTempMeanPerc[rep] = float(abs(np.array(rMeanNoise) / (np.array(rMeanNoise + groundTruth))))*100
-
-            if trial % 3 == 0 and trial != 6:
-                oTempMeanPerc[rep] = float(abs(np.array(sum(oStartNoise)) / (np.array(sum(oStartNoise) + groundTruth))))*100
-            if trial % 3 == 1 and trial != 7:
-                oTempMeanPerc[rep] = abs((np.sum(oMeanLdaNoise)) / (np.sum(oMeanLdaNoise) + groundTruth))*100
-            if trial % 3 == 2:
-                oTempMeanPerc[rep] = float(abs(np.array(oMeanNoise) / (np.array(oMeanNoise + groundTruth))))*100
+                tempMeanPerc[rep] = float(abs(np.array(meanNoise) / (np.array(meanNoise + groundTruth))))*100
         
             SEED_FREQ = SEED_FREQ + 1
 
         # compute mean of repeats
-        rMeanEst[trial, EPS_COUNT] = np.mean(rTempMeanEst)
-        rLdaOpt[trial, EPS_COUNT] = np.mean(rTempLdaOpt)
-        rMeanEstZero[trial, EPS_COUNT] = np.mean(rTempMeanEstZero)
-        rMeanEstOne[trial, EPS_COUNT] = np.mean(rTempMeanEstOne)
-        rMeanPerc[trial, EPS_COUNT] = np.mean(rTempMeanPerc)
+        meanEst[trial, EPS_COUNT] = np.mean(tempMeanEst)
+        meanLdaOpt[trial, EPS_COUNT] = np.mean(tempMeanLdaOpt)
+        meanEstZero[trial, EPS_COUNT] = np.mean(tempMeanEstZero)
+        meanEstOne[trial, EPS_COUNT] = np.mean(tempMeanEstOne)
+        meanPerc[trial, EPS_COUNT] = np.mean(tempMeanPerc)
 
         for l in range(LS):
             if EPS_COUNT == SMALL_INDEX:
-                rMeanEpsSmall[trial, l] = np.mean(rTempMeanEpsSmall[l])
+                meanEpsSmall[trial, l] = np.mean(tempMeanEpsSmall[l])
             if EPS_COUNT == DEF_INDEX:
-                rMeanEpsDef[trial, l] = np.mean(rTempMeanEpsDef[l])
+                meanEpsDef[trial, l] = np.mean(tempMeanEpsDef[l])
             if EPS_COUNT == MID_INDEX:
-                rMeanEpsMid[trial, l] = np.mean(rTempMeanEpsMid[l])
+                meanEpsMid[trial, l] = np.mean(tempMeanEpsMid[l])
             if EPS_COUNT == LARGE_INDEX:
-                rMeanEpsLarge[trial, l] = np.mean(rTempMeanEpsLarge[l])
-
-        oMeanEst[trial, EPS_COUNT] = np.mean(oTempMeanEst)
-        oLdaOpt[trial, EPS_COUNT] = np.mean(oTempLdaOpt)
-        oMeanEstZero[trial, EPS_COUNT] = np.mean(oTempMeanEstZero)
-        oMeanEstOne[trial, EPS_COUNT] = np.mean(oTempMeanEstOne)
-        oMeanPerc[trial, EPS_COUNT] = np.mean(oTempMeanPerc)
-
-        for l in range(LS):
-            if EPS_COUNT == SMALL_INDEX:
-                oMeanEpsSmall[trial, l] = np.mean(oTempMeanEpsSmall[l])
-            if EPS_COUNT == DEF_INDEX:
-                oMeanEpsDef[trial, l] = np.mean(oTempMeanEpsDef[l])
-            if EPS_COUNT == MID_INDEX:
-                oMeanEpsMid[trial, l] = np.mean(oTempMeanEpsMid[l])
-            if EPS_COUNT == LARGE_INDEX:
-                oMeanEpsLarge[trial, l] = np.mean(oTempMeanEpsLarge[l])
+                meanEpsLarge[trial, l] = np.mean(tempMeanEpsLarge[l])
         
         # compute standard deviation of repeats
-        rMeanEstRange[trial, EPS_COUNT] = np.std(rTempMeanEst)
-        rLdaOptRange[trial, EPS_COUNT] = np.std(rTempLdaOpt)
-        rMeanEstZeroRange[trial, EPS_COUNT] = np.std(rTempMeanEstZero)
-        rMeanEstOneRange[trial, EPS_COUNT] = np.std(rTempMeanEstOne)
-        rMeanPercRange[trial, EPS_COUNT] = np.std(rTempMeanPerc)
+        meanEstRange[trial, EPS_COUNT] = np.std(tempMeanEst)
+        meanLdaOptRange[trial, EPS_COUNT] = np.std(tempMeanLdaOpt)
+        meanEstZeroRange[trial, EPS_COUNT] = np.std(tempMeanEstZero)
+        meanEstOneRange[trial, EPS_COUNT] = np.std(tempMeanEstOne)
+        meanPercRange[trial, EPS_COUNT] = np.std(tempMeanPerc)
 
         for l in range(LS):
             if EPS_COUNT == SMALL_INDEX:
-                rMeanEpsSmallRange[trial, l] = np.std(rTempMeanEpsSmall[l])
+                meanEpsSmallRange[trial, l] = np.std(tempMeanEpsSmall[l])
             if EPS_COUNT == DEF_INDEX:
-                rMeanEpsDefRange[trial, l] = np.std(rTempMeanEpsDef[l])
+                meanEpsDefRange[trial, l] = np.std(tempMeanEpsDef[l])
             if EPS_COUNT == MID_INDEX:
-                rMeanEpsMidRange[trial, l] = np.std(rTempMeanEpsMid[l])
+                meanEpsMidRange[trial, l] = np.std(tempMeanEpsMid[l])
             if EPS_COUNT == LARGE_INDEX:
-                rMeanEpsLargeRange[trial, l] = np.std(rTempMeanEpsLarge[l])
-
-        oMeanEstRange[trial, EPS_COUNT] = np.std(oTempMeanEst)
-        oLdaOptRange[trial, EPS_COUNT] = np.std(oTempLdaOpt)
-        oMeanEstZeroRange[trial, EPS_COUNT] = np.std(oTempMeanEstZero)
-        oMeanEstOneRange[trial, EPS_COUNT] = np.std(oTempMeanEstOne)
-        oMeanPercRange[trial, EPS_COUNT] = np.std(oTempMeanPerc)
-
-        for l in range(LS):
-            if EPS_COUNT == SMALL_INDEX:
-                oMeanEpsSmallRange[trial, l] = np.std(oTempMeanEpsSmall[l])
-            if EPS_COUNT == DEF_INDEX:
-                oMeanEpsDefRange[trial, l] = np.std(oTempMeanEpsDef[l])
-            if EPS_COUNT == MID_INDEX:
-                oMeanEpsMidRange[trial, l] = np.std(oTempMeanEpsMid[l])
-            if EPS_COUNT == LARGE_INDEX:
-                oMeanEpsLargeRange[trial, l] = np.std(oTempMeanEpsLarge[l])
+                meanEpsLargeRange[trial, l] = np.std(tempMeanEpsLarge[l])
 
         # write statistics on data files
         if eps == epsset[0]:
-            randfile.write(f"SYNTHETIC Random +/-: Eps = {eps}\n")
             ordfile.write(f"SYNTHETIC Ordered: Eps = {eps}\n")
         else:
-            randfile.write(f"\nEps = {eps}\n")
             ordfile.write(f"\nEps = {eps}\n")
 
-        randfile.write(f"\nMean Error: {round(rMeanEst[trial, EPS_COUNT], 2)}\n")
-        randfile.write(f"Optimal Lambda: {round(rLdaOpt[trial, EPS_COUNT], 2)}\n")
-        randfile.write(f"Ground Truth: {round(float(groundTruth), 2)}\n")
-        randfile.write(f"Noise: {np.round(rMeanPerc[trial, EPS_COUNT], 2)}%\n")
-
-        ordfile.write(f"\nMean Error: {round(oMeanEst[trial, EPS_COUNT], 2)}\n")
-        ordfile.write(f"Optimal Lambda: {round(oLdaOpt[trial, EPS_COUNT], 2)}\n")
+        ordfile.write(f"\nMean Error: {round(meanEst[trial, EPS_COUNT], 2)}\n")
+        ordfile.write(f"Optimal Lambda: {round(meanLdaOpt[trial, EPS_COUNT], 2)}\n")
         ordfile.write(f"Ground Truth: {round(float(groundTruth), 2)}\n")
-        ordfile.write(f"Noise: {np.round(oMeanPerc[trial, EPS_COUNT], 2)}%\n")
+        ordfile.write(f"Noise: {np.round(meanPerc[trial, EPS_COUNT], 2)}%\n")
 
         EPS_COUNT = EPS_COUNT + 1
 
-# plot error of PRIEST-KLD for each epsilon (small KLD, random +/-)
-plt.errorbar(epsset, rMeanEst[0], yerr = np.minimum(rMeanEstRange[0], np.sqrt(rMeanEst[0]), np.divide(rMeanEst[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(epsset, rMeanEst[1], yerr = np.minimum(rMeanEstRange[1], np.sqrt(rMeanEst[1]), np.divide(rMeanEst[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(epsset, rMeanEst[2], yerr = np.minimum(rMeanEstRange[2], np.sqrt(rMeanEst[2]), np.divide(rMeanEst[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
+# plot error of PRIEST-KLD for each epsilon (small KLD)
+plt.errorbar(epsset, meanEst[0], yerr = np.minimum(meanEstRange[0], np.sqrt(meanEst[0]), np.divide(meanEst[0], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(epsset, meanEst[1], yerr = np.minimum(meanEstRange[1], np.sqrt(meanEst[1]), np.divide(meanEst[1], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(epsset, meanEst[2], yerr = np.minimum(meanEstRange[2], np.sqrt(meanEst[2]), np.divide(meanEst[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
 plt.legend(loc = "best")
 plt.yscale('log')
 plt.xlabel("Value of epsilon")
 plt.ylabel("Error of PRIEST-KLD")
-plt.savefig("Synth_eps_est_small_rand.png")
+plt.savefig("Synth_eps_est_small.png")
 plt.clf()
 
-# plot error of PRIEST-KLD for each epsilon (small KLD, ordered)
-plt.errorbar(epsset, oMeanEst[0], yerr = np.minimum(oMeanEstRange[0], np.sqrt(oMeanEst[0]), np.divide(oMeanEst[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(epsset, oMeanEst[1], yerr = np.minimum(oMeanEstRange[1], np.sqrt(oMeanEst[1]), np.divide(oMeanEst[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(epsset, oMeanEst[2], yerr = np.minimum(oMeanEstRange[2], np.sqrt(oMeanEst[2]), np.divide(oMeanEst[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
+# plot error of PRIEST-KLD for each epsilon (large KLD)
+plt.errorbar(epsset, meanEst[3], yerr = np.minimum(meanEstRange[3], np.sqrt(meanEst[3]), np.divide(meanEst[3], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(epsset, meanEst[4], yerr = np.minimum(meanEstRange[4], np.sqrt(meanEst[4]), np.divide(meanEst[4], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(epsset, meanEst[5], yerr = np.minimum(meanEstRange[5], np.sqrt(meanEst[5]), np.divide(meanEst[5], 2)), color = 'orange', marker = 'o', label = "Trusted")
 plt.legend(loc = "best")
 plt.yscale('log')
 plt.xlabel("Value of epsilon")
 plt.ylabel("Error of PRIEST-KLD")
-plt.savefig("Synth_eps_est_small_ord.png")
+plt.savefig("Synth_eps_est_large.png")
 plt.clf()
 
-# plot error of PRIEST-KLD for each epsilon (large KLD, random +/-)
-plt.errorbar(epsset, rMeanEst[3], yerr = np.minimum(rMeanEstRange[3], np.sqrt(rMeanEst[3]), np.divide(rMeanEst[3], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(epsset, rMeanEst[4], yerr = np.minimum(rMeanEstRange[4], np.sqrt(rMeanEst[4]), np.divide(rMeanEst[4], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(epsset, rMeanEst[5], yerr = np.minimum(rMeanEstRange[5], np.sqrt(rMeanEst[5]), np.divide(rMeanEst[5], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.legend(loc = "best")
-plt.yscale('log')
-plt.xlabel("Value of epsilon")
-plt.ylabel("Error of PRIEST-KLD")
-plt.savefig("Synth_eps_est_large_rand.png")
-plt.clf()
-
-# plot error of PRIEST-KLD for each epsilon (large KLD, ordered)
-plt.errorbar(epsset, oMeanEst[3], yerr = np.minimum(oMeanEstRange[3], np.sqrt(oMeanEst[3]), np.divide(oMeanEst[3], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(epsset, oMeanEst[4], yerr = np.minimum(oMeanEstRange[4], np.sqrt(oMeanEst[4]), np.divide(oMeanEst[4], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(epsset, oMeanEst[5], yerr = np.minimum(oMeanEstRange[5], np.sqrt(oMeanEst[5]), np.divide(oMeanEst[5], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.legend(loc = "best")
-plt.yscale('log')
-plt.xlabel("Value of epsilon")
-plt.ylabel("Error of PRIEST-KLD")
-plt.savefig("Synth_eps_est_large_ord.png")
-plt.clf()
-
-# plot optimum lambda for each epsilon (small KLD, random +/-)
-plt.errorbar(epsset, rLdaOpt[0], yerr = np.minimum(rLdaOptRange[0], np.sqrt(rLdaOpt[0]), np.divide(rLdaOpt[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(epsset, rLdaOpt[1], yerr = np.minimum(rLdaOptRange[1], np.sqrt(rLdaOpt[1]), np.divide(rLdaOpt[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(epsset, rLdaOpt[2], yerr = np.minimum(rLdaOptRange[2], np.sqrt(rLdaOpt[2]), np.divide(rLdaOpt[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.legend(loc = 'best')
-plt.xlabel("Value of epsilon")
-plt.ylabel("Lambda to minimise error of PRIEST-KLD")
-plt.savefig("Synth_eps_lda_opt_small_rand.png")
-plt.clf()
-
-# plot optimum lambda for each epsilon (small KLD, ordered)
-plt.errorbar(epsset, oLdaOpt[0], yerr = np.minimum(oLdaOptRange[0], np.sqrt(oLdaOpt[0]), np.divide(oLdaOpt[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(epsset, oLdaOpt[1], yerr = np.minimum(oLdaOptRange[1], np.sqrt(oLdaOpt[1]), np.divide(oLdaOpt[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(epsset, oLdaOpt[2], yerr = np.minimum(oLdaOptRange[2], np.sqrt(oLdaOpt[2]), np.divide(oLdaOpt[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.legend(loc = 'best')
-plt.xlabel("Value of epsilon")
-plt.ylabel("Lambda to minimise error of PRIEST-KLD")
-plt.savefig("Synth_eps_lda_opt_small_ord.png")
-plt.clf()
-
-# plot optimum lambda for each epsilon (large KLD, random +/-)
-plt.errorbar(epsset, rLdaOpt[3], yerr = np.minimum(rLdaOptRange[3], np.sqrt(rLdaOpt[3]), np.divide(rLdaOpt[3], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(epsset, rLdaOpt[4], yerr = np.minimum(rLdaOptRange[4], np.sqrt(rLdaOpt[4]), np.divide(rLdaOpt[4], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(epsset, rLdaOpt[5], yerr = np.minimum(rLdaOptRange[5], np.sqrt(rLdaOpt[5]), np.divide(rLdaOpt[5], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.legend(loc = 'best')
-plt.xlabel("Value of epsilon")
-plt.ylabel("Lambda to minimise error of PRIEST-KLD")
-plt.savefig("Synth_eps_lda_opt_large_rand.png")
-plt.clf()
-
-# plot optimum lambda for each epsilon (large KLD, ordered)
-plt.errorbar(epsset, oLdaOpt[3], yerr = np.minimum(oLdaOptRange[3], np.sqrt(oLdaOpt[3]), np.divide(oLdaOpt[3], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(epsset, oLdaOpt[4], yerr = np.minimum(oLdaOptRange[4], np.sqrt(oLdaOpt[4]), np.divide(oLdaOpt[4], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(epsset, oLdaOpt[5], yerr = np.minimum(oLdaOptRange[5], np.sqrt(oLdaOpt[5]), np.divide(oLdaOpt[5], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.legend(loc = 'best')
-plt.xlabel("Value of epsilon")
-plt.ylabel("Lambda to minimise error of PRIEST-KLD")
-plt.savefig("Synth_eps_lda_opt_large_ord.png")
-plt.clf()
-
-# plot error oF PRIEST-KLD when lambda = 0 for each epsilon (small KLD, random +/-)
-plt.errorbar(epsset, rMeanEstZero[0], yerr = np.minimum(rMeanEstZeroRange[0], np.sqrt(rMeanEstZero[0]), np.divide(rMeanEstZero[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(epsset, rMeanEstZero[1], yerr = np.minimum(rMeanEstZeroRange[1], np.sqrt(rMeanEstZero[1]), np.divide(rMeanEstZero[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(epsset, rMeanEstZero[2], yerr = np.minimum(rMeanEstZeroRange[2], np.sqrt(rMeanEstZero[2]), np.divide(rMeanEstZero[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
+# plot error oF PRIEST-KLD when lambda = 0 for each epsilon (small KLD)
+plt.errorbar(epsset, meanEstZero[0], yerr = np.minimum(meanEstZeroRange[0], np.sqrt(meanEstZero[0]), np.divide(meanEstZero[0], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(epsset, meanEstZero[1], yerr = np.minimum(meanEstZeroRange[1], np.sqrt(meanEstZero[1]), np.divide(meanEstZero[1], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(epsset, meanEstZero[2], yerr = np.minimum(meanEstZeroRange[2], np.sqrt(meanEstZero[2]), np.divide(meanEstZero[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of epsilon")
 plt.ylabel("Error of PRIEST-KLD")
-plt.savefig("Synth_eps_est_small_rand_lda_zero.png")
+plt.savefig("Synth_eps_est_small_lda_zero.png")
 plt.clf()
 
-# plot error oF PRIEST-KLD when lambda = 0 for each epsilon (small KLD, ordered)
-plt.errorbar(epsset, oMeanEstZero[0], yerr = np.minimum(oMeanEstZeroRange[0], np.sqrt(oMeanEstZero[0]), np.divide(oMeanEstZero[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(epsset, oMeanEstZero[1], yerr = np.minimum(oMeanEstZeroRange[1], np.sqrt(oMeanEstZero[1]), np.divide(oMeanEstZero[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(epsset, oMeanEstZero[2], yerr = np.minimum(oMeanEstZeroRange[2], np.sqrt(oMeanEstZero[2]), np.divide(oMeanEstZero[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
+# plot error oF PRIEST-KLD when lambda = 0 for each epsilon (large KLD)
+plt.errorbar(epsset, meanEstZero[3], yerr = np.minimum(meanEstZeroRange[3], np.sqrt(meanEstZero[3]), np.divide(meanEstZero[3], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(epsset, meanEstZero[4], yerr = np.minimum(meanEstZeroRange[4], np.sqrt(meanEstZero[4]), np.divide(meanEstZero[4], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(epsset, meanEstZero[5], yerr = np.minimum(meanEstZeroRange[5], np.sqrt(meanEstZero[5]), np.divide(meanEstZero[5], 2)), color = 'orange', marker = 'o', label = "Trusted")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of epsilon")
 plt.ylabel("Error of PRIEST-KLD")
-plt.savefig("Synth_eps_est_small_ord_lda_zero.png")
+plt.savefig("Synth_eps_est_large_lda_zero.png")
 plt.clf()
 
-# plot error oF PRIEST-KLD when lambda = 0 for each epsilon (large KLD, random +/-)
-plt.errorbar(epsset, rMeanEstZero[3], yerr = np.minimum(rMeanEstZeroRange[3], np.sqrt(rMeanEstZero[3]), np.divide(rMeanEstZero[3], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(epsset, rMeanEstZero[4], yerr = np.minimum(rMeanEstZeroRange[4], np.sqrt(rMeanEstZero[4]), np.divide(rMeanEstZero[4], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(epsset, rMeanEstZero[5], yerr = np.minimum(rMeanEstZeroRange[5], np.sqrt(rMeanEstZero[5]), np.divide(rMeanEstZero[5], 2)), color = 'orange', marker = 'o', label = "Trusted")
+# plot error oF PRIEST-KLD when lambda = 1 for each epsilon (small KLD)
+plt.errorbar(epsset, meanEstOne[0], yerr = np.minimum(meanEstOneRange[0], np.sqrt(meanEstOne[0]), np.divide(meanEstOne[0], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(epsset, meanEstOne[1], yerr = np.minimum(meanEstOneRange[1], np.sqrt(meanEstOne[1]), np.divide(meanEstOne[1], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(epsset, meanEstOne[2], yerr = np.minimum(meanEstOneRange[2], np.sqrt(meanEstOne[2]), np.divide(meanEstOne[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of epsilon")
 plt.ylabel("Error of PRIEST-KLD")
-plt.savefig("Synth_eps_est_large_rand_lda_zero.png")
+plt.savefig("Synth_eps_est_small_lda_one.png")
 plt.clf()
 
-# plot error oF PRIEST-KLD when lambda = 0 for each epsilon (large KLD, ordered)
-plt.errorbar(epsset, oMeanEstZero[3], yerr = np.minimum(oMeanEstZeroRange[3], np.sqrt(oMeanEstZero[3]), np.divide(oMeanEstZero[3], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(epsset, oMeanEstZero[4], yerr = np.minimum(oMeanEstZeroRange[4], np.sqrt(oMeanEstZero[4]), np.divide(oMeanEstZero[4], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(epsset, oMeanEstZero[5], yerr = np.minimum(oMeanEstZeroRange[5], np.sqrt(oMeanEstZero[5]), np.divide(oMeanEstZero[5], 2)), color = 'orange', marker = 'o', label = "Trusted")
+# plot error oF PRIEST-KLD when lambda = 1 for each epsilon (large KLD)
+plt.errorbar(epsset, meanEstOne[3], yerr = np.minimum(meanEstOneRange[3], np.sqrt(meanEstOne[3]), np.divide(meanEstOne[3], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(epsset, meanEstOne[4], yerr = np.minimum(meanEstOneRange[4], np.sqrt(meanEstOne[4]), np.divide(meanEstOne[4], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(epsset, meanEstOne[5], yerr = np.minimum(meanEstOneRange[5], np.sqrt(meanEstOne[5]), np.divide(meanEstOne[5], 2)), color = 'orange', marker = 'o', label = "Trusted")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of epsilon")
 plt.ylabel("Error of PRIEST-KLD")
-plt.savefig("Synth_eps_est_large_ord_lda_zero.png")
+plt.savefig("Synth_eps_est_large_lda_one.png")
 plt.clf()
 
-# plot error oF PRIEST-KLD when lambda = 1 for each epsilon (small KLD, random +/-)
-plt.errorbar(epsset, rMeanEstOne[0], yerr = np.minimum(rMeanEstOneRange[0], np.sqrt(rMeanEstOne[0]), np.divide(rMeanEstOne[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(epsset, rMeanEstOne[1], yerr = np.minimum(rMeanEstOneRange[1], np.sqrt(rMeanEstOne[1]), np.divide(rMeanEstOne[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(epsset, rMeanEstOne[2], yerr = np.minimum(rMeanEstOneRange[2], np.sqrt(rMeanEstOne[2]), np.divide(rMeanEstOne[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.legend(loc = 'best')
-plt.yscale('log')
-plt.xlabel("Value of epsilon")
-plt.ylabel("Error of PRIEST-KLD")
-plt.savefig("Synth_eps_est_small_rand_lda_one.png")
-plt.clf()
-
-# plot error oF PRIEST-KLD when lambda = 1 for each epsilon (small KLD, ordered)
-plt.errorbar(epsset, oMeanEstOne[0], yerr = np.minimum(oMeanEstOneRange[0], np.sqrt(oMeanEstOne[0]), np.divide(oMeanEstOne[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(epsset, oMeanEstOne[1], yerr = np.minimum(oMeanEstOneRange[1], np.sqrt(oMeanEstOne[1]), np.divide(oMeanEstOne[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(epsset, oMeanEstOne[2], yerr = np.minimum(oMeanEstOneRange[2], np.sqrt(oMeanEstOne[2]), np.divide(oMeanEstOne[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.legend(loc = 'best')
-plt.yscale('log')
-plt.xlabel("Value of epsilon")
-plt.ylabel("Error of PRIEST-KLD")
-plt.savefig("Synth_eps_est_small_ord_lda_one.png")
-plt.clf()
-
-# plot error oF PRIEST-KLD when lambda = 1 for each epsilon (large KLD, random +/-)
-plt.errorbar(epsset, rMeanEstOne[3], yerr = np.minimum(rMeanEstOneRange[3], np.sqrt(rMeanEstOne[3]), np.divide(rMeanEstOne[3], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(epsset, rMeanEstOne[4], yerr = np.minimum(rMeanEstOneRange[4], np.sqrt(rMeanEstOne[4]), np.divide(rMeanEstOne[4], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(epsset, rMeanEstOne[5], yerr = np.minimum(rMeanEstOneRange[5], np.sqrt(rMeanEstOne[5]), np.divide(rMeanEstOne[5], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.legend(loc = 'best')
-plt.yscale('log')
-plt.xlabel("Value of epsilon")
-plt.ylabel("Error of PRIEST-KLD")
-plt.savefig("Synth_eps_est_large_rand_lda_one.png")
-plt.clf()
-
-# plot error oF PRIEST-KLD when lambda = 1 for each epsilon (large KLD, ordered)
-plt.errorbar(epsset, oMeanEstOne[3], yerr = np.minimum(oMeanEstOneRange[3], np.sqrt(oMeanEstOne[3]), np.divide(oMeanEstOne[3], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(epsset, oMeanEstOne[4], yerr = np.minimum(oMeanEstOneRange[4], np.sqrt(oMeanEstOne[4]), np.divide(oMeanEstOne[4], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(epsset, oMeanEstOne[5], yerr = np.minimum(oMeanEstOneRange[5], np.sqrt(oMeanEstOne[5]), np.divide(oMeanEstOne[5], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.legend(loc = 'best')
-plt.yscale('log')
-plt.xlabel("Value of epsilon")
-plt.ylabel("Error of PRIEST-KLD")
-plt.savefig("Synth_eps_est_large_ord_lda_one.png")
-plt.clf()
-
-# plot error of PRIEST-KLD when epsilon = 0.05 (small KLD, random +/-)
-plt.errorbar(ldaset, rMeanEpsSmall[0], yerr = np.minimum(rMeanEpsSmallRange[0], np.sqrt(rMeanEpsSmall[0]), np.divide(rMeanEpsSmall[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(ldaset, rMeanEpsSmall[1], yerr = np.minimum(rMeanEpsSmallRange[1], np.sqrt(rMeanEpsSmall[1]), np.divide(rMeanEpsSmall[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(ldaset, rMeanEpsSmall[2], yerr = np.minimum(rMeanEpsSmallRange[2], np.sqrt(rMeanEpsSmall[2]), np.divide(rMeanEpsSmall[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.errorbar(ldaset, rMeanEpsSmall[6], yerr = np.minimum(rMeanEpsSmallRange[6], np.sqrt(rMeanEpsSmall[6]), np.divide(rMeanEpsSmall[6], 2)), color = 'red', marker = '*', label = "no privacy")
+# plot error of PRIEST-KLD when epsilon = 0.05 (small KLD)
+plt.errorbar(ldaset, meanEpsSmall[0], yerr = np.minimum(meanEpsSmallRange[0], np.sqrt(meanEpsSmall[0]), np.divide(meanEpsSmall[0], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(ldaset, meanEpsSmall[1], yerr = np.minimum(meanEpsSmallRange[1], np.sqrt(meanEpsSmall[1]), np.divide(meanEpsSmall[1], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(ldaset, meanEpsSmall[2], yerr = np.minimum(meanEpsSmallRange[2], np.sqrt(meanEpsSmall[2]), np.divide(meanEpsSmall[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(ldaset, meanEpsSmall[6], yerr = np.minimum(meanEpsSmallRange[6], np.sqrt(meanEpsSmall[6]), np.divide(meanEpsSmall[6], 2)), color = 'red', marker = '*', label = "no privacy")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
 plt.ylabel("Error of PRIEST-KLD")
-plt.savefig("Synth_eps_est_small_rand_eps_small.png")
+plt.savefig("Synth_eps_est_small_eps_small.png")
 plt.clf()
 
-# plot error of PRIEST-KLD when epsilon = 0.05 (small KLD, ordered)
-plt.errorbar(ldaset, oMeanEpsSmall[0], yerr = np.minimum(oMeanEpsSmallRange[0], np.sqrt(oMeanEpsSmall[0]), np.divide(oMeanEpsSmall[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(ldaset, oMeanEpsSmall[1], yerr = np.minimum(oMeanEpsSmallRange[1], np.sqrt(oMeanEpsSmall[1]), np.divide(oMeanEpsSmall[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(ldaset, oMeanEpsSmall[2], yerr = np.minimum(oMeanEpsSmallRange[2], np.sqrt(oMeanEpsSmall[2]), np.divide(oMeanEpsSmall[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.errorbar(ldaset, oMeanEpsSmall[6], yerr = np.minimum(oMeanEpsSmallRange[6], np.sqrt(oMeanEpsSmall[6]), np.divide(oMeanEpsSmall[6], 2)), color = 'red', marker = '*', label = "no privacy")
+# plot error of PRIEST-KLD when epsilon = 0.05 (large KLD)
+plt.errorbar(ldaset, meanEpsSmall[3], yerr = np.minimum(meanEpsSmallRange[3], np.sqrt(meanEpsSmall[3]), np.divide(meanEpsSmall[3], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(ldaset, meanEpsSmall[4], yerr = np.minimum(meanEpsSmallRange[4], np.sqrt(meanEpsSmall[4]), np.divide(meanEpsSmall[4], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(ldaset, meanEpsSmall[5], yerr = np.minimum(meanEpsSmallRange[5], np.sqrt(meanEpsSmall[5]), np.divide(meanEpsSmall[5], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(ldaset, meanEpsSmall[7], yerr = np.minimum(meanEpsSmallRange[7], np.sqrt(meanEpsSmall[7]), np.divide(meanEpsSmall[7], 2)), color = 'red', marker = '*', label = "no privacy")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
 plt.ylabel("Error of PRIEST-KLD")
-plt.savefig("Synth_eps_est_small_ord_eps_small.png")
+plt.savefig("Synth_eps_est_large_eps_small.png")
 plt.clf()
 
-# plot error of PRIEST-KLD when epsilon = 0.05 (large KLD, random +/-)
-plt.errorbar(ldaset, rMeanEpsSmall[3], yerr = np.minimum(rMeanEpsSmallRange[3], np.sqrt(rMeanEpsSmall[3]), np.divide(rMeanEpsSmall[3], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(ldaset, rMeanEpsSmall[4], yerr = np.minimum(rMeanEpsSmallRange[4], np.sqrt(rMeanEpsSmall[4]), np.divide(rMeanEpsSmall[4], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(ldaset, rMeanEpsSmall[5], yerr = np.minimum(rMeanEpsSmallRange[5], np.sqrt(rMeanEpsSmall[5]), np.divide(rMeanEpsSmall[5], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.errorbar(ldaset, rMeanEpsSmall[7], yerr = np.minimum(rMeanEpsSmallRange[7], np.sqrt(rMeanEpsSmall[7]), np.divide(rMeanEpsSmall[7], 2)), color = 'red', marker = '*', label = "no privacy")
+# plot error of PRIEST-KLD when epsilon = 0.5 (small KLD)
+plt.errorbar(ldaset, meanEpsDef[0], yerr = np.minimum(meanEpsDefRange[0], np.sqrt(meanEpsDef[0]), np.divide(meanEpsDef[0], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(ldaset, meanEpsDef[1], yerr = np.minimum(meanEpsDefRange[1], np.sqrt(meanEpsDef[1]), np.divide(meanEpsDef[1], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(ldaset, meanEpsDef[2], yerr = np.minimum(meanEpsDefRange[2], np.sqrt(meanEpsDef[2]), np.divide(meanEpsDef[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(ldaset, meanEpsDef[6], yerr = np.minimum(meanEpsDefRange[6], np.sqrt(meanEpsDef[6]), np.divide(meanEpsDef[6], 2)), color = 'red', marker = '*', label = "no privacy")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
 plt.ylabel("Error of PRIEST-KLD")
-plt.savefig("Synth_eps_est_large_rand_eps_small.png")
+plt.savefig("Synth_eps_est_small_eps_def.png")
 plt.clf()
 
-# plot error of PRIEST-KLD when epsilon = 0.05 (large KLD, ordered)
-plt.errorbar(ldaset, oMeanEpsSmall[3], yerr = np.minimum(oMeanEpsSmallRange[3], np.sqrt(oMeanEpsSmall[3]), np.divide(oMeanEpsSmall[3], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(ldaset, oMeanEpsSmall[4], yerr = np.minimum(oMeanEpsSmallRange[4], np.sqrt(oMeanEpsSmall[4]), np.divide(oMeanEpsSmall[4], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(ldaset, oMeanEpsSmall[5], yerr = np.minimum(oMeanEpsSmallRange[5], np.sqrt(oMeanEpsSmall[5]), np.divide(oMeanEpsSmall[5], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.errorbar(ldaset, oMeanEpsSmall[7], yerr = np.minimum(oMeanEpsSmallRange[7], np.sqrt(oMeanEpsSmall[7]), np.divide(oMeanEpsSmall[7], 2)), color = 'red', marker = '*', label = "no privacy")
+# plot error of PRIEST-KLD when epsilon = 0.5 (large KLD)
+plt.errorbar(ldaset, meanEpsDef[3], yerr = np.minimum(meanEpsDefRange[3], np.sqrt(meanEpsDef[3]), np.divide(meanEpsDef[3], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(ldaset, meanEpsDef[4], yerr = np.minimum(meanEpsDefRange[4], np.sqrt(meanEpsDef[4]), np.divide(meanEpsDef[4], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(ldaset, meanEpsDef[5], yerr = np.minimum(meanEpsDefRange[5], np.sqrt(meanEpsDef[5]), np.divide(meanEpsDef[5], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(ldaset, meanEpsDef[7], yerr = np.minimum(meanEpsDefRange[7], np.sqrt(meanEpsDef[7]), np.divide(meanEpsDef[7], 2)), color = 'red', marker = '*', label = "no privacy")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
 plt.ylabel("Error of PRIEST-KLD")
-plt.savefig("Synth_eps_est_large_ord_eps_small.png")
+plt.savefig("Synth_eps_est_large_eps_def.png")
 plt.clf()
 
-# plot error of PRIEST-KLD when epsilon = 0.5 (small KLD, random +/-)
-plt.errorbar(ldaset, rMeanEpsDef[0], yerr = np.minimum(rMeanEpsDefRange[0], np.sqrt(rMeanEpsDef[0]), np.divide(rMeanEpsDef[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(ldaset, rMeanEpsDef[1], yerr = np.minimum(rMeanEpsDefRange[1], np.sqrt(rMeanEpsDef[1]), np.divide(rMeanEpsDef[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(ldaset, rMeanEpsDef[2], yerr = np.minimum(rMeanEpsDefRange[2], np.sqrt(rMeanEpsDef[2]), np.divide(rMeanEpsDef[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.errorbar(ldaset, rMeanEpsDef[6], yerr = np.minimum(rMeanEpsDefRange[6], np.sqrt(rMeanEpsDef[6]), np.divide(rMeanEpsDef[6], 2)), color = 'red', marker = '*', label = "no privacy")
+# plot error of PRIEST-KLD when epsilon = 1.5 (small KLD)
+plt.errorbar(ldaset, meanEpsMid[0], yerr = np.minimum(meanEpsMidRange[0], np.sqrt(meanEpsMid[0]), np.divide(meanEpsMid[0], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(ldaset, meanEpsMid[1], yerr = np.minimum(meanEpsMidRange[1], np.sqrt(meanEpsMid[1]), np.divide(meanEpsMid[1], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(ldaset, meanEpsMid[2], yerr = np.minimum(meanEpsMidRange[2], np.sqrt(meanEpsMid[2]), np.divide(meanEpsMid[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(ldaset, meanEpsMid[6], yerr = np.minimum(meanEpsMidRange[6], np.sqrt(meanEpsMid[6]), np.divide(meanEpsMid[6], 2)), color = 'red', marker = '*', label = "no privacy")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
 plt.ylabel("Error of PRIEST-KLD")
-plt.savefig("Synth_eps_est_small_rand_eps_def.png")
+plt.savefig("Synth_eps_est_small_eps_mid.png")
 plt.clf()
 
-# plot error of PRIEST-KLD when epsilon = 0.5 (small KLD, ordered)
-plt.errorbar(ldaset, oMeanEpsDef[0], yerr = np.minimum(oMeanEpsDefRange[0], np.sqrt(oMeanEpsDef[0]), np.divide(oMeanEpsDef[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(ldaset, oMeanEpsDef[1], yerr = np.minimum(oMeanEpsDefRange[1], np.sqrt(oMeanEpsDef[1]), np.divide(oMeanEpsDef[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(ldaset, oMeanEpsDef[2], yerr = np.minimum(oMeanEpsDefRange[2], np.sqrt(oMeanEpsDef[2]), np.divide(oMeanEpsDef[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.errorbar(ldaset, oMeanEpsDef[6], yerr = np.minimum(oMeanEpsDefRange[6], np.sqrt(oMeanEpsDef[6]), np.divide(oMeanEpsDef[6], 2)), color = 'red', marker = '*', label = "no privacy")
+# plot error of PRIEST-KLD when epsilon = 1.5 (large KLD)
+plt.errorbar(ldaset, meanEpsMid[3], yerr = np.minimum(meanEpsMidRange[3], np.sqrt(meanEpsMid[3]), np.divide(meanEpsMid[3], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(ldaset, meanEpsMid[4], yerr = np.minimum(meanEpsMidRange[4], np.sqrt(meanEpsMid[4]), np.divide(meanEpsMid[4], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(ldaset, meanEpsMid[5], yerr = np.minimum(meanEpsMidRange[5], np.sqrt(meanEpsMid[5]), np.divide(meanEpsMid[5], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(ldaset, meanEpsMid[7], yerr = np.minimum(meanEpsMidRange[7], np.sqrt(meanEpsMid[7]), np.divide(meanEpsMid[7], 2)), color = 'red', marker = '*', label = "no privacy")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
 plt.ylabel("Error of PRIEST-KLD")
-plt.savefig("Synth_eps_est_small_ord_eps_def.png")
+plt.savefig("Synth_eps_est_large_eps_mid.png")
 plt.clf()
 
-# plot error of PRIEST-KLD when epsilon = 0.5 (large KLD, random +/-)
-plt.errorbar(ldaset, rMeanEpsDef[3], yerr = np.minimum(rMeanEpsDefRange[3], np.sqrt(rMeanEpsDef[3]), np.divide(rMeanEpsDef[3], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(ldaset, rMeanEpsDef[4], yerr = np.minimum(rMeanEpsDefRange[4], np.sqrt(rMeanEpsDef[4]), np.divide(rMeanEpsDef[4], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(ldaset, rMeanEpsDef[5], yerr = np.minimum(rMeanEpsDefRange[5], np.sqrt(rMeanEpsDef[5]), np.divide(rMeanEpsDef[5], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.errorbar(ldaset, rMeanEpsDef[7], yerr = np.minimum(rMeanEpsDefRange[7], np.sqrt(rMeanEpsDef[7]), np.divide(rMeanEpsDef[7], 2)), color = 'red', marker = '*', label = "no privacy")
+# plot error of PRIEST-KLD when epsilon = 3 (small KLD)
+plt.errorbar(ldaset, meanEpsLarge[0], yerr = np.minimum(meanEpsLargeRange[0], np.sqrt(meanEpsLarge[0]), np.divide(meanEpsLarge[0], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(ldaset, meanEpsLarge[1], yerr = np.minimum(meanEpsLargeRange[1], np.sqrt(meanEpsLarge[1]), np.divide(meanEpsLarge[1], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(ldaset, meanEpsLarge[2], yerr = np.minimum(meanEpsLargeRange[2], np.sqrt(meanEpsLarge[2]), np.divide(meanEpsLarge[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(ldaset, meanEpsLarge[6], yerr = np.minimum(meanEpsLargeRange[6], np.sqrt(meanEpsLarge[6]), np.divide(meanEpsLarge[6], 2)), color = 'red', marker = '*', label = "no privacy")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
 plt.ylabel("Error of PRIEST-KLD")
-plt.savefig("Synth_eps_est_large_rand_eps_def.png")
+plt.savefig("Synth_eps_est_small_eps_large.png")
 plt.clf()
 
-# plot error of PRIEST-KLD when epsilon = 0.5 (large KLD, ordered)
-plt.errorbar(ldaset, oMeanEpsDef[3], yerr = np.minimum(oMeanEpsDefRange[3], np.sqrt(oMeanEpsDef[3]), np.divide(oMeanEpsDef[3], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(ldaset, oMeanEpsDef[4], yerr = np.minimum(oMeanEpsDefRange[4], np.sqrt(oMeanEpsDef[4]), np.divide(oMeanEpsDef[4], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(ldaset, oMeanEpsDef[5], yerr = np.minimum(oMeanEpsDefRange[5], np.sqrt(oMeanEpsDef[5]), np.divide(oMeanEpsDef[5], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.errorbar(ldaset, oMeanEpsDef[7], yerr = np.minimum(oMeanEpsDefRange[7], np.sqrt(oMeanEpsDef[7]), np.divide(oMeanEpsDef[7], 2)), color = 'red', marker = '*', label = "no privacy")
+# plot error of PRIEST-KLD when epsilon = 3 (large KLD)
+plt.errorbar(ldaset, meanEpsLarge[3], yerr = np.minimum(meanEpsLargeRange[3], np.sqrt(meanEpsLarge[3]), np.divide(meanEpsLarge[3], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(ldaset, meanEpsLarge[4], yerr = np.minimum(meanEpsLargeRange[4], np.sqrt(meanEpsLarge[4]), np.divide(meanEpsLarge[4], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(ldaset, meanEpsLarge[5], yerr = np.minimum(meanEpsLargeRange[5], np.sqrt(meanEpsLarge[5]), np.divide(meanEpsLarge[5], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(ldaset, meanEpsLarge[7], yerr = np.minimum(meanEpsLargeRange[7], np.sqrt(meanEpsLarge[7]), np.divide(meanEpsLarge[7], 2)), color = 'red', marker = '*', label = "no privacy")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
 plt.ylabel("Error of PRIEST-KLD")
-plt.savefig("Synth_eps_est_large_ord_eps_def.png")
+plt.savefig("Synth_eps_est_large_eps_large.png")
 plt.clf()
 
-# plot error of PRIEST-KLD when epsilon = 1.5 (small KLD, random +/-)
-plt.errorbar(ldaset, rMeanEpsMid[0], yerr = np.minimum(rMeanEpsMidRange[0], np.sqrt(rMeanEpsMid[0]), np.divide(rMeanEpsMid[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(ldaset, rMeanEpsMid[1], yerr = np.minimum(rMeanEpsMidRange[1], np.sqrt(rMeanEpsMid[1]), np.divide(rMeanEpsMid[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(ldaset, rMeanEpsMid[2], yerr = np.minimum(rMeanEpsMidRange[2], np.sqrt(rMeanEpsMid[2]), np.divide(rMeanEpsMid[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.errorbar(ldaset, rMeanEpsMid[6], yerr = np.minimum(rMeanEpsMidRange[6], np.sqrt(rMeanEpsMid[6]), np.divide(rMeanEpsMid[6], 2)), color = 'red', marker = '*', label = "no privacy")
-plt.legend(loc = 'best')
-plt.yscale('log')
-plt.xlabel("Value of lambda")
-plt.ylabel("Error of PRIEST-KLD")
-plt.savefig("Synth_eps_est_small_rand_eps_mid.png")
-plt.clf()
-
-# plot error of PRIEST-KLD when epsilon = 1.5 (small KLD, ordered)
-plt.errorbar(ldaset, oMeanEpsMid[0], yerr = np.minimum(oMeanEpsMidRange[0], np.sqrt(oMeanEpsMid[0]), np.divide(oMeanEpsMid[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(ldaset, oMeanEpsMid[1], yerr = np.minimum(oMeanEpsMidRange[1], np.sqrt(oMeanEpsMid[1]), np.divide(oMeanEpsMid[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(ldaset, oMeanEpsMid[2], yerr = np.minimum(oMeanEpsMidRange[2], np.sqrt(oMeanEpsMid[2]), np.divide(oMeanEpsMid[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.errorbar(ldaset, oMeanEpsMid[6], yerr = np.minimum(oMeanEpsMidRange[6], np.sqrt(oMeanEpsMid[6]), np.divide(oMeanEpsMid[6], 2)), color = 'red', marker = '*', label = "no privacy")
-plt.legend(loc = 'best')
-plt.yscale('log')
-plt.xlabel("Value of lambda")
-plt.ylabel("Error of PRIEST-KLD")
-plt.savefig("Synth_eps_est_small_ord_eps_mid.png")
-plt.clf()
-
-# plot error of PRIEST-KLD when epsilon = 1.5 (large KLD, random +/-)
-plt.errorbar(ldaset, rMeanEpsMid[3], yerr = np.minimum(rMeanEpsMidRange[3], np.sqrt(rMeanEpsMid[3]), np.divide(rMeanEpsMid[3], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(ldaset, rMeanEpsMid[4], yerr = np.minimum(rMeanEpsMidRange[4], np.sqrt(rMeanEpsMid[4]), np.divide(rMeanEpsMid[4], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(ldaset, rMeanEpsMid[5], yerr = np.minimum(rMeanEpsMidRange[5], np.sqrt(rMeanEpsMid[5]), np.divide(rMeanEpsMid[5], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.errorbar(ldaset, rMeanEpsMid[7], yerr = np.minimum(rMeanEpsMidRange[7], np.sqrt(rMeanEpsMid[7]), np.divide(rMeanEpsMid[7], 2)), color = 'red', marker = '*', label = "no privacy")
-plt.legend(loc = 'best')
-plt.yscale('log')
-plt.xlabel("Value of lambda")
-plt.ylabel("Error of PRIEST-KLD")
-plt.savefig("Synth_eps_est_large_rand_eps_mid.png")
-plt.clf()
-
-# plot error of PRIEST-KLD when epsilon = 1.5 (large KLD, ordered)
-plt.errorbar(ldaset, oMeanEpsMid[3], yerr = np.minimum(oMeanEpsMidRange[3], np.sqrt(oMeanEpsMid[3]), np.divide(oMeanEpsMid[3], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(ldaset, oMeanEpsMid[4], yerr = np.minimum(oMeanEpsMidRange[4], np.sqrt(oMeanEpsMid[4]), np.divide(oMeanEpsMid[4], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(ldaset, oMeanEpsMid[5], yerr = np.minimum(oMeanEpsMidRange[5], np.sqrt(oMeanEpsMid[5]), np.divide(oMeanEpsMid[5], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.errorbar(ldaset, oMeanEpsMid[7], yerr = np.minimum(oMeanEpsMidRange[7], np.sqrt(oMeanEpsMid[7]), np.divide(oMeanEpsMid[7], 2)), color = 'red', marker = '*', label = "no privacy")
-plt.legend(loc = 'best')
-plt.yscale('log')
-plt.xlabel("Value of lambda")
-plt.ylabel("Error of PRIEST-KLD")
-plt.savefig("Synth_eps_est_large_ord_eps_mid.png")
-plt.clf()
-
-# plot error of PRIEST-KLD when epsilon = 3 (small KLD, random +/-)
-plt.errorbar(ldaset, rMeanEpsLarge[0], yerr = np.minimum(rMeanEpsLargeRange[0], np.sqrt(rMeanEpsLarge[0]), np.divide(rMeanEpsLarge[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(ldaset, rMeanEpsLarge[1], yerr = np.minimum(rMeanEpsLargeRange[1], np.sqrt(rMeanEpsLarge[1]), np.divide(rMeanEpsLarge[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(ldaset, rMeanEpsLarge[2], yerr = np.minimum(rMeanEpsLargeRange[2], np.sqrt(rMeanEpsLarge[2]), np.divide(rMeanEpsLarge[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.errorbar(ldaset, rMeanEpsLarge[6], yerr = np.minimum(rMeanEpsLargeRange[6], np.sqrt(rMeanEpsLarge[6]), np.divide(rMeanEpsLarge[6], 2)), color = 'red', marker = '*', label = "no privacy")
-plt.legend(loc = 'best')
-plt.yscale('log')
-plt.xlabel("Value of lambda")
-plt.ylabel("Error of PRIEST-KLD")
-plt.savefig("Synth_eps_est_small_rand_eps_large.png")
-plt.clf()
-
-# plot error of PRIEST-KLD when epsilon = 3 (small KLD, ordered)
-plt.errorbar(ldaset, oMeanEpsLarge[0], yerr = np.minimum(oMeanEpsLargeRange[0], np.sqrt(oMeanEpsLarge[0]), np.divide(oMeanEpsLarge[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(ldaset, oMeanEpsLarge[1], yerr = np.minimum(oMeanEpsLargeRange[1], np.sqrt(oMeanEpsLarge[1]), np.divide(oMeanEpsLarge[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(ldaset, oMeanEpsLarge[2], yerr = np.minimum(oMeanEpsLargeRange[2], np.sqrt(oMeanEpsLarge[2]), np.divide(oMeanEpsLarge[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.errorbar(ldaset, oMeanEpsLarge[6], yerr = np.minimum(oMeanEpsLargeRange[6], np.sqrt(oMeanEpsLarge[6]), np.divide(oMeanEpsLarge[6], 2)), color = 'red', marker = '*', label = "no privacy")
-plt.legend(loc = 'best')
-plt.yscale('log')
-plt.xlabel("Value of lambda")
-plt.ylabel("Error of PRIEST-KLD")
-plt.savefig("Synth_eps_est_small_ord_eps_large.png")
-plt.clf()
-
-# plot error of PRIEST-KLD when epsilon = 3 (large KLD, random +/-)
-plt.errorbar(ldaset, rMeanEpsLarge[3], yerr = np.minimum(rMeanEpsLargeRange[3], np.sqrt(rMeanEpsLarge[3]), np.divide(rMeanEpsLarge[3], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(ldaset, rMeanEpsLarge[4], yerr = np.minimum(rMeanEpsLargeRange[4], np.sqrt(rMeanEpsLarge[4]), np.divide(rMeanEpsLarge[4], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(ldaset, rMeanEpsLarge[5], yerr = np.minimum(rMeanEpsLargeRange[5], np.sqrt(rMeanEpsLarge[5]), np.divide(rMeanEpsLarge[5], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.errorbar(ldaset, rMeanEpsLarge[7], yerr = np.minimum(rMeanEpsLargeRange[7], np.sqrt(rMeanEpsLarge[7]), np.divide(rMeanEpsLarge[7], 2)), color = 'red', marker = '*', label = "no privacy")
-plt.legend(loc = 'best')
-plt.yscale('log')
-plt.xlabel("Value of lambda")
-plt.ylabel("Error of PRIEST-KLD")
-plt.savefig("Synth_eps_est_large_rand_eps_large.png")
-plt.clf()
-
-# plot error of PRIEST-KLD when epsilon = 3 (large KLD, ordered)
-plt.errorbar(ldaset, oMeanEpsLarge[3], yerr = np.minimum(oMeanEpsLargeRange[3], np.sqrt(oMeanEpsLarge[3]), np.divide(oMeanEpsLarge[3], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(ldaset, oMeanEpsLarge[4], yerr = np.minimum(oMeanEpsLargeRange[4], np.sqrt(oMeanEpsLarge[4]), np.divide(oMeanEpsLarge[4], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(ldaset, oMeanEpsLarge[5], yerr = np.minimum(oMeanEpsLargeRange[5], np.sqrt(oMeanEpsLarge[5]), np.divide(oMeanEpsLarge[5], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.errorbar(ldaset, oMeanEpsLarge[7], yerr = np.minimum(oMeanEpsLargeRange[7], np.sqrt(oMeanEpsLarge[7]), np.divide(oMeanEpsLarge[7], 2)), color = 'red', marker = '*', label = "no privacy")
-plt.legend(loc = 'best')
-plt.yscale('log')
-plt.xlabel("Value of lambda")
-plt.ylabel("Error of PRIEST-KLD")
-plt.savefig("Synth_eps_est_large_ord_eps_large.png")
-plt.clf()
-
-# plot % of noise vs ground truth for each epsilon (small KLD, random +/-)
-plt.errorbar(epsset, rMeanPerc[0], yerr = np.minimum(rMeanPercRange[0], np.sqrt(rMeanPerc[0]), np.divide(rMeanPerc[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(epsset, rMeanPerc[1], yerr = np.minimum(rMeanPercRange[1], np.sqrt(rMeanPerc[1]), np.divide(rMeanPerc[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(epsset, rMeanPerc[2], yerr = np.minimum(rMeanPercRange[2], np.sqrt(rMeanPerc[2]), np.divide(rMeanPerc[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
+# plot % of noise vs ground truth for each epsilon (small KLD)
+plt.errorbar(epsset, meanPerc[0], yerr = np.minimum(meanPercRange[0], np.sqrt(meanPerc[0]), np.divide(meanPerc[0], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(epsset, meanPerc[1], yerr = np.minimum(meanPercRange[1], np.sqrt(meanPerc[1]), np.divide(meanPerc[1], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(epsset, meanPerc[2], yerr = np.minimum(meanPercRange[2], np.sqrt(meanPerc[2]), np.divide(meanPerc[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.gca().yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
 plt.xlabel("Value of epsilon")
 plt.ylabel("Noise (%)")
-plt.savefig("Synth_eps_perc_small_rand.png")
+plt.savefig("Synth_eps_perc_small.png")
 plt.clf()
 
-# plot % of noise vs ground truth for each epsilon (small KLD, ordered)
-plt.errorbar(epsset, oMeanPerc[0], yerr = np.minimum(oMeanPercRange[0], np.sqrt(rMeanPerc[0]), np.divide(rMeanPerc[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(epsset, oMeanPerc[1], yerr = np.minimum(oMeanPercRange[1], np.sqrt(rMeanPerc[1]), np.divide(rMeanPerc[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(epsset, oMeanPerc[2], yerr = np.minimum(oMeanPercRange[2], np.sqrt(rMeanPerc[2]), np.divide(rMeanPerc[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
+# plot % of noise vs ground truth for each epsilon (large KLD)
+plt.errorbar(epsset, meanPerc[3], yerr = np.minimum(meanPercRange[3], np.sqrt(meanPerc[3]), np.divide(meanPerc[3], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(epsset, meanPerc[4], yerr = np.minimum(meanPercRange[4], np.sqrt(meanPerc[4]), np.divide(meanPerc[4], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(epsset, meanPerc[5], yerr = np.minimum(meanPercRange[5], np.sqrt(meanPerc[5]), np.divide(meanPerc[5], 2)), color = 'orange', marker = 'o', label = "Trusted")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.gca().yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
 plt.xlabel("Value of epsilon")
 plt.ylabel("Noise (%)")
-plt.savefig("Synth_eps_perc_small_ord.png")
-plt.clf()
-
-# plot % of noise vs ground truth for each epsilon (large KLD, random +/-)
-plt.errorbar(epsset, rMeanPerc[3], yerr = np.minimum(rMeanPercRange[3], np.sqrt(rMeanPerc[3]), np.divide(rMeanPerc[3], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(epsset, rMeanPerc[4], yerr = np.minimum(rMeanPercRange[4], np.sqrt(rMeanPerc[4]), np.divide(rMeanPerc[4], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(epsset, rMeanPerc[5], yerr = np.minimum(rMeanPercRange[5], np.sqrt(rMeanPerc[5]), np.divide(rMeanPerc[5], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.legend(loc = 'best')
-plt.yscale('log')
-plt.gca().yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
-plt.xlabel("Value of epsilon")
-plt.ylabel("Noise (%)")
-plt.savefig("Synth_eps_perc_large_rand.png")
-plt.clf()
-
-# plot % of noise vs ground truth for each epsilon (large KLD, ordered)
-plt.errorbar(epsset, oMeanPerc[3], yerr = np.minimum(oMeanPercRange[3], np.sqrt(rMeanPerc[3]), np.divide(rMeanPerc[3], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(epsset, oMeanPerc[4], yerr = np.minimum(oMeanPercRange[4], np.sqrt(rMeanPerc[4]), np.divide(rMeanPerc[4], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(epsset, oMeanPerc[5], yerr = np.minimum(oMeanPercRange[5], np.sqrt(rMeanPerc[5]), np.divide(rMeanPerc[5], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.legend(loc = 'best')
-plt.yscale('log')
-plt.gca().yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
-plt.xlabel("Value of epsilon")
-plt.ylabel("Noise (%)")
-plt.savefig("Synth_eps_perc_large_ord.png")
+plt.savefig("Synth_eps_perc_large.png")
 plt.clf()
 
 # compute total runtime
