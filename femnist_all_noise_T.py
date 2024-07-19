@@ -488,7 +488,7 @@ for trial in range(4):
             maxInvLdaNoise = np.zeros(LS)
 
             # compute mean error of PRIEST-KLD for each lambda
-            for l in range(0, LS):
+            for l in range(LS):
                 meanLda[l] = np.mean(uEst[l])
                 meanInvLda[l] = np.mean(nEst[l])
 
@@ -704,7 +704,7 @@ for trial in range(4):
 
         # compute mean of repeats
         meanValue[trial, T_FREQ] = np.mean(tempMeanValue)
-        meanEstVar[trial, T_FREQ] = np.mean(tempMeanEst)
+        meanEstVar[trial, T_FREQ] = np.mean(tempMeanEstVar)
         meanLdaOpt[trial, T_FREQ] = np.mean(tempMeanLdaOpt)
         meanEstZero[trial, T_FREQ] = np.mean(tempMeanEstZero)
         meanEstOne[trial, T_FREQ] = np.mean(tempMeanEstOne)
@@ -723,7 +723,7 @@ for trial in range(4):
                 meanTLarge[trial, l] = np.mean(tempMeanTLarge[l])
 
         minValue[trial, T_FREQ] = np.mean(tempMinValue)
-        minEstVar[trial, T_FREQ] = np.mean(tempMinEst)
+        minEstVar[trial, T_FREQ] = np.mean(tempMinEstVar)
         minLdaOpt[trial, T_FREQ] = np.mean(tempMinLdaOpt)
         minEstZero[trial, T_FREQ] = np.mean(tempMinEstZero)
         minEstOne[trial, T_FREQ] = np.mean(tempMeanEstOne)
@@ -742,7 +742,7 @@ for trial in range(4):
                 minTLarge[trial, l] = np.mean(tempMinTLarge[l])
 
         maxValue[trial, T_FREQ] = np.mean(tempMaxValue)
-        maxEstVar[trial, T_FREQ] = np.mean(tempMaxEst)
+        maxEstVar[trial, T_FREQ] = np.mean(tempMaxEstVar)
         maxLdaOpt[trial, T_FREQ] = np.mean(tempMaxLdaOpt)
         maxEstZero[trial, T_FREQ] = np.mean(tempMaxEstZero)
         maxEstOne[trial, T_FREQ] = np.mean(tempMaxEstOne)
@@ -761,7 +761,7 @@ for trial in range(4):
                 maxTLarge[trial, l] = np.mean(tempMaxTLarge[l])
 
         # compute standard deviation of repeats
-        meanEstRange[trial, T_FREQ] = np.std(tempMeanEst)
+        meanEstRange[trial, T_FREQ] = np.std(tempMeanEstVar)
         meanLdaOptRange[trial, T_FREQ] = np.std(tempMeanLdaOpt)
         meanEstZeroRange[trial, T_FREQ] = np.std(tempMeanEstZero)
         meanEstOneRange[trial, T_FREQ] = np.std(tempMeanEstOne)
@@ -777,7 +777,7 @@ for trial in range(4):
             if T_FREQ == LARGE_INDEX:
                 meanTLargeRange[trial, l] = np.std(tempMeanTLarge[l])
 
-        minEstRange[trial, T_FREQ] = np.std(tempMinEst)
+        minEstRange[trial, T_FREQ] = np.std(tempMinEstVar)
         minLdaOptRange[trial, T_FREQ] = np.std(tempMinLdaOpt)
         minEstZeroRange[trial, T_FREQ] = np.std(tempMinEstZero)
         minEstOneRange[trial, T_FREQ] = np.std(tempMinEstOne)
@@ -793,7 +793,7 @@ for trial in range(4):
             if T_FREQ == LARGE_INDEX:
                 minTLargeRange[trial, l] = np.std(tempMinTLarge[l])
 
-        maxEstRange[trial, T_FREQ] = np.std(tempMaxEst)
+        maxEstRange[trial, T_FREQ] = np.std(tempMaxEstVar)
         maxLdaOptRange[trial, T_FREQ] = np.std(tempMaxLdaOpt)
         maxEstZeroRange[trial, T_FREQ] = np.std(tempMaxEstZero)
         maxEstOneRange[trial, T_FREQ] = np.std(tempMaxEstOne)
@@ -816,27 +816,30 @@ for trial in range(4):
         meanBeta = np.max(tempMeanInvRatio)
         minBeta = np.max(tempMinInvRatio)
         maxBeta = np.max(tempMaxInvRatio)
-        varNoise = np.mean(tempVarNoise)
+        varNoise = np.var(tempVarNoise)
         meanLdaBound = 0
         minLdaBound = 0
         maxLdaBound = 0
+        meanMaxLda = 0
+        minMaxLda = 0
+        maxMaxLda = 0
 
         # find maximum lambda that satisfies variance upper bound in Theorem 4.4
-        for l in range(LS):
+        for lda in ldaset:
             if meanLdaBound < meanEstVar[trial, T_FREQ]:
-                meanLdaBound = ((l**2 / T) * (meanAlpha - 1)) + ((1 / T) * (max(meanAlpha - 1, meanBeta**2 - 1)
-                    + meanEst**2)) - ((2*l / T) * (meanInvEst + meanEst)) + varNoise
-                meanMaxLda = l
+                meanLdaBound = ((lda**2 / T) * (meanAlpha - 1)) + ((1 / T) * (max(meanAlpha - 1, meanBeta**2 - 1)
+                    + meanEst**2)) - ((2*lda / T) * (meanInvEst + meanEst)) + varNoise
+                meanMaxLda = lda
             
             if minLdaBound < minEstVar[trial, T_FREQ]:
-                minLdaBound = ((l**2 / T) * (minAlpha - 1)) + ((1 / T) * (max(minAlpha - 1, minBeta**2 - 1)
-                    + minEst**2)) - ((2*l / T) * (minInvEst + minEst)) + varNoise
-                minMaxLda = l
+                minLdaBound = ((lda**2 / T) * (minAlpha - 1)) + ((1 / T) * (max(minAlpha - 1, minBeta**2 - 1)
+                    + minEst**2)) - ((2*lda / T) * (minInvEst + minEst)) + varNoise
+                minMaxLda = lda
             
             if maxLdaBound < maxEstVar[trial, T_FREQ]:
-                maxLdaBound = ((l**2 / T) * (maxAlpha - 1)) + ((1 / T) * (max(maxAlpha - 1, maxBeta**2 - 1)
-                    + maxEst**2)) - ((2*l / T) * (maxInvEst + maxEst)) + varNoise
-                maxMaxLda = l
+                maxLdaBound = ((lda**2 / T) * (maxAlpha - 1)) + ((1 / T) * (max(maxAlpha - 1, maxBeta**2 - 1)
+                    + maxEst**2)) - ((2*lda / T) * (maxInvEst + maxEst)) + varNoise
+                maxMaxLda = lda
 
         # compute optimal lambda upper bound in Corollary 4.5
         meanLdaOptBound = ((meanAlpha * meanBeta) - 1)**2 / (2 * meanAlpha * meanBeta * (meanAlpha - 1))
@@ -853,35 +856,35 @@ for trial in range(4):
             minfile.write(f"\nT = {T}\n")
             maxfile.write(f"\nT = {T}\n")
   
-        meanfile.write(f"\nMean Error: {round(meanEstVar[trial, T_FREQ], 2)}\n")
-        meanfile.write(f"Optimal Lambda: {round(meanLdaOpt[trial, T_FREQ], 2)}\n")
-        meanfile.write(f"Ground Truth: {round(meanValue[trial, T_FREQ], 2)}\n")
-        meanfile.write(f"Noise: {np.round(meanPerc[trial, T_FREQ], 2)}%\n")
+        meanfile.write(f"\nMean Variance: {round(meanEstVar[trial, T_FREQ], 2)}\n")
         meanfile.write(f"Variance Upper Bound: {round(meanLdaBound, 2)}\n")
         meanfile.write(f"Maximum Lambda: {round(meanMaxLda, 2)}\n")
+        meanfile.write(f"Optimal Lambda: {round(meanLdaOpt[trial, T_FREQ], 2)}\n")
         meanfile.write(f"Optimal Lambda Upper Bound: {round(meanLdaOptBound, 2)}\n")
+        meanfile.write(f"Ground Truth: {round(meanValue[trial, T_FREQ], 2)}\n")
+        meanfile.write(f"Noise: {np.round(meanPerc[trial, T_FREQ], 2)}%\n")
 
         minfile.write(f"\nMin Pair: {minPair}\n")
-        minfile.write(f"Min Error: {round(minEstVar[trial, T_FREQ], 2)}\n")
-        minfile.write(f"Optimal Lambda: {round(minLdaOpt[trial, T_FREQ], 2)}\n")
-        minfile.write(f"Ground Truth: {round(minValue[trial, T_FREQ], 2)}\n")
-        minfile.write(f"Noise: {np.round(minPerc[trial, T_FREQ], 2)}%\n")
+        minfile.write(f"Min Variance: {round(minEstVar[trial, T_FREQ], 2)}\n")
         minfile.write(f"Variance Upper Bound: {round(minLdaBound, 2)}\n")
         minfile.write(f"Maximum Lambda: {round(minMaxLda, 2)}\n")
+        minfile.write(f"Optimal Lambda: {round(minLdaOpt[trial, T_FREQ], 2)}\n")
         minfile.write(f"Optimal Lambda Upper Bound: {round(minLdaOptBound, 2)}\n")
+        minfile.write(f"Ground Truth: {round(minValue[trial, T_FREQ], 2)}\n")
+        minfile.write(f"Noise: {np.round(minPerc[trial, T_FREQ], 2)}%\n")
 
         minfile.write(f"\nMax Pair: {maxPair}\n")
-        maxfile.write(f"Max Error: {round(maxEstVar[trial, T_FREQ], 2)}\n")
-        maxfile.write(f"Optimal Lambda: {round(maxLdaOpt[trial, T_FREQ], 2)}\n")
-        maxfile.write(f"Ground Truth: {round(maxValue[trial, T_FREQ], 2)}\n")
-        maxfile.write(f"Noise: {np.round(maxPerc[trial, T_FREQ], 2)}%\n")
+        maxfile.write(f"Max Variance: {round(maxEstVar[trial, T_FREQ], 2)}\n")
         maxfile.write(f"Variance Upper Bound: {round(maxLdaBound, 2)}\n")
         maxfile.write(f"Maximum Lambda: {round(maxMaxLda, 2)}\n")
+        maxfile.write(f"Optimal Lambda: {round(maxLdaOpt[trial, T_FREQ], 2)}\n")
         maxfile.write(f"Optimal Lambda Upper Bound: {round(maxLdaOptBound, 2)}\n")
+        maxfile.write(f"Ground Truth: {round(maxValue[trial, T_FREQ], 2)}\n")
+        maxfile.write(f"Noise: {np.round(maxPerc[trial, T_FREQ], 2)}%\n")
 
         T_FREQ = T_FREQ + 1
 
-# EXPERIMENT 1: error of PRIEST-KLD for each T
+# EXPERIMENT 1: variance of PRIEST-KLD for each T
 plt.errorbar(Tset, meanEstVar[0], yerr = np.minimum(meanEstRange[0], np.sqrt(meanEstVar[0]), np.divide(meanEstVar[0], 2)), color = 'blue', marker = 'o', label = "Dist")
 plt.errorbar(Tset, meanEstVar[1], yerr = np.minimum(meanEstRange[1], np.sqrt(meanEstVar[1]), np.divide(meanEstVar[1], 2)), color = 'green', marker = 'o', label = "TAgg")
 plt.errorbar(Tset, meanEstVar[2], yerr = np.minimum(meanEstRange[2], np.sqrt(meanEstVar[2]), np.divide(meanEstVar[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
@@ -889,7 +892,7 @@ plt.errorbar(Tset, meanEstVar[3], yerr = np.minimum(meanEstRange[3], np.sqrt(mea
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of T")
-plt.ylabel("Error of PRIEST-KLD")
+plt.ylabel("Variance of PRIEST-KLD")
 plt.savefig("Exp1_femnist_T_est_mean.png")
 plt.clf()
 
@@ -900,7 +903,7 @@ plt.errorbar(Tset, minEstVar[3], yerr = np.minimum(minEstRange[3], np.sqrt(minEs
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of T")
-plt.ylabel("Error of PRIEST-KLD")
+plt.ylabel("Variance of PRIEST-KLD")
 plt.savefig("Exp1_femnist_T_est_min.png")
 plt.clf()
 
@@ -911,11 +914,11 @@ plt.errorbar(Tset, maxEstVar[3], yerr = np.minimum(maxEstRange[3], np.sqrt(maxEs
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of T")
-plt.ylabel("Error of PRIEST-KLD")
+plt.ylabel("Variance of PRIEST-KLD")
 plt.savefig("Exp1_femnist_T_est_max.png")
 plt.clf()
 
-# EXPERIMENT 2: error of PRIEST-KLD when lambda = 0 for each T
+# EXPERIMENT 2: variance of PRIEST-KLD when lambda = 0 for each T
 plt.errorbar(Tset, meanEstZero[0], yerr = np.minimum(meanEstZeroRange[0], np.sqrt(meanEstZero[0]), np.divide(meanEstZero[0], 2)), color = 'blue', marker = 'o', label = "Dist")
 plt.errorbar(Tset, meanEstZero[1], yerr = np.minimum(meanEstZeroRange[1], np.sqrt(meanEstZero[1]), np.divide(meanEstZero[1], 2)), color = 'green', marker = 'o', label = "TAgg")
 plt.errorbar(Tset, meanEstZero[2], yerr = np.minimum(meanEstZeroRange[2], np.sqrt(meanEstZero[2]), np.divide(meanEstZero[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
@@ -923,7 +926,7 @@ plt.errorbar(Tset, meanEstZero[3], yerr = np.minimum(meanEstZeroRange[3], np.sqr
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of T")
-plt.ylabel("Error of PRIEST-KLD")
+plt.ylabel("Variance of PRIEST-KLD")
 plt.savefig("Exp2_femnist_T_lda_zero_mean.png")
 plt.clf()
 
@@ -934,7 +937,7 @@ plt.errorbar(Tset, minEstZero[3], yerr = np.minimum(minEstZeroRange[3], np.sqrt(
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of T")
-plt.ylabel("Error of PRIEST-KLD")
+plt.ylabel("Variance of PRIEST-KLD")
 plt.savefig("Exp2_femnist_T_lda_zero_min.png")
 plt.clf()
 
@@ -945,11 +948,11 @@ plt.errorbar(Tset, maxEstZero[3], yerr = np.minimum(maxEstZeroRange[3], np.sqrt(
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of T")
-plt.ylabel("Error of PRIEST-KLD")
+plt.ylabel("Variance of PRIEST-KLD")
 plt.savefig("Exp2_femnist_T_lda_zero_max.png")
 plt.clf()
 
-# EXPERIMENT 2: error of PRIEST-KLD when lambda = 1 for each T
+# EXPERIMENT 2: variance of PRIEST-KLD when lambda = 1 for each T
 plt.errorbar(Tset, meanEstOne[0], yerr = np.minimum(meanEstOneRange[0], np.sqrt(meanEstOne[0]), np.divide(meanEstOne[0], 2)), color = 'blue', marker = 'o', label = "Dist")
 plt.errorbar(Tset, meanEstOne[1], yerr = np.minimum(meanEstOneRange[1], np.sqrt(meanEstOne[1]), np.divide(meanEstOne[1], 2)), color = 'green', marker = 'o', label = "TAgg")
 plt.errorbar(Tset, meanEstOne[2], yerr = np.minimum(meanEstOneRange[2], np.sqrt(meanEstOne[2]), np.divide(meanEstOne[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
@@ -957,7 +960,7 @@ plt.errorbar(Tset, meanEstOne[3], yerr = np.minimum(meanEstOneRange[3], np.sqrt(
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of T")
-plt.ylabel("Error of PRIEST-KLD")
+plt.ylabel("Variance of PRIEST-KLD")
 plt.savefig("Exp2_femnist_T_lda_one_mean.png")
 plt.clf()
 
@@ -968,7 +971,7 @@ plt.errorbar(Tset, minEstOne[3], yerr = np.minimum(minEstOneRange[3], np.sqrt(mi
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of T")
-plt.ylabel("Error of PRIEST-KLD")
+plt.ylabel("Variance of PRIEST-KLD")
 plt.savefig("Exp2_femnist_T_lda_one_min.png")
 plt.clf()
 
@@ -979,11 +982,11 @@ plt.errorbar(Tset, maxEstOne[3], yerr = np.minimum(maxEstOneRange[3], np.sqrt(ma
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of T")
-plt.ylabel("Error of PRIEST-KLD")
+plt.ylabel("Variance of PRIEST-KLD")
 plt.savefig("Exp2_femnist_T_lda_one_max.png")
 plt.clf()
 
-# EXPERIMENT 3: error of PRIEST-KLD when T = 36
+# EXPERIMENT 3: variance of PRIEST-KLD when T = 36
 plt.errorbar(ldaset, meanTSmall[0], yerr = np.minimum(meanTSmallRange[0], np.sqrt(meanTSmall[0]), np.divide(meanTSmall[0], 2)), color = 'blue', marker = 'o', label = "Dist")
 plt.errorbar(ldaset, meanTSmall[1], yerr = np.minimum(meanTSmallRange[1], np.sqrt(meanTSmall[1]), np.divide(meanTSmall[1], 2)), color = 'green', marker = 'o', label = "TAgg")
 plt.errorbar(ldaset, meanTSmall[2], yerr = np.minimum(meanTSmallRange[2], np.sqrt(meanTSmall[2]), np.divide(meanTSmall[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
@@ -991,7 +994,7 @@ plt.errorbar(ldaset, meanTSmall[3], yerr = np.minimum(meanTSmallRange[3], np.sqr
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
-plt.ylabel("Error of PRIEST-KLD")
+plt.ylabel("Variance of PRIEST-KLD")
 plt.savefig("Exp3_femnist_T_small_mean.png")
 plt.clf()
 
@@ -1002,7 +1005,7 @@ plt.errorbar(ldaset, minTSmall[3], yerr = np.minimum(minTSmallRange[3], np.sqrt(
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
-plt.ylabel("Error of PRIEST-KLD")
+plt.ylabel("Variance of PRIEST-KLD")
 plt.savefig("Exp3_femnist_T_small_min.png")
 plt.clf()
 
@@ -1013,11 +1016,11 @@ plt.errorbar(ldaset, maxTSmall[3], yerr = np.minimum(maxTSmallRange[3], np.sqrt(
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
-plt.ylabel("Error of PRIEST-KLD")
+plt.ylabel("Variance of PRIEST-KLD")
 plt.savefig("Exp3_femnist_T_small_max.png")
 plt.clf()
 
-# EXPERIMENT 3: error of PRIEST-KLD when T = 180
+# EXPERIMENT 3: variance of PRIEST-KLD when T = 180
 plt.errorbar(ldaset, meanTDef[0], yerr = np.minimum(meanTDefRange[0], np.sqrt(meanTDef[0]), np.divide(meanTDef[0], 2)), color = 'blue', marker = 'o', label = "Dist")
 plt.errorbar(ldaset, meanTDef[1], yerr = np.minimum(meanTDefRange[1], np.sqrt(meanTDef[1]), np.divide(meanTDef[1], 2)), color = 'green', marker = 'o', label = "TAgg")
 plt.errorbar(ldaset, meanTDef[2], yerr = np.minimum(meanTDefRange[2], np.sqrt(meanTDef[2]), np.divide(meanTDef[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
@@ -1025,7 +1028,7 @@ plt.errorbar(ldaset, meanTDef[3], yerr = np.minimum(meanTDefRange[3], np.sqrt(me
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
-plt.ylabel("Error of PRIEST-KLD")
+plt.ylabel("Variance of PRIEST-KLD")
 plt.savefig("Exp3_femnist_T_def_mean.png")
 plt.clf()
 
@@ -1036,7 +1039,7 @@ plt.errorbar(ldaset, minTDef[3], yerr = np.minimum(minTDefRange[3], np.sqrt(minT
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
-plt.ylabel("Error of PRIEST-KLD")
+plt.ylabel("Variance of PRIEST-KLD")
 plt.savefig("Exp3_femnist_T_def_min.png")
 plt.clf()
 
@@ -1047,11 +1050,11 @@ plt.errorbar(ldaset, maxTDef[3], yerr = np.minimum(maxTDefRange[3], np.sqrt(maxT
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
-plt.ylabel("Error of PRIEST-KLD")
+plt.ylabel("Variance of PRIEST-KLD")
 plt.savefig("Exp3_femnist_T_def_max.png")
 plt.clf()
 
-# EXPERIMENT 3: error of PRIEST-KLD when T = 360
+# EXPERIMENT 3: variance of PRIEST-KLD when T = 360
 plt.errorbar(ldaset, meanTMid[0], yerr = np.minimum(meanTMidRange[0], np.sqrt(meanTMid[0]), np.divide(meanTMid[0], 2)), color = 'blue', marker = 'o', label = "Dist")
 plt.errorbar(ldaset, meanTMid[1], yerr = np.minimum(meanTMidRange[1], np.sqrt(meanTMid[1]), np.divide(meanTMid[1], 2)), color = 'green', marker = 'o', label = "TAgg")
 plt.errorbar(ldaset, meanTMid[2], yerr = np.minimum(meanTMidRange[2], np.sqrt(meanTMid[2]), np.divide(meanTMid[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
@@ -1059,7 +1062,7 @@ plt.errorbar(ldaset, meanTMid[3], yerr = np.minimum(meanTMidRange[3], np.sqrt(me
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
-plt.ylabel("Error of PRIEST-KLD")
+plt.ylabel("Variance of PRIEST-KLD")
 plt.savefig("Exp3_femnist_T_mid_mean.png")
 plt.clf()
 
@@ -1070,7 +1073,7 @@ plt.errorbar(ldaset, minTMid[3], yerr = np.minimum(minTMidRange[3], np.sqrt(minT
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
-plt.ylabel("Error of PRIEST-KLD")
+plt.ylabel("Variance of PRIEST-KLD")
 plt.savefig("Exp3_femnist_T_mid_min.png")
 plt.clf()
 
@@ -1081,11 +1084,11 @@ plt.errorbar(ldaset, maxTMid[3], yerr = np.minimum(maxTMidRange[3], np.sqrt(maxT
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
-plt.ylabel("Error of PRIEST-KLD")
+plt.ylabel("Variance of PRIEST-KLD")
 plt.savefig("Exp3_femnist_T_mid_max.png")
 plt.clf()
 
-# EXPERIMENT 3: error of PRIEST-KLD when T = 600
+# EXPERIMENT 3: variance of PRIEST-KLD when T = 600
 plt.errorbar(ldaset, meanTLarge[0], yerr = np.minimum(meanTLargeRange[0], np.sqrt(meanTLarge[0]), np.divide(meanTLarge[0], 2)), color = 'blue', marker = 'o', label = "Dist")
 plt.errorbar(ldaset, meanTLarge[1], yerr = np.minimum(meanTLargeRange[1], np.sqrt(meanTLarge[1]), np.divide(meanTLarge[1], 2)), color = 'green', marker = 'o', label = "TAgg")
 plt.errorbar(ldaset, meanTLarge[2], yerr = np.minimum(meanTLargeRange[2], np.sqrt(meanTLarge[2]), np.divide(meanTLarge[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
@@ -1093,7 +1096,7 @@ plt.errorbar(ldaset, meanTLarge[3], yerr = np.minimum(meanTLargeRange[3], np.sqr
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
-plt.ylabel("Error of PRIEST-KLD")
+plt.ylabel("Variance of PRIEST-KLD")
 plt.savefig("Exp3_femnist_T_large_mean.png")
 plt.clf()
 
@@ -1104,7 +1107,7 @@ plt.errorbar(ldaset, minTLarge[3], yerr = np.minimum(minTLargeRange[3], np.sqrt(
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
-plt.ylabel("Error of PRIEST-KLD")
+plt.ylabel("Variance of PRIEST-KLD")
 plt.savefig("Exp3_femnist_T_large_min.png")
 plt.clf()
 
@@ -1115,7 +1118,7 @@ plt.errorbar(ldaset, maxTLarge[3], yerr = np.minimum(maxTLargeRange[3], np.sqrt(
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
-plt.ylabel("Error of PRIEST-KLD")
+plt.ylabel("Variance of PRIEST-KLD")
 plt.savefig("Exp3_femnist_T_large_max.png")
 plt.clf()
 
