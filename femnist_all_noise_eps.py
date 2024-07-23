@@ -689,19 +689,19 @@ for trial in range(4):
                 tempMeanPerc[rep] = float(abs(np.array(sum(startNoise)) / (np.array(sum(startNoise)) + tempMeanValue[rep])))*100
                 tempMinPerc[rep] = float(abs(np.array(sum(startNoise)) / (np.array(sum(startNoise)) + tempMinValue[rep])))*100
                 tempMaxPerc[rep] = float(abs(np.array(sum(startNoise)) / (np.array(sum(startNoise)) + tempMaxValue[rep])))*100
-                tempVarNoise[rep] = np.var(startNoise)       
+                tempVarNoise[rep] = np.max(startNoise)       
 
             if trial == 1:
                 tempMeanPerc[rep] = abs((np.sum(meanLdaNoise)) / (np.sum(meanLdaNoise) + tempMeanValue[rep]))*100
                 tempMinPerc[rep] = abs((np.sum(meanLdaNoise)) / (np.sum(meanLdaNoise) + tempMinValue[rep]))*100
                 tempMaxPerc[rep] = abs((np.sum(meanLdaNoise)) / (np.sum(meanLdaNoise) + tempMaxValue[rep]))*100
-                tempVarNoise[rep] = np.var(meanLdaNoise)
+                tempVarNoise[rep] = np.max(meanLdaNoise)
             
             if trial == 2:
                 tempMeanPerc[rep] = float(abs(np.array(meanNoise) / (np.array(meanNoise) + tempMeanValue[rep])))*100
                 tempMinPerc[rep] = float(abs(np.array(meanNoise) / (np.array(meanNoise) + tempMinValue[rep])))*100
                 tempMaxPerc[rep] = float(abs(np.array(meanNoise) / (np.array(meanNoise) + tempMaxValue[rep])))*100
-                tempVarNoise[rep] = np.var(meanNoise)
+                tempVarNoise[rep] = np.max(meanNoise)
             
             SEED_FREQ = SEED_FREQ + 1
 

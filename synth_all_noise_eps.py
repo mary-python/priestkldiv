@@ -152,19 +152,25 @@ for trial in range(8):
                     logr = logr + startSample
                     invLogr = invLogr + startSample
 
+                r = np.exp(logr)
+                invr = np.exp(invLogr)
                 LDA_COUNT = 0
 
                 # explore lambdas in a range
                 for lda in ldaset:
 
                     # compute k3 estimator (and its inverse)
-                    rangeEst = lda * (np.exp(logr) - 1) - logr
-                    invRangeEst = lda * (np.exp(invLogr) - 1) - invLogr
+                    rangeEst = lda * (r - 1) - logr
+                    invRangeEst = lda * (invr - 1) - invLogr
 
                     # share PRIEST-KLD with server
                     meanRangeEst[LDA_COUNT, j] = rangeEst.mean()
                     meanInvRangeEst[LDA_COUNT, j] = invRangeEst.mean()
                     LDA_COUNT = LDA_COUNT + 1
+
+            # extract mean ratio (and inverse) for Theorem 4.4 and Corollary 4.5
+            tempMeanRatio[rep] = r.mean()
+            tempMeanInvRatio[rep] = invr.mean()
 
             # compute mean of PRIEST-KLD across clients
             meanLda = np.mean(meanRangeEst, axis = 1)
@@ -275,17 +281,17 @@ for trial in range(8):
             if trial % 3 == 0 and trial != 6:
                 tempMeanPerc[rep] = float(abs(np.array(sum(startNoise)) / (np.array(sum(startNoise) + groundTruth))))*100
                 startNoise = [float(sn) for sn in startNoise]
-                tempVarNoise[rep] = np.var(startNoise)
+                tempVarNoise[rep] = np.max(startNoise)
 
             if trial % 3 == 1 and trial != 7:
                 tempMeanPerc[rep] = abs((np.sum(meanLdaNoise)) / (np.sum(meanLdaNoise) + groundTruth))*100
                 meanLdaNoise = [float(mln) for mln in meanLdaNoise]
-                tempVarNoise[rep] = np.var(meanLdaNoise)
+                tempVarNoise[rep] = np.max(meanLdaNoise)
 
             if trial % 3 == 2:
                 tempMeanPerc[rep] = float(abs(np.array(meanNoise) / (np.array(meanNoise + groundTruth))))*100
                 meanNoise = [float(mn) for mn in meanNoise]
-                tempVarNoise[rep] = np.var(meanNoise)
+                tempVarNoise[rep] = np.max(meanNoise)
         
             SEED_FREQ = SEED_FREQ + 1
 
@@ -341,6 +347,10 @@ for trial in range(8):
 
         # compute optimal lambda upper bound in Corollary 4.5
         ldaOptBound = ((alpha * beta) - 1)**2 / (2 * alpha * beta * (alpha - 1))
+
+        print(f"\nnumerator: {((alpha * beta) - 1)**2}")
+        print(f"\ndenominator: {(2 * alpha * beta * (alpha - 1))}")
+        print(f"\nldaOptBound: {ldaOptBound}")
 
         # write statistics on data files
         if eps == epsset[0]:
