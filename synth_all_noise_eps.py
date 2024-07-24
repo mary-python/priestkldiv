@@ -360,10 +360,6 @@ for trial in range(8):
         # compute optimal lambda upper bound in Corollary 4.5
         ldaOptBound = ((alpha * beta) - 1)**2 / (2 * alpha * beta * (alpha - 1))
 
-        print(f"\nnumerator: {((alpha * beta) - 1)**2}")
-        print(f"\ndenominator: {(2 * alpha * beta * (alpha - 1))}")
-        print(f"\nldaOptBound: {ldaOptBound}")
-
         # write statistics on data files
         if eps == epsset[0]:
             datafile.write(f"SYNTHETIC: Eps = {eps}\n")
