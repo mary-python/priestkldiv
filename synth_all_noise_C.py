@@ -10,10 +10,12 @@ import numpy as np
 
 # initialising start time and seed for random sampling
 startTime = time.perf_counter()
+SEED_FREQ = 0
+torch.manual_seed(SEED_FREQ)
 print("\nStarting...")
 
 # lists of the values of C and lambda, as well as the trials that will be explored
-Cset = [40, 80, 120, 160, 200, 240, 280, 320, 360, 400, 440, 480, 520, 560, 600, 640, 680, 720, 760, 800, 840, 880, 920]
+Cset = [40, 80, 120, 160, 200, 260, 320, 400, 480, 560, 620, 680, 740, 800]
 ldaset = [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 
           1, 1.05, 1.1, 1.15, 1.2, 1.25, 1.3, 1.35, 1.4, 1.45, 1.5, 1.55, 1.6, 1.65, 1.7, 1.75, 1.8, 1.85, 1.9, 1.95, 2]
 trialset = ["Dist_small", "TAgg_small", "Trusted_small", "Dist_large", "TAgg_large", "Trusted_large", "no_privacy_small", "no_privacy_large"]
@@ -59,7 +61,7 @@ MID_INDEX = 7
 LARGE_INDEX = 10
 
 for trial in range(8):
-    ordfile = open(f"Data_{trialset[trial]}_C_synth.txt", "w", encoding = 'utf-8')
+    datafile = open(f"Data_{trialset[trial]}_C_synth.txt", "w", encoding = 'utf-8')
 
     # p is unknown distribution, q is known
     # distributions have small KL divergence
@@ -84,9 +86,11 @@ for trial in range(8):
 
     for i in qUniqueIndices:
         qRound = qRound[qRound != i]
-
-    # order the pre-processed sample
-    qOrderedRound = torch.sort(qRound)
+    
+    # permute points to select N at a time for each client later
+    qSize = list(qRound.size())
+    randPerm = torch.randperm(qSize[0])
+    qRandRound = qRound[randPerm]
 
     if trial < 6:
         b1 = 1 + log(2)
@@ -139,8 +143,8 @@ for trial in range(8):
 
             for j in range(C):
 
-                # "ORDERED": each client gets N points in order from pre-processed sample
-                qClientSamp = qOrderedRound[0][N*j : N*(j + 1)]
+                # each client gets N points from pre-processed sample
+                qClientSamp = qRandRound[N*j : N*(j + 1)]
 
                 # compute ratio (and its inverse) between unknown and known distributions
                 logr = p.log_prob(qClientSamp) - q.log_prob(qClientSamp)
@@ -351,17 +355,17 @@ for trial in range(8):
 
         # write statistics on data files
         if C == Cset[0]:
-            ordfile.write(f"SYNTHETIC Ordered: C = {C}\n")
+            datafile.write(f"SYNTHETIC: C = {C}\n")
         else:
-            ordfile.write(f"\nC = {C}\n")
+            datafile.write(f"\nC = {C}\n")
 
-        ordfile.write(f"\nMean Variance: {round(meanEstVar[trial, C_COUNT], 2)}\n")
-        ordfile.write(f"Variance Upper Bound: {round(ldaBound, 2)}\n")
-        ordfile.write(f"Maximal Lambda: {round(maxLda, 2)}\n")
-        ordfile.write(f"Optimal Lambda: {round(meanLdaOpt[trial, C_COUNT], 2)}\n")
-        ordfile.write(f"Optimal Lambda Upper Bound: {round(ldaOptBound, 2)}\n")
-        ordfile.write(f"Ground Truth: {round(float(groundTruth), 2)}\n")
-        ordfile.write(f"Noise: {np.round(meanPerc[trial, C_COUNT], 2)}%\n")
+        datafile.write(f"\nMean Variance: {round(meanEstVar[trial, C_COUNT], 2)}\n")
+        datafile.write(f"Variance Upper Bound: {round(ldaBound, 2)}\n")
+        datafile.write(f"Maximal Lambda: {round(maxLda, 2)}\n")
+        datafile.write(f"Optimal Lambda: {round(meanLdaOpt[trial, C_COUNT], 2)}\n")
+        datafile.write(f"Optimal Lambda Upper Bound: {round(ldaOptBound, 2)}\n")
+        datafile.write(f"Ground Truth: {round(float(groundTruth), 2)}\n")
+        datafile.write(f"Noise: {np.round(meanPerc[trial, C_COUNT], 2)}%\n")
 
         C_COUNT = C_COUNT + 1
 

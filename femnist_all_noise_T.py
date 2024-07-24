@@ -28,8 +28,8 @@ file = h5py.File(PATH, 'r')
 writers = sorted(file.keys())
 numWriters = len(writers)
 
-# investigate samples from approx 1% to approx 25% of writers
-Tset = [36, 72, 108, 144, 180, 216, 252, 288, 324, 360, 396, 432, 468, 504, 540, 576, 612, 648, 684, 720, 756, 792, 828, 864, 900]
+# investigate samples from approx 1% to approx 20% of writers
+Tset = [36, 72, 108, 144, 180, 225, 270, 315, 360, 450, 540, 600, 660, 720]
 ES = len(Tset)
 
 # list of the lambdas and trials that will be explored
@@ -735,7 +735,7 @@ for trial in range(4):
         minEstVar[trial, T_FREQ] = np.mean(tempMinEstVar)
         minLdaOpt[trial, T_FREQ] = np.mean(tempMinLdaOpt)
         minEstZero[trial, T_FREQ] = np.mean(tempMinEstZero)
-        minEstOne[trial, T_FREQ] = np.mean(tempMeanEstOne)
+        minEstOne[trial, T_FREQ] = np.mean(tempMinEstOne)
         minPerc[trial, T_FREQ] = np.mean(tempMinPerc)
         minEst = np.mean(tempMinEst)
         minInvEst = np.mean(tempMinInvEst)

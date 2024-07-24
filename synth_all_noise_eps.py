@@ -10,6 +10,8 @@ import numpy as np
 
 # initialising start time and seed for random sampling
 startTime = time.perf_counter()
+SEED_FREQ = 0
+torch.manual_seed(SEED_FREQ)
 print("\nStarting...")
 
 # lists of the values of epsilon and lambda, as well as the trials that will be explored
@@ -51,14 +53,13 @@ A = 0 # parameter for addition of noise
 R = 10
 ldaStep = 0.05
 RS = 10
-SEED_FREQ = 0
 SMALL_INDEX = 0
 DEF_INDEX = 3
 MID_INDEX = 6
 LARGE_INDEX = 10
 
 for trial in range(8):
-    ordfile = open(f"Data_{trialset[trial]}_eps_synth.txt", "w", encoding = 'utf-8')
+    datafile = open(f"Data_{trialset[trial]}_eps_synth.txt", "w", encoding = 'utf-8')
 
     # p is unknown distribution, q is known
     # distributions have small KL divergence
@@ -84,8 +85,10 @@ for trial in range(8):
     for i in qUniqueIndices:
         qRound = qRound[qRound != i]
 
-    # order the pre-processed sample
-    qOrderedRound = torch.sort(qRound)
+    # permute points to select N at a time for each client later
+    qSize = list(qRound.size())
+    randPerm = torch.randperm(qSize[0])
+    qRandRound = qRound[randPerm]
     
     if trial < 6:
         b1 = 1 + log(2)
@@ -138,8 +141,8 @@ for trial in range(8):
 
             for j in range(C):
 
-                # "ORDERED": each client gets N points in order from pre-processed sample
-                qClientSamp = qOrderedRound[0][N*j : N*(j + 1)]
+                # each client gets N points from pre-processed sample
+                qClientSamp = qRandRound[N*j : N*(j + 1)]
 
                 # compute ratio (and its inverse) between unknown and known distributions
                 logr = p.log_prob(qClientSamp) - q.log_prob(qClientSamp)
@@ -354,17 +357,17 @@ for trial in range(8):
 
         # write statistics on data files
         if eps == epsset[0]:
-            ordfile.write(f"SYNTHETIC Ordered: Eps = {eps}\n")
+            datafile.write(f"SYNTHETIC: Eps = {eps}\n")
         else:
-            ordfile.write(f"\nEps = {eps}\n")
+            datafile.write(f"\nEps = {eps}\n")
 
-        ordfile.write(f"\nMean Variance: {round(meanEstVar[trial, EPS_COUNT], 2)}\n")
-        ordfile.write(f"Variance Upper Bound: {round(ldaBound, 2)}\n")
-        ordfile.write(f"Maximal Lambda: {round(maxLda, 2)}\n")
-        ordfile.write(f"Optimal Lambda: {round(meanLdaOpt[trial, EPS_COUNT], 2)}\n")
-        ordfile.write(f"Optimal Lambda Upper Bound: {round(ldaOptBound, 2)}\n")
-        ordfile.write(f"Ground Truth: {round(float(groundTruth), 2)}\n")
-        ordfile.write(f"Noise: {np.round(meanPerc[trial, EPS_COUNT], 2)}%\n")
+        datafile.write(f"\nMean Variance: {round(meanEstVar[trial, EPS_COUNT], 2)}\n")
+        datafile.write(f"Variance Upper Bound: {round(ldaBound, 2)}\n")
+        datafile.write(f"Maximal Lambda: {round(maxLda, 2)}\n")
+        datafile.write(f"Optimal Lambda: {round(meanLdaOpt[trial, EPS_COUNT], 2)}\n")
+        datafile.write(f"Optimal Lambda Upper Bound: {round(ldaOptBound, 2)}\n")
+        datafile.write(f"Ground Truth: {round(float(groundTruth), 2)}\n")
+        datafile.write(f"Noise: {np.round(meanPerc[trial, EPS_COUNT], 2)}%\n")
 
         EPS_COUNT = EPS_COUNT + 1
 
