@@ -24,7 +24,7 @@ LS = len(ldaset)
 TS = len(trialset)
 
 # to store statistics related to mean estimates
-meanEstVar = np.zeros((TS, ES))
+meanEstMSE = np.zeros((TS, ES))
 meanLdaOpt = np.zeros((TS, ES))
 meanEstZero = np.zeros((TS, ES))
 meanEstOne = np.zeros((TS, ES))
@@ -76,19 +76,27 @@ for trial in range(8):
     groundTruth = torch.distributions.kl.kl_divergence(p, q)
 
     # round to 2 d.p., find indices of and eliminate unique values
+    pSample = p.sample(sample_shape = (T,))
+    pRound = torch.round(pSample, decimals = 2)
+    pUnique = torch.unique(pRound, return_counts = True)
+    pIndices = (pUnique[1] == 1).nonzero().flatten()
+    pUniqueIndices = pUnique[0][pIndices]
+
     qSample = q.sample(sample_shape = (T,))
     qRound = torch.round(qSample, decimals = 2)
     qUnique = torch.unique(qRound, return_counts = True)
     qIndices = (qUnique[1] == 1).nonzero().flatten()
     qUniqueIndices = qUnique[0][qIndices]
 
+    for i in pUniqueIndices:
+        pRound = pRound[pRound != i]
+
     for i in qUniqueIndices:
         qRound = qRound[qRound != i]
 
-    # permute points to select N at a time for each client later
-    qSize = list(qRound.size())
-    randPerm = torch.randperm(qSize[0])
-    qRandRound = qRound[randPerm]
+    # order the pre-processed sample
+    pOrderedRound = torch.sort(pRound)
+    qOrderedRound = torch.sort(qRound)
     
     if trial < 6:
         b1 = 1 + log(2)
@@ -103,7 +111,7 @@ for trial in range(8):
         tempMeanInvRatio = np.zeros(RS)
         tempMeanEst = np.zeros(RS)
         tempMeanInvEst = np.zeros(RS)
-        tempMeanEstVar = np.zeros(RS)
+        tempMeanEstMSE = np.zeros(RS)
         tempMeanLdaOpt = np.zeros(RS)
         tempMeanEstZero = np.zeros(RS)
         tempMeanEstOne = np.zeros(RS)
@@ -142,11 +150,12 @@ for trial in range(8):
             for j in range(C):
 
                 # each client gets N points from pre-processed sample
-                qClientSamp = qRandRound[N*j : N*(j + 1)]
+                pClientSamp = pOrderedRound[0][N*j : N*(j + 1)]
+                qClientSamp = qOrderedRound[0][N*j : N*(j + 1)]
 
                 # compute ratio (and its inverse) between unknown and known distributions
-                logr = p.log_prob(qClientSamp) - q.log_prob(qClientSamp)
-                invLogr = q.log_prob(qClientSamp) - p.log_prob(qClientSamp)
+                logr = abs(p.log_prob(qClientSamp) - q.log_prob(qClientSamp))
+                invLogr = abs(q.log_prob(pClientSamp) - p.log_prob(pClientSamp))
 
                 # "Dist" (each client adds Gaussian noise term)
                 if trial % 3 == 0 and trial != 6:
@@ -230,7 +239,7 @@ for trial in range(8):
                 meanOneNoise = lapNoise.sample(sample_shape = (1,))
 
                 # define error = squared difference between estimator and ground truth
-                tempMeanEstVar[rep] = (tempMeanEst[rep] + meanNoise - groundTruth)**2
+                tempMeanEstMSE[rep] = (tempMeanEst[rep] + meanNoise - groundTruth)**2
                 tempMeanEstZero[rep] = (tempMeanEstZero[rep] + meanZeroNoise - groundTruth)**2
                 tempMeanEstOne[rep] = (tempMeanEstOne[rep] + meanOneNoise - groundTruth)**2
 
@@ -258,7 +267,7 @@ for trial in range(8):
 
             # clients or intermediate server already added Gaussian noise term
             else:
-                tempMeanEstVar[rep] = (tempMeanEst[rep] - groundTruth)**2
+                tempMeanEstMSE[rep] = (tempMeanEst[rep] - groundTruth)**2
                 tempMeanEstZero[rep] = (tempMeanEstZero[rep] - groundTruth)**2
                 tempMeanEstOne[rep] = (tempMeanEstOne[rep] - groundTruth)**2
 
@@ -299,7 +308,7 @@ for trial in range(8):
             SEED_FREQ = SEED_FREQ + 1
 
         # compute mean of repeats
-        meanEstVar[trial, EPS_COUNT] = np.mean(tempMeanEstVar)
+        meanEstMSE[trial, EPS_COUNT] = np.mean(tempMeanEstMSE)
         meanLdaOpt[trial, EPS_COUNT] = np.mean(tempMeanLdaOpt)
         meanEstZero[trial, EPS_COUNT] = np.mean(tempMeanEstZero)
         meanEstOne[trial, EPS_COUNT] = np.mean(tempMeanEstOne)
@@ -318,7 +327,7 @@ for trial in range(8):
                 meanEpsLarge[trial, l] = np.mean(tempMeanEpsLarge[l])
         
         # compute standard deviation of repeats
-        meanEstRange[trial, EPS_COUNT] = np.std(tempMeanEstVar)
+        meanEstRange[trial, EPS_COUNT] = np.std(tempMeanEstMSE)
         meanLdaOptRange[trial, EPS_COUNT] = np.std(tempMeanLdaOpt)
         meanEstZeroRange[trial, EPS_COUNT] = np.std(tempMeanEstZero)
         meanEstOneRange[trial, EPS_COUNT] = np.std(tempMeanEstOne)
@@ -341,9 +350,9 @@ for trial in range(8):
         ldaBound = 0
         maxLda = 0
 
-        # find maximum lambda that satisfies variance upper bound in Theorem 4.4
+        # find maximum lambda that satisfies MSE upper bound in Theorem 4.4
         for lda in ldaset:
-            if ldaBound < meanEstVar[trial, EPS_COUNT]:
+            if ldaBound < meanEstMSE[trial, EPS_COUNT]:
                 ldaBound = ((lda**2 / T) * (alpha - 1)) + ((1 / T) * (max(alpha - 1, beta**2 - 1)
                     + meanEst**2)) - ((2*lda / T) * (meanInvEst + meanEst)) + varNoise
                 maxLda = lda
@@ -361,8 +370,8 @@ for trial in range(8):
         else:
             datafile.write(f"\nEps = {eps}\n")
 
-        datafile.write(f"\nMean Variance: {round(meanEstVar[trial, EPS_COUNT], 2)}\n")
-        datafile.write(f"Variance Upper Bound: {round(ldaBound, 2)}\n")
+        datafile.write(f"\nMean MSE: {round(meanEstMSE[trial, EPS_COUNT], 2)}\n")
+        datafile.write(f"MSE Upper Bound: {round(ldaBound, 2)}\n")
         datafile.write(f"Maximal Lambda: {round(maxLda, 2)}\n")
         datafile.write(f"Optimal Lambda: {round(meanLdaOpt[trial, EPS_COUNT], 2)}\n")
         datafile.write(f"Optimal Lambda Upper Bound: {round(ldaOptBound, 2)}\n")
@@ -371,35 +380,35 @@ for trial in range(8):
 
         EPS_COUNT = EPS_COUNT + 1
 
-# EXPERIMENT 1: variance of PRIEST-KLD for each epsilon
-plt.errorbar(epsset, meanEstVar[0], yerr = np.minimum(meanEstRange[0], np.sqrt(meanEstVar[0]), np.divide(meanEstVar[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(epsset, meanEstVar[1], yerr = np.minimum(meanEstRange[1], np.sqrt(meanEstVar[1]), np.divide(meanEstVar[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(epsset, meanEstVar[2], yerr = np.minimum(meanEstRange[2], np.sqrt(meanEstVar[2]), np.divide(meanEstVar[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
+# EXPERIMENT 1: MSE of PRIEST-KLD for each epsilon
+plt.errorbar(epsset, meanEstMSE[0], yerr = np.minimum(meanEstRange[0], np.sqrt(meanEstMSE[0]), np.divide(meanEstMSE[0], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(epsset, meanEstMSE[1], yerr = np.minimum(meanEstRange[1], np.sqrt(meanEstMSE[1]), np.divide(meanEstMSE[1], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(epsset, meanEstMSE[2], yerr = np.minimum(meanEstRange[2], np.sqrt(meanEstMSE[2]), np.divide(meanEstMSE[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
 plt.legend(loc = "best")
 plt.yscale('log')
 plt.xlabel("Value of epsilon")
-plt.ylabel("Variance of PRIEST-KLD")
+plt.ylabel("MSE of PRIEST-KLD")
 plt.savefig("Exp1_synth_eps_est_small.png")
 plt.clf()
 
-plt.errorbar(epsset, meanEstVar[3], yerr = np.minimum(meanEstRange[3], np.sqrt(meanEstVar[3]), np.divide(meanEstVar[3], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(epsset, meanEstVar[4], yerr = np.minimum(meanEstRange[4], np.sqrt(meanEstVar[4]), np.divide(meanEstVar[4], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(epsset, meanEstVar[5], yerr = np.minimum(meanEstRange[5], np.sqrt(meanEstVar[5]), np.divide(meanEstVar[5], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(epsset, meanEstMSE[3], yerr = np.minimum(meanEstRange[3], np.sqrt(meanEstMSE[3]), np.divide(meanEstMSE[3], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(epsset, meanEstMSE[4], yerr = np.minimum(meanEstRange[4], np.sqrt(meanEstMSE[4]), np.divide(meanEstMSE[4], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(epsset, meanEstMSE[5], yerr = np.minimum(meanEstRange[5], np.sqrt(meanEstMSE[5]), np.divide(meanEstMSE[5], 2)), color = 'orange', marker = 'o', label = "Trusted")
 plt.legend(loc = "best")
 plt.yscale('log')
 plt.xlabel("Value of epsilon")
-plt.ylabel("Variance of PRIEST-KLD")
+plt.ylabel("MSE of PRIEST-KLD")
 plt.savefig("Exp1_synth_eps_est_large.png")
 plt.clf()
 
-# EXPERIMENT 2: variance of PRIEST-KLD when lambda = 0 for each epsilon
+# EXPERIMENT 2: MSE of PRIEST-KLD when lambda = 0 for each epsilon
 plt.errorbar(epsset, meanEstZero[0], yerr = np.minimum(meanEstZeroRange[0], np.sqrt(meanEstZero[0]), np.divide(meanEstZero[0], 2)), color = 'blue', marker = 'o', label = "Dist")
 plt.errorbar(epsset, meanEstZero[1], yerr = np.minimum(meanEstZeroRange[1], np.sqrt(meanEstZero[1]), np.divide(meanEstZero[1], 2)), color = 'green', marker = 'o', label = "TAgg")
 plt.errorbar(epsset, meanEstZero[2], yerr = np.minimum(meanEstZeroRange[2], np.sqrt(meanEstZero[2]), np.divide(meanEstZero[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of epsilon")
-plt.ylabel("Variance of PRIEST-KLD")
+plt.ylabel("MSE of PRIEST-KLD")
 plt.savefig("Exp2_synth_eps_lda_zero_small.png")
 plt.clf()
 
@@ -409,18 +418,18 @@ plt.errorbar(epsset, meanEstZero[5], yerr = np.minimum(meanEstZeroRange[5], np.s
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of epsilon")
-plt.ylabel("Variance of PRIEST-KLD")
+plt.ylabel("MSE of PRIEST-KLD")
 plt.savefig("Exp2_synth_eps_lda_zero_large.png")
 plt.clf()
 
-# EXPERIMENT 2: variance of PRIEST-KLD when lambda = 1 for each epsilon
+# EXPERIMENT 2: MSE of PRIEST-KLD when lambda = 1 for each epsilon
 plt.errorbar(epsset, meanEstOne[0], yerr = np.minimum(meanEstOneRange[0], np.sqrt(meanEstOne[0]), np.divide(meanEstOne[0], 2)), color = 'blue', marker = 'o', label = "Dist")
 plt.errorbar(epsset, meanEstOne[1], yerr = np.minimum(meanEstOneRange[1], np.sqrt(meanEstOne[1]), np.divide(meanEstOne[1], 2)), color = 'green', marker = 'o', label = "TAgg")
 plt.errorbar(epsset, meanEstOne[2], yerr = np.minimum(meanEstOneRange[2], np.sqrt(meanEstOne[2]), np.divide(meanEstOne[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of epsilon")
-plt.ylabel("Variance of PRIEST-KLD")
+plt.ylabel("MSE of PRIEST-KLD")
 plt.savefig("Exp2_synth_eps_lda_one_small.png")
 plt.clf()
 
@@ -430,11 +439,11 @@ plt.errorbar(epsset, meanEstOne[5], yerr = np.minimum(meanEstOneRange[5], np.sqr
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of epsilon")
-plt.ylabel("Variance of PRIEST-KLD")
+plt.ylabel("MSE of PRIEST-KLD")
 plt.savefig("Exp2_synth_eps_lda_one_large.png")
 plt.clf()
 
-# EXPERIMENT 3: variance of PRIEST-KLD when epsilon = 0.05
+# EXPERIMENT 3: MSE of PRIEST-KLD when epsilon = 0.05
 plt.errorbar(ldaset, meanEpsSmall[0], yerr = np.minimum(meanEpsSmallRange[0], np.sqrt(meanEpsSmall[0]), np.divide(meanEpsSmall[0], 2)), color = 'blue', marker = 'o', label = "Dist")
 plt.errorbar(ldaset, meanEpsSmall[1], yerr = np.minimum(meanEpsSmallRange[1], np.sqrt(meanEpsSmall[1]), np.divide(meanEpsSmall[1], 2)), color = 'green', marker = 'o', label = "TAgg")
 plt.errorbar(ldaset, meanEpsSmall[2], yerr = np.minimum(meanEpsSmallRange[2], np.sqrt(meanEpsSmall[2]), np.divide(meanEpsSmall[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
@@ -442,7 +451,7 @@ plt.errorbar(ldaset, meanEpsSmall[6], yerr = np.minimum(meanEpsSmallRange[6], np
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
-plt.ylabel("Variance of PRIEST-KLD")
+plt.ylabel("MSE of PRIEST-KLD")
 plt.savefig("Exp3_synth_eps_small_small.png")
 plt.clf()
 
@@ -453,11 +462,11 @@ plt.errorbar(ldaset, meanEpsSmall[7], yerr = np.minimum(meanEpsSmallRange[7], np
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
-plt.ylabel("Variance of PRIEST-KLD")
+plt.ylabel("MSE of PRIEST-KLD")
 plt.savefig("Exp3_synth_eps_small_large.png")
 plt.clf()
 
-# EXPERIMENT 3: variance of PRIEST-KLD when epsilon = 0.5
+# EXPERIMENT 3: MSE of PRIEST-KLD when epsilon = 0.5
 plt.errorbar(ldaset, meanEpsDef[0], yerr = np.minimum(meanEpsDefRange[0], np.sqrt(meanEpsDef[0]), np.divide(meanEpsDef[0], 2)), color = 'blue', marker = 'o', label = "Dist")
 plt.errorbar(ldaset, meanEpsDef[1], yerr = np.minimum(meanEpsDefRange[1], np.sqrt(meanEpsDef[1]), np.divide(meanEpsDef[1], 2)), color = 'green', marker = 'o', label = "TAgg")
 plt.errorbar(ldaset, meanEpsDef[2], yerr = np.minimum(meanEpsDefRange[2], np.sqrt(meanEpsDef[2]), np.divide(meanEpsDef[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
@@ -465,7 +474,7 @@ plt.errorbar(ldaset, meanEpsDef[6], yerr = np.minimum(meanEpsDefRange[6], np.sqr
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
-plt.ylabel("Variance of PRIEST-KLD")
+plt.ylabel("MSE of PRIEST-KLD")
 plt.savefig("Exp3_synth_eps_def_small.png")
 plt.clf()
 
@@ -476,11 +485,11 @@ plt.errorbar(ldaset, meanEpsDef[7], yerr = np.minimum(meanEpsDefRange[7], np.sqr
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
-plt.ylabel("Variance of PRIEST-KLD")
+plt.ylabel("MSE of PRIEST-KLD")
 plt.savefig("Exp3_synth_eps_def_large.png")
 plt.clf()
 
-# EXPERIMENT 3: variance of PRIEST-KLD when epsilon = 1.5
+# EXPERIMENT 3: MSE of PRIEST-KLD when epsilon = 1.5
 plt.errorbar(ldaset, meanEpsMid[0], yerr = np.minimum(meanEpsMidRange[0], np.sqrt(meanEpsMid[0]), np.divide(meanEpsMid[0], 2)), color = 'blue', marker = 'o', label = "Dist")
 plt.errorbar(ldaset, meanEpsMid[1], yerr = np.minimum(meanEpsMidRange[1], np.sqrt(meanEpsMid[1]), np.divide(meanEpsMid[1], 2)), color = 'green', marker = 'o', label = "TAgg")
 plt.errorbar(ldaset, meanEpsMid[2], yerr = np.minimum(meanEpsMidRange[2], np.sqrt(meanEpsMid[2]), np.divide(meanEpsMid[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
@@ -488,7 +497,7 @@ plt.errorbar(ldaset, meanEpsMid[6], yerr = np.minimum(meanEpsMidRange[6], np.sqr
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
-plt.ylabel("Variance of PRIEST-KLD")
+plt.ylabel("MSE of PRIEST-KLD")
 plt.savefig("Exp3_synth_eps_mid_small.png")
 plt.clf()
 
@@ -499,11 +508,11 @@ plt.errorbar(ldaset, meanEpsMid[7], yerr = np.minimum(meanEpsMidRange[7], np.sqr
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
-plt.ylabel("Variance of PRIEST-KLD")
+plt.ylabel("MSE of PRIEST-KLD")
 plt.savefig("Exp3_synth_eps_mid_large.png")
 plt.clf()
 
-# EXPERIMENT 3: variance of PRIEST-KLD when epsilon = 3
+# EXPERIMENT 3: MSE of PRIEST-KLD when epsilon = 3
 plt.errorbar(ldaset, meanEpsLarge[0], yerr = np.minimum(meanEpsLargeRange[0], np.sqrt(meanEpsLarge[0]), np.divide(meanEpsLarge[0], 2)), color = 'blue', marker = 'o', label = "Dist")
 plt.errorbar(ldaset, meanEpsLarge[1], yerr = np.minimum(meanEpsLargeRange[1], np.sqrt(meanEpsLarge[1]), np.divide(meanEpsLarge[1], 2)), color = 'green', marker = 'o', label = "TAgg")
 plt.errorbar(ldaset, meanEpsLarge[2], yerr = np.minimum(meanEpsLargeRange[2], np.sqrt(meanEpsLarge[2]), np.divide(meanEpsLarge[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
@@ -511,7 +520,7 @@ plt.errorbar(ldaset, meanEpsLarge[6], yerr = np.minimum(meanEpsLargeRange[6], np
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
-plt.ylabel("Variance of PRIEST-KLD")
+plt.ylabel("MSE of PRIEST-KLD")
 plt.savefig("Exp3_synth_eps_large_small.png")
 plt.clf()
 
@@ -522,7 +531,7 @@ plt.errorbar(ldaset, meanEpsLarge[7], yerr = np.minimum(meanEpsLargeRange[7], np
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
-plt.ylabel("Variance of PRIEST-KLD")
+plt.ylabel("MSE of PRIEST-KLD")
 plt.savefig("Exp3_synth_eps_large_large.png")
 plt.clf()
 
