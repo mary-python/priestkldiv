@@ -262,7 +262,7 @@ for trial in range(8):
                 # C = 400, lambda = 0.95 (Dist)
                 tempMeanMidBest[rep] = meanLda[19]
 
-                # C = 800, lambda = 0.9 (Dist)
+                # C = 800, lambda = 0.85 (Dist)
                 tempMeanLargeBest[rep] = meanLda[17]
             
             # "Trusted" (server adds Laplace noise term to final result)
