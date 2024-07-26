@@ -4,7 +4,6 @@ import time
 from math import log
 import torch
 import torch.distributions as dis
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -18,7 +17,7 @@ print("\nStarting...")
 Cset = [40, 80, 120, 160, 200, 260, 320, 400, 480, 560, 620, 680, 740, 800]
 ldaset = [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 
           1, 1.05, 1.1, 1.15, 1.2, 1.25, 1.3, 1.35, 1.4, 1.45, 1.5, 1.55, 1.6, 1.65, 1.7, 1.75, 1.8, 1.85, 1.9, 1.95, 2]
-trialset = ["Dist_small", "TAgg_small", "Trusted_small", "Dist_large", "TAgg_large", "Trusted_large", "no_privacy_small", "no_privacy_large"]
+trialset = ["Dist_C_a", "TAgg_C_a", "Trusted_C_a", "Dist_C_b", "TAgg_C_b", "Trusted_C_b", "no_privacy_C_a", "no_privacy_C_b"]
 CS = len(Cset)
 LS = len(ldaset)
 TS = len(trialset)
@@ -64,7 +63,7 @@ MID_INDEX = 7
 LARGE_INDEX = 13
 
 for trial in range(8):
-    datafile = open(f"Data_{trialset[trial]}_C_synth.txt", "w", encoding = 'utf-8')
+    datafile = open(f"Data_{trialset[trial]}.txt", "w", encoding = 'utf-8')
 
     # p is unknown distribution, q is known
     # distributions have small KL divergence
@@ -241,30 +240,30 @@ for trial in range(8):
             if trial < 3 or trial == 6:
 
                 # C = 40, lambda = 0.5 (Dist)
-                tempMeanSmallBest[rep] = meanLda[11]
+                tempMeanSmallBest[rep] = meanLda[10]
 
                 # C = 200, lambda = 0.85 (Dist)
-                tempMeanDefBest[rep] = meanLda[18]
+                tempMeanDefBest[rep] = meanLda[17]
 
                 # C = 400, lambda = 1.1 (Dist)
-                tempMeanMidBest[rep] = meanLda[23]
+                tempMeanMidBest[rep] = meanLda[22]
 
                 # C = 800, lambda = 1.2 (Dist)
-                tempMeanLargeBest[rep] = meanLda[25]
+                tempMeanLargeBest[rep] = meanLda[24]
 
             else:
 
                 # C = 40, lambda = 1.55 (Dist)
-                tempMeanSmallBest[rep] = meanLda[32]
+                tempMeanSmallBest[rep] = meanLda[31]
 
                 # C = 200, lambda = 1.2 (Dist)
-                tempMeanDefBest[rep] = meanLda[25]
+                tempMeanDefBest[rep] = meanLda[24]
 
                 # C = 400, lambda = 0.95 (Dist)
-                tempMeanMidBest[rep] = meanLda[20]
+                tempMeanMidBest[rep] = meanLda[19]
 
                 # C = 800, lambda = 0.9 (Dist)
-                tempMeanLargeBest[rep] = meanLda[18]
+                tempMeanLargeBest[rep] = meanLda[17]
             
             # "Trusted" (server adds Laplace noise term to final result)
             if trial % 3 == 2:
@@ -425,9 +424,10 @@ plt.errorbar(Cset, meanEstMSE[2], yerr = np.minimum(meanEstRange[2], np.sqrt(mea
 plt.errorbar(Cset, meanEstMSE[6], yerr = np.minimum(meanEstRange[6], np.sqrt(meanEstMSE[6]), np.divide(meanEstMSE[6], 2)), color = 'red', marker = '*', label = "no privacy")
 plt.legend(loc = "best")
 plt.yscale('log')
-plt.xlabel("Value of C")
+plt.ylim(0.2, 100)
+plt.xlabel("Number of clients n")
 plt.ylabel("MSE of PRIEST-KLD")
-plt.savefig("Exp1_synth_C_est_small.png")
+plt.savefig("Exp1_synth_C_est_a.png")
 plt.clf()
 
 plt.errorbar(Cset, meanEstMSE[3], yerr = np.minimum(meanEstRange[3], np.sqrt(meanEstMSE[3]), np.divide(meanEstMSE[3], 2)), color = 'blue', marker = 'o', label = "Dist")
@@ -436,9 +436,11 @@ plt.errorbar(Cset, meanEstMSE[5], yerr = np.minimum(meanEstRange[5], np.sqrt(mea
 plt.errorbar(Cset, meanEstMSE[7], yerr = np.minimum(meanEstRange[7], np.sqrt(meanEstMSE[7]), np.divide(meanEstMSE[7], 2)), color = 'red', marker = '*', label = "no privacy")
 plt.legend(loc = "best")
 plt.yscale('log')
-plt.xlabel("Value of C")
+plt.yticks([1, 10, 60])
+plt.ylim(1, 60)
+plt.xlabel("Number of clients n")
 plt.ylabel("MSE of PRIEST-KLD")
-plt.savefig("Exp1_synth_C_est_large.png")
+plt.savefig("Exp1_synth_C_est_b.png")
 plt.clf()
 
 # EXPERIMENT 2: MSE of PRIEST-KLD for fixed C (40, 200, 400, 800)
@@ -450,7 +452,7 @@ plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
 plt.ylabel("MSE of PRIEST-KLD")
-plt.savefig("Exp2_synth_C_small_small.png")
+plt.savefig("Exp2_synth_C_est_40_a.png")
 plt.clf()
 
 plt.errorbar(ldaset, meanCSmall[3], yerr = np.minimum(meanCSmallRange[3], np.sqrt(meanCSmall[3]), np.divide(meanCSmall[3], 2)), color = 'blue', marker = 'o', label = "Dist")
@@ -461,7 +463,7 @@ plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
 plt.ylabel("MSE of PRIEST-KLD")
-plt.savefig("Exp2_synth_C_small_large.png")
+plt.savefig("Exp2_synth_C_est_40_b.png")
 plt.clf()
 
 plt.errorbar(ldaset, meanCDef[0], yerr = np.minimum(meanCDefRange[0], np.sqrt(meanCDef[0]), np.divide(meanCDef[0], 2)), color = 'blue', marker = 'o', label = "Dist")
@@ -472,7 +474,7 @@ plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
 plt.ylabel("MSE of PRIEST-KLD")
-plt.savefig("Exp2_synth_C_def_small.png")
+plt.savefig("Exp2_synth_C_est_200_a.png")
 plt.clf()
 
 plt.errorbar(ldaset, meanCDef[3], yerr = np.minimum(meanCDefRange[3], np.sqrt(meanCDef[3]), np.divide(meanCDef[3], 2)), color = 'blue', marker = 'o', label = "Dist")
@@ -483,7 +485,7 @@ plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
 plt.ylabel("MSE of PRIEST-KLD")
-plt.savefig("Exp2_synth_C_def_large.png")
+plt.savefig("Exp2_synth_C_est_200_b.png")
 plt.clf()
 
 plt.errorbar(ldaset, meanCMid[0], yerr = np.minimum(meanCMidRange[0], np.sqrt(meanCMid[0]), np.divide(meanCMid[0], 2)), color = 'blue', marker = 'o', label = "Dist")
@@ -494,7 +496,7 @@ plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
 plt.ylabel("MSE of PRIEST-KLD")
-plt.savefig("Exp2_synth_C_mid_small.png")
+plt.savefig("Exp2_synth_C_est_400_a.png")
 plt.clf()
 
 plt.errorbar(ldaset, meanCMid[3], yerr = np.minimum(meanCMidRange[3], np.sqrt(meanCMid[3]), np.divide(meanCMid[3], 2)), color = 'blue', marker = 'o', label = "Dist")
@@ -505,7 +507,7 @@ plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
 plt.ylabel("MSE of PRIEST-KLD")
-plt.savefig("Exp2_synth_C_mid_large.png")
+plt.savefig("Exp2_synth_C_est_400_b.png")
 plt.clf()
 
 plt.errorbar(ldaset, meanCLarge[0], yerr = np.minimum(meanCLargeRange[0], np.sqrt(meanCLarge[0]), np.divide(meanCLarge[0], 2)), color = 'blue', marker = 'o', label = "Dist")
@@ -516,7 +518,7 @@ plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
 plt.ylabel("MSE of PRIEST-KLD")
-plt.savefig("Exp2_synth_C_large_small.png")
+plt.savefig("Exp2_synth_C_est_800_a.png")
 plt.clf()
 
 plt.errorbar(ldaset, meanCLarge[3], yerr = np.minimum(meanCLargeRange[3], np.sqrt(meanCLarge[3]), np.divide(meanCLarge[3], 2)), color = 'blue', marker = 'o', label = "Dist")
@@ -527,19 +529,19 @@ plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of lambda")
 plt.ylabel("MSE of PRIEST-KLD")
-plt.savefig("Exp2_synth_C_large_large.png")
+plt.savefig("Exp2_synth_C_est_800_b.png")
 plt.clf()
 
-# EXPERIMENT 3: MSE of PRIEST-KLD for best lambdas extracted from experiment
+# EXPERIMENT 3: MSE of PRIEST-KLD for best lambdas extracted from experiment 2
 plt.errorbar(Cset, meanSmallBest[0], yerr = np.minimum(meanSmallBestRange[0], np.sqrt(meanSmallBest[0]), np.divide(meanSmallBest[0], 2)), color = 'blue', marker = 'o', label = "Dist")
 plt.errorbar(Cset, meanSmallBest[1], yerr = np.minimum(meanSmallBestRange[1], np.sqrt(meanSmallBest[1]), np.divide(meanSmallBest[1], 2)), color = 'green', marker = 'o', label = "TAgg")
 plt.errorbar(Cset, meanSmallBest[2], yerr = np.minimum(meanSmallBestRange[2], np.sqrt(meanSmallBest[2]), np.divide(meanSmallBest[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
 plt.errorbar(Cset, meanSmallBest[6], yerr = np.minimum(meanSmallBestRange[6], np.sqrt(meanSmallBest[6]), np.divide(meanSmallBest[6], 2)), color = 'red', marker = '*', label = "no privacy")
 plt.legend(loc = 'best')
 plt.yscale('log')
-plt.xlabel("Value of C")
+plt.xlabel("Number of clients n")
 plt.ylabel("MSE of PRIEST-KLD")
-plt.savefig("Exp3_synth_C_small_small.png")
+plt.savefig("Exp3_synth_C_best_40_a.png")
 plt.clf()
 
 plt.errorbar(Cset, meanSmallBest[3], yerr = np.minimum(meanSmallBestRange[3], np.sqrt(meanSmallBest[3]), np.divide(meanSmallBest[3], 2)), color = 'blue', marker = 'o', label = "Dist")
@@ -548,9 +550,9 @@ plt.errorbar(Cset, meanSmallBest[5], yerr = np.minimum(meanSmallBestRange[5], np
 plt.errorbar(Cset, meanSmallBest[7], yerr = np.minimum(meanSmallBestRange[7], np.sqrt(meanSmallBest[7]), np.divide(meanSmallBest[7], 2)), color = 'red', marker = '*', label = "no privacy")
 plt.legend(loc = 'best')
 plt.yscale('log')
-plt.xlabel("Value of C")
+plt.xlabel("Number of clients n")
 plt.ylabel("MSE of PRIEST-KLD")
-plt.savefig("Exp3_synth_C_small_large.png")
+plt.savefig("Exp3_synth_C_best_40_b.png")
 plt.clf()
 
 plt.errorbar(Cset, meanDefBest[0], yerr = np.minimum(meanDefBestRange[0], np.sqrt(meanDefBest[0]), np.divide(meanDefBest[0], 2)), color = 'blue', marker = 'o', label = "Dist")
@@ -559,9 +561,9 @@ plt.errorbar(Cset, meanDefBest[2], yerr = np.minimum(meanDefBestRange[2], np.sqr
 plt.errorbar(Cset, meanDefBest[6], yerr = np.minimum(meanDefBestRange[6], np.sqrt(meanDefBest[6]), np.divide(meanDefBest[6], 2)), color = 'red', marker = '*', label = "no privacy")
 plt.legend(loc = 'best')
 plt.yscale('log')
-plt.xlabel("Value of C")
+plt.xlabel("Number of clients n")
 plt.ylabel("MSE of PRIEST-KLD")
-plt.savefig("Exp3_synth_C_def_small.png")
+plt.savefig("Exp3_synth_C_best_200_a.png")
 plt.clf()
 
 plt.errorbar(Cset, meanDefBest[3], yerr = np.minimum(meanDefBestRange[3], np.sqrt(meanDefBest[3]), np.divide(meanDefBest[3], 2)), color = 'blue', marker = 'o', label = "Dist")
@@ -570,9 +572,9 @@ plt.errorbar(Cset, meanDefBest[5], yerr = np.minimum(meanDefBestRange[5], np.sqr
 plt.errorbar(Cset, meanDefBest[7], yerr = np.minimum(meanDefBestRange[7], np.sqrt(meanDefBest[7]), np.divide(meanDefBest[7], 2)), color = 'red', marker = '*', label = "no privacy")
 plt.legend(loc = 'best')
 plt.yscale('log')
-plt.xlabel("Value of C")
+plt.xlabel("Number of clients n")
 plt.ylabel("MSE of PRIEST-KLD")
-plt.savefig("Exp3_synth_C_def_large.png")
+plt.savefig("Exp3_synth_C_best_200_b.png")
 plt.clf()
 
 plt.errorbar(Cset, meanMidBest[0], yerr = np.minimum(meanMidBestRange[0], np.sqrt(meanMidBest[0]), np.divide(meanMidBest[0], 2)), color = 'blue', marker = 'o', label = "Dist")
@@ -581,9 +583,9 @@ plt.errorbar(Cset, meanMidBest[2], yerr = np.minimum(meanMidBestRange[2], np.sqr
 plt.errorbar(Cset, meanMidBest[6], yerr = np.minimum(meanMidBestRange[6], np.sqrt(meanMidBest[6]), np.divide(meanMidBest[6], 2)), color = 'red', marker = '*', label = "no privacy")
 plt.legend(loc = 'best')
 plt.yscale('log')
-plt.xlabel("Value of C")
+plt.xlabel("Number of clients n")
 plt.ylabel("MSE of PRIEST-KLD")
-plt.savefig("Exp3_synth_C_mid_small.png")
+plt.savefig("Exp3_synth_C_best_400_a.png")
 plt.clf()
 
 plt.errorbar(Cset, meanMidBest[3], yerr = np.minimum(meanMidBestRange[3], np.sqrt(meanMidBest[3]), np.divide(meanMidBest[3], 2)), color = 'blue', marker = 'o', label = "Dist")
@@ -592,9 +594,9 @@ plt.errorbar(Cset, meanMidBest[5], yerr = np.minimum(meanMidBestRange[5], np.sqr
 plt.errorbar(Cset, meanMidBest[7], yerr = np.minimum(meanMidBestRange[7], np.sqrt(meanMidBest[7]), np.divide(meanMidBest[7], 2)), color = 'red', marker = '*', label = "no privacy")
 plt.legend(loc = 'best')
 plt.yscale('log')
-plt.xlabel("Value of C")
+plt.xlabel("Number of clients n")
 plt.ylabel("MSE of PRIEST-KLD")
-plt.savefig("Exp3_synth_C_mid_large.png")
+plt.savefig("Exp3_synth_C_best_400_b.png")
 plt.clf()
 
 plt.errorbar(Cset, meanLargeBest[0], yerr = np.minimum(meanLargeBestRange[0], np.sqrt(meanLargeBest[0]), np.divide(meanLargeBest[0], 2)), color = 'blue', marker = 'o', label = "Dist")
@@ -603,9 +605,9 @@ plt.errorbar(Cset, meanLargeBest[2], yerr = np.minimum(meanLargeBestRange[2], np
 plt.errorbar(Cset, meanLargeBest[6], yerr = np.minimum(meanLargeBestRange[6], np.sqrt(meanLargeBest[6]), np.divide(meanLargeBest[6], 2)), color = 'red', marker = '*', label = "no privacy")
 plt.legend(loc = 'best')
 plt.yscale('log')
-plt.xlabel("Value of C")
+plt.xlabel("Number of clients n")
 plt.ylabel("MSE of PRIEST-KLD")
-plt.savefig("Exp3_synth_C_large_small.png")
+plt.savefig("Exp3_synth_C_best_800_a.png")
 plt.clf()
 
 plt.errorbar(Cset, meanLargeBest[3], yerr = np.minimum(meanLargeBestRange[3], np.sqrt(meanLargeBest[3]), np.divide(meanLargeBest[3], 2)), color = 'blue', marker = 'o', label = "Dist")
@@ -614,9 +616,9 @@ plt.errorbar(Cset, meanLargeBest[5], yerr = np.minimum(meanLargeBestRange[5], np
 plt.errorbar(Cset, meanLargeBest[7], yerr = np.minimum(meanLargeBestRange[7], np.sqrt(meanLargeBest[7]), np.divide(meanLargeBest[7], 2)), color = 'red', marker = '*', label = "no privacy")
 plt.legend(loc = 'best')
 plt.yscale('log')
-plt.xlabel("Value of C")
+plt.xlabel("Number of clients n")
 plt.ylabel("MSE of PRIEST-KLD")
-plt.savefig("Exp3_synth_C_large_large.png")
+plt.savefig("Exp3_synth_C_best_800_b.png")
 plt.clf()
 
 # compute total runtime

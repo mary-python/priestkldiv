@@ -84,9 +84,9 @@ SMALL_INDEX = 0
 MID_INDEX = 7
 
 for trial in range(4):
-    meanfile = open(f"Data_{trialset[trial]}_eps_mean.txt", "w", encoding = 'utf-8')
-    minfile = open(f"Data_{trialset[trial]}_eps_min.txt", "w", encoding = 'utf-8')
-    maxfile = open(f"Data_{trialset[trial]}_eps_max.txt", "w", encoding = 'utf-8')
+    meanfile = open(f"Data_{trialset[trial]}_eps_a.txt", "w", encoding = 'utf-8')
+    minfile = open(f"Data_{trialset[trial]}_eps_b.txt", "w", encoding = 'utf-8')
+    maxfile = open(f"Data_{trialset[trial]}_eps_c.txt", "w", encoding = 'utf-8')
     EPS_FREQ = 0
 
     for eps in epsset:
@@ -500,11 +500,11 @@ for trial in range(4):
             tempMinLdaOpt[rep] = minLdaIndex * ldaStep
             tempMaxLdaOpt[rep] = maxLdaIndex * ldaStep
 
-            # eps = 0.05, lambda = 0.6 (Dist)
-            tempMeanSmallBest[rep] = meanLda[13]
+            # eps = 0.05, lambda = 0.55 (Dist)
+            tempMeanSmallBest[rep] = meanLda[11]
 
             # eps = 1.5, lambda = 0.95 (Dist)
-            tempMeanMidBest[rep] = meanLda[20]
+            tempMeanMidBest[rep] = meanLda[19]
 
             # "Trusted" (server adds Laplace noise term to final result)
             if trial == 2:
@@ -696,8 +696,9 @@ for trial in range(4):
 plt.errorbar(epsset, meanEstMSE[0], yerr = np.minimum(meanEstRange[0], np.sqrt(meanEstMSE[0]), np.divide(meanEstMSE[0], 2)), color = 'blueviolet', marker = 'o', label = "mean")
 plt.errorbar(epsset, minEstMSE[0], yerr = np.minimum(minEstRange[0], np.sqrt(minEstMSE[0]), np.divide(minEstMSE[0], 2)), color = 'lime', marker = 'o', label = "min pair")
 plt.errorbar(epsset, maxEstMSE[0], yerr = np.minimum(maxEstRange[0], np.sqrt(maxEstMSE[0]), np.divide(maxEstMSE[0], 2)), color = 'gold', marker = 'o', label = "max pair")
-plt.legend(loc = 'best')
+plt.legend(loc = 'lower right')
 plt.yscale('log')
+plt.ylim(0.1, 40)
 plt.xlabel("Value of epsilon")
 plt.ylabel("MSE of PRIEST-KLD")
 plt.savefig("Exp1_femnist_eps_est_a.png")
@@ -708,6 +709,7 @@ plt.errorbar(epsset, minEstMSE[1], yerr = np.minimum(minEstRange[1], np.sqrt(min
 plt.errorbar(epsset, maxEstMSE[1], yerr = np.minimum(maxEstRange[1], np.sqrt(maxEstMSE[1]), np.divide(maxEstMSE[1], 2)), color = 'gold', marker = 'o', label = "max pair")
 plt.legend(loc = 'best')
 plt.yscale('log')
+plt.ylim(0.3, 30000)
 plt.xlabel("Value of epsilon")
 plt.ylabel("MSE of PRIEST-KLD")
 plt.savefig("Exp1_femnist_eps_est_b.png")
@@ -718,6 +720,7 @@ plt.errorbar(epsset, minEstMSE[2], yerr = np.minimum(minEstRange[2], np.sqrt(min
 plt.errorbar(epsset, maxEstMSE[2], yerr = np.minimum(maxEstRange[2], np.sqrt(maxEstMSE[2]), np.divide(maxEstMSE[2], 2)), color = 'gold', marker = 'o', label = "max pair")
 plt.legend(loc = 'best')
 plt.yscale('log')
+plt.ylim(0.4, 6000)
 plt.xlabel("Value of epsilon")
 plt.ylabel("MSE of PRIEST-KLD")
 plt.savefig("Exp1_femnist_eps_est_c.png")
@@ -728,6 +731,7 @@ plt.errorbar(epsset, meanEstMSE[1], yerr = np.minimum(meanEstRange[1], np.sqrt(m
 plt.errorbar(epsset, meanEstMSE[2], yerr = np.minimum(meanEstRange[2], np.sqrt(meanEstMSE[2]), np.divide(meanEstMSE[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
 plt.legend(loc = 'best')
 plt.yscale('log')
+plt.ylim(0.3, 30000)
 plt.xlabel("Value of epsilon")
 plt.ylabel("MSE of PRIEST-KLD")
 plt.savefig("Exp1_femnist_eps_est_d.png")
@@ -740,6 +744,7 @@ plt.errorbar(ldaset, meanEpsSmall[2], yerr = np.minimum(meanEpsSmallRange[2], np
 plt.errorbar(ldaset, meanEpsSmall[3], yerr = np.minimum(meanEpsSmallRange[3], np.sqrt(meanEpsSmall[3]), np.divide(meanEpsSmall[3], 2)), color = 'red', marker = '*', label = "no privacy")
 plt.legend(loc = 'best')
 plt.yscale('log')
+plt.ylim(0.005, 10000)
 plt.xlabel("Value of lambda")
 plt.ylabel("MSE of PRIEST-KLD")
 plt.savefig("Exp2_femnist_eps_est_0.05.png")
@@ -751,6 +756,7 @@ plt.errorbar(ldaset, meanEpsMid[2], yerr = np.minimum(meanEpsMidRange[2], np.sqr
 plt.errorbar(ldaset, meanEpsMid[3], yerr = np.minimum(meanEpsMidRange[3], np.sqrt(meanEpsMid[3]), np.divide(meanEpsMid[3], 2)), color = 'red', marker = '*', label = "no privacy")
 plt.legend(loc = 'best')
 plt.yscale('log')
+plt.ylim(0.01, 70)
 plt.xlabel("Value of lambda")
 plt.ylabel("MSE of PRIEST-KLD")
 plt.savefig("Exp2_femnist_eps_est_1.5.png")
@@ -762,6 +768,7 @@ plt.errorbar(epsset, meanSmallBest[1], yerr = np.minimum(meanSmallBestRange[1], 
 plt.errorbar(epsset, meanSmallBest[2], yerr = np.minimum(meanSmallBestRange[2], np.sqrt(meanSmallBest[2]), np.divide(meanSmallBest[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
 plt.legend(loc = 'best')
 plt.yscale('log')
+plt.ylim(0.03, 5000)
 plt.xlabel("Value of epsilon")
 plt.ylabel("MSE of PRIEST-KLD")
 plt.savefig("Exp3_femnist_eps_best_0.05.png")
@@ -772,6 +779,7 @@ plt.errorbar(epsset, meanMidBest[1], yerr = np.minimum(meanMidBestRange[1], np.s
 plt.errorbar(epsset, meanMidBest[2], yerr = np.minimum(meanMidBestRange[2], np.sqrt(meanMidBest[2]), np.divide(meanMidBest[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
 plt.legend(loc = 'best')
 plt.yscale('log')
+plt.ylim(0.03, 6000)
 plt.xlabel("Value of epsilon")
 plt.ylabel("MSE of PRIEST-KLD")
 plt.savefig("Exp3_femnist_eps_best_1.5.png")
@@ -783,6 +791,8 @@ plt.errorbar(epsset, minPerc[1], yerr = np.minimum(minPercRange[1], np.sqrt(minP
 plt.errorbar(epsset, minPerc[2], yerr = np.minimum(minPercRange[2], np.sqrt(minPerc[2]), np.divide(minPerc[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
 plt.legend(loc = 'best')
 plt.yscale('log')
+plt.yticks([0.1, 1, 10, 100, 700])
+plt.ylim(0.1, 700)
 plt.gca().yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
 plt.xlabel("Value of epsilon")
 plt.ylabel("Noise (%)")
@@ -794,6 +804,8 @@ plt.errorbar(epsset, maxPerc[1], yerr = np.minimum(maxPercRange[1], np.sqrt(maxP
 plt.errorbar(epsset, maxPerc[2], yerr = np.minimum(maxPercRange[2], np.sqrt(maxPerc[2]), np.divide(maxPerc[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
 plt.legend(loc = 'best')
 plt.yscale('log')
+plt.yticks([0.1, 1, 10, 100])
+plt.ylim(0.02, 400)
 plt.gca().yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
 plt.xlabel("Value of epsilon")
 plt.ylabel("Noise (%)")
