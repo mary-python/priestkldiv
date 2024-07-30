@@ -465,7 +465,7 @@ for trial in range(4):
                 tempMeanEstMSE[rep] = (tempMeanEst[rep] + meanNoise - tempMeanValue[rep])**2
                 tempMinEstMSE[rep] = (tempMinEst[rep] + minNoise - tempMinValue[rep])**2
                 tempMaxEstMSE[rep] = (tempMaxEst[rep] + maxNoise - tempMaxValue[rep])**2
-                tempMeanSmallBestMidTAgg[rep] = (tempMeanSmallBestMidTAgg[rep] + meanSmallNoise - tempMeanValue[rep])**2
+                tempMeanSmallBestMidTAgg[rep] = (tempMeanSmallBestMidTAgg[rep] + meanSmallBestMidTAggNoise - tempMeanValue[rep])**2
                 tempMeanMidDist[rep] = (tempMeanMidDist[rep] + meanMidDistNoise - tempMeanValue[rep])**2
                 tempMeanMidTrusted[rep] = (tempMeanMidTrusted[rep] + meanMidTrustedNoise - tempMeanValue[rep])**2
 
