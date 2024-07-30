@@ -80,26 +80,16 @@ for trial in range(8):
     groundTruth = torch.distributions.kl.kl_divergence(p, q)
 
     # round to 2 d.p., find indices of and eliminate unique values
-    pSample = p.sample(sample_shape = (T,))
-    pRound = torch.round(pSample, decimals = 2)
-    pUnique = torch.unique(pRound, return_counts = True)
-    pIndices = (pUnique[1] == 1).nonzero().flatten()
-    pUniqueIndices = pUnique[0][pIndices]
-
     qSample = q.sample(sample_shape = (T,))
     qRound = torch.round(qSample, decimals = 2)
     qUnique = torch.unique(qRound, return_counts = True)
     qIndices = (qUnique[1] == 1).nonzero().flatten()
     qUniqueIndices = qUnique[0][qIndices]
 
-    for i in pUniqueIndices:
-        pRound = pRound[pRound != i]
-
     for i in qUniqueIndices:
         qRound = qRound[qRound != i]
 
     # order the pre-processed sample
-    pOrderedRound = torch.sort(pRound)
     qOrderedRound = torch.sort(qRound)
 
     if trial < 6:
@@ -125,10 +115,7 @@ for trial in range(8):
     for C in Cset:
         print(f"\nTrial {trial + 1}: {trialset[trial]}")
 
-        tempMeanRatio = np.zeros(RS)
-        tempMeanInvRatio = np.zeros(RS)
         tempMeanEst = np.zeros(RS)
-        tempMeanInvEst = np.zeros(RS)
         tempMeanEstMSE = np.zeros(RS)
         tempMeanLdaOpt = np.zeros(RS)
         tempMeanSmallBest = np.zeros(RS)
@@ -144,8 +131,6 @@ for trial in range(8):
         tempMeanCDef = np.zeros((LS, RS))
         tempMeanCMid = np.zeros((LS, RS))
         tempMeanCLarge = np.zeros((LS, RS))
-
-        tempVarNoise = np.zeros(RS)
         
         for rep in range(RS):
             print(f"C = {C}, repeat = {rep + 1}...")
@@ -154,49 +139,37 @@ for trial in range(8):
             torch.manual_seed(SEED_FREQ)
 
             meanRangeEst = np.zeros((LS, C))
-            meanInvRangeEst = np.zeros((LS, C))
             startNoise = []
 
             for j in range(C):
 
                 # each client gets N points from pre-processed sample
-                pClientSamp = pOrderedRound[0][N*j : N*(j + 1)]
                 qClientSamp = qOrderedRound[0][N*j : N*(j + 1)]
 
-                # compute ratio (and its inverse) between unknown and known distributions
+                # compute ratio between unknown and known distributions
                 logr = abs(p.log_prob(qClientSamp) - q.log_prob(qClientSamp))
-                invLogr = abs(q.log_prob(pClientSamp) - p.log_prob(pClientSamp))
 
                 # "Dist" (each client adds Gaussian noise term)
                 if trial % 3 == 0 and trial != 6:
                     startSample = abs(probGaussNoise.sample(sample_shape = (1,)))
                     startNoise.append(startSample)
                     logr = logr + startSample
-                    invLogr = invLogr + startSample
 
                 r = np.exp(logr)
-                invr = np.exp(invLogr)
                 LDA_COUNT = 0
 
                 # explore lambdas in a range
                 for lda in ldaset:
 
-                    # compute k3 estimator (and its inverse)
+                    # compute k3 estimator
                     rangeEst = lda * (r - 1) - logr
-                    invRangeEst = lda * (invr - 1) - invLogr
 
                     # share PRIEST-KLD with server
                     meanRangeEst[LDA_COUNT, j] = rangeEst.mean()
-                    meanInvRangeEst[LDA_COUNT, j] = invRangeEst.mean()
                     LDA_COUNT = LDA_COUNT + 1
-
-            # extract mean ratio (and inverse) for Theorem 4.4 and Corollary 4.5
-            tempMeanRatio[rep] = r.mean()
-            tempMeanInvRatio[rep] = invr.mean()
 
             # compute mean of PRIEST-KLD across clients
             meanLda = np.mean(meanRangeEst, axis = 1)
-            meanInvLda = np.mean(meanInvRangeEst, axis = 1)
             meanLdaNoise = np.zeros(LS)
 
             for l in range(LS):
@@ -205,7 +178,6 @@ for trial in range(8):
                 if trial % 3 == 1 and trial != 7:
                     meanLdaNoise[l] = gaussNoise.sample(sample_shape = (1,))
                     meanLda[l] = meanLda[l] + meanLdaNoise[l]
-                    meanInvLda[l] = meanInvLda[l] + meanLdaNoise[l]
             
                 # mean across lambdas for C = 40 (small)
                 if C_COUNT == SMALL_INDEX:
@@ -225,13 +197,10 @@ for trial in range(8):
 
             # find lambda that produces minimum error
             ldaIndex = np.argmin(meanLda)
-            invLdaIndex = np.argmin(meanInvLda)
             meanMinError = meanLda[ldaIndex]
-            meanInvMinError = meanInvLda[invLdaIndex]
 
             # mean across clients for optimum lambda
             tempMeanEst[rep] = meanMinError
-            tempMeanInvEst[rep] = meanInvMinError
 
             # optimum lambda
             tempMeanLdaOpt[rep] = ldaIndex * ldaStep
@@ -268,17 +237,17 @@ for trial in range(8):
             # "Trusted" (server adds Laplace noise term to final result)
             if trial % 3 == 2:
                 meanNoise = lapNoise.sample(sample_shape = (1,))
-                meanSmallNoise = lapNoise.sample(sample_shape = (1,))
-                meanDefNoise = lapNoise.sample(sample_shape = (1,))
-                meanMidNoise = lapNoise.sample(sample_shape = (1,))
-                meanLargeNoise = lapNoise.sample(sample_shape = (1,))
+                meanSmallBestNoise = lapNoise.sample(sample_shape = (1,))
+                meanDefBestNoise = lapNoise.sample(sample_shape = (1,))
+                meanMidBestNoise = lapNoise.sample(sample_shape = (1,))
+                meanLargeBestNoise = lapNoise.sample(sample_shape = (1,))
 
                 # define error = squared difference between estimator and ground truth
                 tempMeanEstMSE[rep] = (tempMeanEst[rep] + meanNoise - groundTruth)**2
-                tempMeanSmallBest[rep] = (tempMeanSmallBest[rep] + meanSmallNoise - groundTruth)**2
-                tempMeanDefBest[rep] = (tempMeanDefBest[rep] + meanDefNoise - groundTruth)**2
-                tempMeanMidBest[rep] = (tempMeanMidBest[rep] + meanMidNoise - groundTruth)**2
-                tempMeanLargeBest[rep] = (tempMeanLargeBest[rep] + meanLargeNoise - groundTruth)**2
+                tempMeanSmallBest[rep] = (tempMeanSmallBest[rep] + meanSmallBestNoise - groundTruth)**2
+                tempMeanDefBest[rep] = (tempMeanDefBest[rep] + meanDefBestNoise - groundTruth)**2
+                tempMeanMidBest[rep] = (tempMeanMidBest[rep] + meanMidBestNoise - groundTruth)**2
+                tempMeanLargeBest[rep] = (tempMeanLargeBest[rep] + meanLargeBestNoise - groundTruth)**2
 
                 for l in range(LS):
             
@@ -332,17 +301,14 @@ for trial in range(8):
             if trial % 3 == 0 and trial != 6:
                 tempMeanPerc[rep] = float(abs(np.array(sum(startNoise)) / (np.array(sum(startNoise) + groundTruth))))*100
                 startNoise = [float(sn) for sn in startNoise]
-                tempVarNoise[rep] = np.max(startNoise)
 
             if trial % 3 == 1 and trial != 7:
                 tempMeanPerc[rep] = abs((np.sum(meanLdaNoise)) / (np.sum(meanLdaNoise) + groundTruth))*100
                 meanLdaNoise = [float(mln) for mln in meanLdaNoise]
-                tempVarNoise[rep] = np.max(meanLdaNoise)
 
             if trial % 3 == 2:
                 tempMeanPerc[rep] = float(abs(np.array(meanNoise) / (np.array(meanNoise + groundTruth))))*100
                 meanNoise = [float(mn) for mn in meanNoise]
-                tempVarNoise[rep] = np.max(meanNoise)
 
             SEED_FREQ = SEED_FREQ + 1
         
@@ -354,8 +320,6 @@ for trial in range(8):
         meanMidBest[trial, C_COUNT] = np.mean(tempMeanMidBest)
         meanLargeBest[trial, C_COUNT] = np.mean(tempMeanLargeBest)
         meanPerc[trial, C_COUNT] = np.mean(tempMeanPerc)
-        meanEst = np.mean(tempMeanEst)
-        meanInvEst = np.mean(tempMeanInvEst)
 
         for l in range(LS):
             if C_COUNT == SMALL_INDEX:
@@ -384,23 +348,6 @@ for trial in range(8):
             if C_COUNT == LARGE_INDEX:
                 meanCLargeRange[trial, l] = np.std(tempMeanCLarge[l])
 
-        # compute alpha and beta for Theorem 4.4 and Corollary 4.5 using mean / min / max ratios
-        alpha = np.max(tempMeanRatio)
-        beta = np.max(tempMeanInvRatio)
-        varNoise = np.var(tempVarNoise)
-        ldaBound = 0
-        maxLda = 0
-
-        # find maximum lambda that satisfies MSE upper bound in Theorem 4.4
-        for lda in ldaset:
-            if ldaBound < meanEstMSE[trial, C_COUNT]:
-                ldaBound = ((lda**2 / T) * (alpha - 1)) + ((1 / T) * (max(alpha - 1, beta**2 - 1)
-                    + meanEst**2)) - ((2*lda / T) * (meanInvEst + meanEst)) + varNoise
-                maxLda = lda
-
-        # compute optimal lambda upper bound in Corollary 4.5
-        ldaOptBound = ((alpha * beta) - 1)**2 / (2 * alpha * beta * (alpha - 1))
-
         # write statistics on data files
         if C == Cset[0]:
             datafile.write(f"SYNTHETIC: C = {C}\n")
@@ -408,10 +355,7 @@ for trial in range(8):
             datafile.write(f"\nC = {C}\n")
 
         datafile.write(f"\nMean MSE: {round(meanEstMSE[trial, C_COUNT], 2)}\n")
-        datafile.write(f"MSE Upper Bound: {round(ldaBound, 2)}\n")
-        datafile.write(f"Maximal Lambda: {round(maxLda, 2)}\n")
         datafile.write(f"Optimal Lambda: {round(meanLdaOpt[trial, C_COUNT], 2)}\n")
-        datafile.write(f"Optimal Lambda Upper Bound: {round(ldaOptBound, 2)}\n")
         datafile.write(f"Ground Truth: {round(float(groundTruth), 2)}\n")
         datafile.write(f"Noise: {np.round(meanPerc[trial, C_COUNT], 2)}%\n")
 

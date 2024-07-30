@@ -96,21 +96,13 @@ for trial in range(4):
 
         # temporary stores for each repeat
         tempMeanValue = np.zeros(RS)
-        tempMeanInvValue = np.zeros(RS)
-        tempMeanRatio = np.zeros(RS)
-        tempMeanInvRatio = np.zeros(RS)
         tempMeanEst = np.zeros(RS)
-        tempMeanInvEst  = np.zeros(RS)
         tempMeanEstMSE = np.zeros(RS)
         tempMeanLdaOpt = np.zeros(RS)
         tempMeanPerc = np.zeros(RS)
             
         tempMinValue = np.zeros(RS)
-        tempMinInvValue = np.zeros(RS)
-        tempMinRatio = np.zeros(RS)
-        tempMinInvRatio = np.zeros(RS)
         tempMinEst = np.zeros(RS)
-        tempMinInvEst = np.zeros(RS)
         tempMinEstMSE = np.zeros(RS)
         tempMinLdaOpt = np.zeros(RS)
         tempMinDefDist = np.zeros(RS)
@@ -121,19 +113,13 @@ for trial in range(4):
         tempMinTLarge = np.zeros((LS, RS))
 
         tempMaxValue = np.zeros(RS)
-        tempMaxInvValue = np.zeros(RS)
-        tempMaxRatio = np.zeros(RS)
-        tempMaxInvRatio = np.zeros(RS)
         tempMaxEst = np.zeros(RS)
-        tempMaxInvEst = np.zeros(RS)
         tempMaxEstMSE = np.zeros(RS)
         tempMaxLdaOpt = np.zeros(RS)
         tempMaxLargeDist = np.zeros(RS)
         tempMaxLargeTAgg = np.zeros(RS)
         tempMaxPerc = np.zeros(RS)
         tempMaxTLarge = np.zeros((LS, RS))
-
-        tempVarNoise = np.zeros(RS)
 
         for rep in range(RS):      
             print(f"T = {T}, repeat {rep + 1}...")
@@ -342,10 +328,8 @@ for trial in range(4):
             uDist = np.zeros((10, 10, U))
             nDist = np.zeros((10, 10, E))
             uList = []
-            nList = []
             uCDList = []         
             rList = []
-            rInvList = []
             startNoise = []
 
             # for each comparison digit compute exact unknown distributions for all digits
@@ -362,14 +346,9 @@ for trial in range(4):
 
                     for j in range(0, E):
                         nDist[C, D, j] = eProbsSet[D, j] * (np.log((eProbsSet[D, j]) / (eProbsSet[C, j])))
-                    
-                    # eliminate all zero values when digits are identical
-                    if sum(nDist[C, D]) != 0.0:
-                        nList.append(sum(nDist[C, D]))
 
-                    # compute ratio (and its inverse) between exact unknown distributions
+                    # compute ratio between exact unknown distributions
                     ratio = abs(sum(nDist[C, D]) / sum(uDist[C, D]))
-                    invRatio = abs(sum(uDist[C, D]) / sum(nDist[C, D]))
 
                     # eliminate all divide by zero errors
                     if ratio != 0.0 and sum(uDist[C, D]) != 0.0:
@@ -379,87 +358,54 @@ for trial in range(4):
                             startSample = abs(probGaussNoise.sample(sample_shape = (1,)))
                             startNoise.append(startSample)
                             ratio = ratio + startSample
-                            invRatio = invRatio + startSample
                     
                         rList.append(ratio)
-                        rInvList.append(ratio)
 
             # store for PRIEST-KLD
             R2 = len(rList)
             uEst = np.zeros((LS, R2))
-            nEst = np.zeros((LS, R2))
             R_FREQ = 0
 
             for row in range(0, R2):
                 uLogr = np.log(rList[row])
-                nLogr = np.log(rInvList[row])
                 LDA_FREQ = 0
 
                 # explore lambdas in a range
                 for lda in ldaset:
 
-                    # compute k3 estimator (and its inverse)
+                    # compute k3 estimator
                     uRangeEst = lda * (np.exp(uLogr) - 1) - uLogr
-                    nRangeEst = lda * (np.exp(nLogr) - 1) - nLogr
 
                     # share PRIEST-KLD with intermediate server
                     uEst[LDA_FREQ, R_FREQ] = uRangeEst
-                    nEst[LDA_FREQ, R_FREQ] = nRangeEst
                     LDA_FREQ = LDA_FREQ + 1
 
                 R_FREQ = R_FREQ + 1
         
-            # extract position and identity of max and min pairs
+            # extract position of min and max pairs
             minIndex = np.argmin(uList)
             maxIndex = np.argmax(uList)
-            minInvIndex = np.argmin(nList)
-            maxInvIndex = np.argmax(nList)
-
-            minPair = uCDList[minIndex]
-            maxPair = uCDList[maxIndex]
 
             # extract ground truths
             tempMeanValue[rep] = np.mean(uList)
-            tempMeanInvValue[rep] = np.mean(nList)
-
             tempMinValue[rep] = uList[minIndex]
             tempMaxValue[rep] = uList[maxIndex]
-            tempMinInvValue[rep] = nList[minInvIndex]
-            tempMaxInvValue[rep] = nList[maxInvIndex]
-
-            # extract mean / min / max ratios (and inverses) for Theorem 4.4 and Corollary 4.5
-            tempMeanRatio[rep] = np.mean(rList)
-            tempMeanInvRatio[rep] = np.mean(rInvList)
-
-            tempMinRatio[rep] = rList[minIndex]
-            tempMaxRatio[rep] = rList[maxIndex]            
-            tempMinInvRatio[rep] = rInvList[minInvIndex]
-            tempMaxInvRatio[rep] = rInvList[maxInvIndex]
 
             meanLda = np.zeros(LS)
             minLda = np.zeros(LS)
             maxLda = np.zeros(LS)
-            meanInvLda = np.zeros(LS)
-            minInvLda = np.zeros(LS)
-            maxInvLda = np.zeros(LS)
 
             meanLdaNoise = np.zeros(LS)
             minLdaNoise = np.zeros(LS)
             maxLdaNoise = np.zeros(LS)
-            meanInvLdaNoise = np.zeros(LS)
-            minInvLdaNoise = np.zeros(LS)
-            maxInvLdaNoise = np.zeros(LS)
 
             # compute mean error of PRIEST-KLD for each lambda
             for l in range(LS):
                 meanLda[l] = np.mean(uEst[l])
-                meanInvLda[l] = np.mean(nEst[l])
 
                 # extract error for max and min pairs
                 minLda[l] = uEst[l, minIndex]
                 maxLda[l] = uEst[l, maxIndex]
-                minInvLda[l] = nEst[l, minIndex]
-                maxInvLda[l] = nEst[l, maxIndex]
 
                 # "TAgg" (intermediate server adds Gaussian noise term)
                 if trial == 1:
@@ -470,9 +416,6 @@ for trial in range(4):
                     meanLda[l] = meanLda[l] + meanLdaNoise[l]
                     minLda[l] = minLda[l] + minLdaNoise[l]
                     maxLda[l] = maxLda[l] + maxLdaNoise[l]
-                    meanInvLda[l] = meanInvLda[l] + meanLdaNoise[l]
-                    minInvLda[l] = minInvLda[l] + minLdaNoise[l]
-                    maxInvLda[l] = maxInvLda[l] + maxLdaNoise[l]
             
                 # min across lambdas for T = 180 (~5% of clients, default)
                 if T_FREQ == DEF_INDEX:
@@ -487,24 +430,15 @@ for trial in range(4):
             meanLdaIndex = np.argmin(meanLda)
             minLdaIndex = np.argmin(minLda)
             maxLdaIndex = np.argmin(maxLda)
-            meanInvLdaIndex = np.argmin(meanInvLda)
-            minInvLdaIndex = np.argmin(minInvLda)
-            maxInvLdaIndex = np.argmin(maxInvLda)
 
             meanMinError = meanLda[meanLdaIndex]
             minMinError = minLda[minLdaIndex]
             maxMinError = maxLda[maxLdaIndex]
-            meanInvMinError = meanInvLda[meanInvLdaIndex]
-            minInvMinError = minInvLda[minInvLdaIndex]
-            maxInvMinError = maxLda[maxInvLdaIndex]
 
             # mean / min / max across clients for optimum lambda
             tempMeanEst[rep] = meanMinError
             tempMinEst[rep] = minMinError
             tempMaxEst[rep] = maxMinError
-            tempMeanInvEst[rep] = meanInvMinError
-            tempMinInvEst[rep] = minInvMinError
-            tempMaxInvEst[rep] = maxInvMinError
 
             # optimum lambda
             tempMeanLdaOpt[rep] = meanLdaIndex * ldaStep
@@ -590,20 +524,17 @@ for trial in range(4):
             if trial == 0:
                 tempMeanPerc[rep] = float(abs(np.array(sum(startNoise)) / (np.array(sum(startNoise)) + tempMeanValue[rep])))*100
                 tempMinPerc[rep] = float(abs(np.array(sum(startNoise)) / (np.array(sum(startNoise)) + tempMinValue[rep])))*100
-                tempMaxPerc[rep] = float(abs(np.array(sum(startNoise)) / (np.array(sum(startNoise)) + tempMaxValue[rep])))*100
-                tempVarNoise[rep] = np.max(startNoise)       
+                tempMaxPerc[rep] = float(abs(np.array(sum(startNoise)) / (np.array(sum(startNoise)) + tempMaxValue[rep])))*100     
 
             if trial == 1:
                 tempMeanPerc[rep] = abs((np.sum(meanLdaNoise)) / (np.sum(meanLdaNoise) + tempMeanValue[rep]))*100
                 tempMinPerc[rep] = abs((np.sum(meanLdaNoise)) / (np.sum(meanLdaNoise) + tempMinValue[rep]))*100
                 tempMaxPerc[rep] = abs((np.sum(meanLdaNoise)) / (np.sum(meanLdaNoise) + tempMaxValue[rep]))*100
-                tempVarNoise[rep] = np.max(meanLdaNoise)
             
             if trial == 2:
                 tempMeanPerc[rep] = float(abs(np.array(meanNoise) / (np.array(meanNoise) + tempMeanValue[rep])))*100
                 tempMinPerc[rep] = float(abs(np.array(meanNoise) / (np.array(meanNoise) + tempMinValue[rep])))*100
                 tempMaxPerc[rep] = float(abs(np.array(meanNoise) / (np.array(meanNoise) + tempMaxValue[rep])))*100
-                tempVarNoise[rep] = np.max(meanNoise)
         
             SEED_FREQ = SEED_FREQ + 1
 
@@ -612,8 +543,6 @@ for trial in range(4):
         meanEstMSE[trial, T_FREQ] = np.mean(tempMeanEstMSE)
         meanLdaOpt[trial, T_FREQ] = np.mean(tempMeanLdaOpt)
         meanPerc[trial, T_FREQ] = np.mean(tempMeanPerc)
-        meanEst = np.mean(tempMeanEst)
-        meanInvEst = np.mean(tempMeanInvEst)
 
         minValue[trial, T_FREQ] = np.mean(tempMinValue)
         minEstMSE[trial, T_FREQ] = np.mean(tempMinEstMSE)
@@ -622,8 +551,6 @@ for trial in range(4):
         minDefTAgg[trial, T_FREQ] = np.mean(tempMinDefTAgg)
         minLargeBest[trial, T_FREQ] = np.mean(tempMinLargeBest)
         minPerc[trial, T_FREQ] = np.mean(tempMinPerc)
-        minEst = np.mean(tempMinEst)
-        minInvEst = np.mean(tempMinInvEst)
 
         for l in range(LS):
             if T_FREQ == DEF_INDEX:
@@ -637,8 +564,6 @@ for trial in range(4):
         maxLargeDist[trial, T_FREQ] = np.mean(tempMaxLargeDist)
         maxLargeTAgg[trial, T_FREQ] = np.mean(tempMaxLargeTAgg)
         maxPerc[trial, T_FREQ] = np.mean(tempMaxPerc)
-        maxEst = np.mean(tempMaxEst)
-        maxInvEst = np.mean(tempMaxInvEst)
 
         for l in range(LS):
             if T_FREQ == LARGE_INDEX:
@@ -661,43 +586,6 @@ for trial in range(4):
             if T_FREQ == LARGE_INDEX:
                 maxTLargeRange[trial, l] = np.std(tempMaxTLarge[l])
 
-        # compute alpha and beta for Theorem 4.4 and Corollary 4.5 using mean / min / max ratios
-        meanAlpha = np.max(tempMeanRatio)
-        minAlpha = np.max(tempMinRatio)
-        maxAlpha = np.max(tempMaxRatio)
-        meanBeta = np.max(tempMeanInvRatio)
-        minBeta = np.max(tempMinInvRatio)
-        maxBeta = np.max(tempMaxInvRatio)
-        varNoise = np.var(tempVarNoise)
-        meanLdaBound = 0
-        minLdaBound = 0
-        maxLdaBound = 0
-        meanMaxLda = 0
-        minMaxLda = 0
-        maxMaxLda = 0
-
-        # find maximum lambda that satisfies MSE upper bound in Theorem 4.4
-        for lda in ldaset:
-            if meanLdaBound < meanEstMSE[trial, T_FREQ]:
-                meanLdaBound = ((lda**2 / T) * (meanAlpha - 1)) + ((1 / T) * (max(meanAlpha - 1, meanBeta**2 - 1)
-                    + meanEst**2)) - ((2*lda / T) * (meanInvEst + meanEst)) + varNoise
-                meanMaxLda = lda
-            
-            if minLdaBound < minEstMSE[trial, T_FREQ]:
-                minLdaBound = ((lda**2 / T) * (minAlpha - 1)) + ((1 / T) * (max(minAlpha - 1, minBeta**2 - 1)
-                    + minEst**2)) - ((2*lda / T) * (minInvEst + minEst)) + varNoise
-                minMaxLda = lda
-            
-            if maxLdaBound < maxEstMSE[trial, T_FREQ]:
-                maxLdaBound = ((lda**2 / T) * (maxAlpha - 1)) + ((1 / T) * (max(maxAlpha - 1, maxBeta**2 - 1)
-                    + maxEst**2)) - ((2*lda / T) * (maxInvEst + maxEst)) + varNoise
-                maxMaxLda = lda
-
-        # compute optimal lambda upper bound in Corollary 4.5
-        meanLdaOptBound = ((meanAlpha * meanBeta) - 1)**2 / (2 * meanAlpha * meanBeta * (meanAlpha - 1))
-        minLdaOptBound = ((minAlpha * minBeta) - 1)**2 / (2 * minAlpha * minBeta * (minAlpha - 1))
-        maxLdaOptBound = ((maxAlpha * maxBeta) - 1)**2 / (2 * maxAlpha * maxBeta * (maxAlpha - 1))
-
         # write statistics on data files
         if T == Tset[0]:
             meanfile.write(f"FEMNIST: T = {T}\n")
@@ -709,28 +597,17 @@ for trial in range(4):
             maxfile.write(f"\nT = {T}\n")
   
         meanfile.write(f"\nMean MSE: {round(meanEstMSE[trial, T_FREQ], 2)}\n")
-        meanfile.write(f"MSE Upper Bound: {round(meanLdaBound, 2)}\n")
-        meanfile.write(f"Maximum Lambda: {round(meanMaxLda, 2)}\n")
         meanfile.write(f"Optimal Lambda: {round(meanLdaOpt[trial, T_FREQ], 2)}\n")
-        meanfile.write(f"Optimal Lambda Upper Bound: {round(meanLdaOptBound, 2)}\n")
         meanfile.write(f"Ground Truth: {round(meanValue[trial, T_FREQ], 2)}\n")
         meanfile.write(f"Noise: {np.round(meanPerc[trial, T_FREQ], 2)}%\n")
 
-        minfile.write(f"\nMin Pair: {minPair}\n")
-        minfile.write(f"Min MSE: {round(minEstMSE[trial, T_FREQ], 2)}\n")
-        minfile.write(f"MSE Upper Bound: {round(minLdaBound, 2)}\n")
-        minfile.write(f"Maximum Lambda: {round(minMaxLda, 2)}\n")
+        minfile.write(f"\nMin MSE: {round(minEstMSE[trial, T_FREQ], 2)}\n")
         minfile.write(f"Optimal Lambda: {round(minLdaOpt[trial, T_FREQ], 2)}\n")
-        minfile.write(f"Optimal Lambda Upper Bound: {round(minLdaOptBound, 2)}\n")
         minfile.write(f"Ground Truth: {round(minValue[trial, T_FREQ], 2)}\n")
         minfile.write(f"Noise: {np.round(minPerc[trial, T_FREQ], 2)}%\n")
 
-        maxfile.write(f"\nMax Pair: {maxPair}\n")
-        maxfile.write(f"Max MSE: {round(maxEstMSE[trial, T_FREQ], 2)}\n")
-        maxfile.write(f"MSE Upper Bound: {round(maxLdaBound, 2)}\n")
-        maxfile.write(f"Maximum Lambda: {round(maxMaxLda, 2)}\n")
+        maxfile.write(f"\nMax MSE: {round(maxEstMSE[trial, T_FREQ], 2)}\n")
         maxfile.write(f"Optimal Lambda: {round(maxLdaOpt[trial, T_FREQ], 2)}\n")
-        maxfile.write(f"Optimal Lambda Upper Bound: {round(maxLdaOptBound, 2)}\n")
         maxfile.write(f"Ground Truth: {round(maxValue[trial, T_FREQ], 2)}\n")
         maxfile.write(f"Noise: {np.round(maxPerc[trial, T_FREQ], 2)}%\n")
 
