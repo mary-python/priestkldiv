@@ -522,6 +522,7 @@ for trial in range(4):
         meanLdaOpt[trial, EPS_FREQ] = np.mean(tempMeanLdaOpt)
         meanSmallBestMidTAgg[trial, EPS_FREQ] = np.mean(tempMeanSmallBestMidTAgg)
         meanMidDist[trial, EPS_FREQ] = np.mean(tempMeanMidDist)
+        meanMidTrusted[trial, EPS_FREQ] = np.mean(tempMeanMidTrusted)
         meanPerc[trial, EPS_FREQ] = np.mean(tempMeanPerc)
 
         for l in range(LS):
@@ -544,6 +545,7 @@ for trial in range(4):
         meanEstRange[trial, EPS_FREQ] = np.std(tempMeanEstMSE)
         meanSmallBestMidTAggRange[trial, EPS_FREQ] = np.std(tempMeanSmallBestMidTAgg)
         meanMidDistRange[trial, EPS_FREQ] = np.std(tempMeanMidDist)
+        meanMidTrustedRange[trial, EPS_FREQ] = np.std(tempMeanMidTrusted)
 
         for l in range(LS):
             if EPS_FREQ == SMALL_INDEX:
