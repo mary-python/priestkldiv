@@ -214,16 +214,16 @@ for trial in range(8):
                 # C = 200, lambda = 0.85 (Dist)
                 tempMeanDefBest[rep] = meanLda[17]
 
-                # C = 400, lambda = 1.1 (Dist)
-                tempMeanMidBest[rep] = meanLda[22]
+                # C = 400, lambda = 1.05 (Dist)
+                tempMeanMidBest[rep] = meanLda[21]
 
                 # C = 800, lambda = 1.2 (Dist)
                 tempMeanLargeBest[rep] = meanLda[24]
 
             else:
 
-                # C = 40, lambda = 1.55 (Dist)
-                tempMeanSmallBest[rep] = meanLda[31]
+                # C = 40, lambda = 1.5 (Dist)
+                tempMeanSmallBest[rep] = meanLda[30]
 
                 # C = 200, lambda = 1.2 (Dist)
                 tempMeanDefBest[rep] = meanLda[24]

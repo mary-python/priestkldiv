@@ -43,16 +43,18 @@ TS = len(trialset)
 meanValue = np.zeros((TS, ES))
 meanEstMSE = np.zeros((TS, ES))
 meanLdaOpt = np.zeros((TS, ES))
-meanSmallBestMidTAgg = np.zeros((TS, ES))
+meanSmallBest = np.zeros((TS, ES))
 meanMidDist = np.zeros((TS, ES))
+meanMidTAgg = np.zeros((TS, ES))
 meanMidTrusted = np.zeros((TS, ES))
 meanPerc = np.zeros((TS, ES))
 meanEpsSmall = np.zeros((TS, LS))
 meanEpsMid = np.zeros((TS, LS))
 
 meanEstRange = np.zeros((TS, ES))
-meanSmallBestMidTAggRange = np.zeros((TS, ES))
+meanSmallBestRange = np.zeros((TS, ES))
 meanMidDistRange = np.zeros((TS, ES))
+meanMidTAggRange = np.zeros((TS, ES))
 meanMidTrustedRange = np.zeros((TS, ES))
 meanEpsSmallRange = np.zeros((TS, LS))
 meanEpsMidRange = np.zeros((TS, LS))
@@ -99,8 +101,9 @@ for trial in range(4):
         tempMeanEst = np.zeros(RS)
         tempMeanEstMSE = np.zeros(RS)
         tempMeanLdaOpt = np.zeros(RS)
-        tempMeanSmallBestMidTAgg = np.zeros(RS)
+        tempMeanSmallBest = np.zeros(RS)
         tempMeanMidDist = np.zeros(RS)
+        tempMeanMidTAgg = np.zeros(RS)
         tempMeanMidTrusted = np.zeros(RS)
         tempMeanPerc = np.zeros(RS)
         tempMeanEpsSmall = np.zeros((LS, RS))
@@ -441,15 +444,17 @@ for trial in range(4):
             tempMinLdaOpt[rep] = minLdaIndex * ldaStep
             tempMaxLdaOpt[rep] = maxLdaIndex * ldaStep
 
-            # eps = 0.05, lambda = 0.55 (Dist)
+            # eps = 0.05, lambda = 0.6 (Dist)
+            tempMeanSmallBest[rep] = meanLda[12]
+
+            # eps = 1.5, lambda = 1 (Dist)
+            tempMeanMidDist[rep] = meanLda[20]
+
             # eps = 1.5, lambda = 0.55 (TAgg)
-            tempMeanSmallBestMidTAgg[rep] = meanLda[11]
+            tempMeanMidTAgg[rep] = meanLda[11]
 
-            # eps = 1.5, lambda = 0.95 (Dist)
-            tempMeanMidDist[rep] = meanLda[19]
-
-            # eps = 1.5, lambda = 0.5 (Trusted)
-            tempMeanMidTrusted[rep] = meanLda[10]
+            # eps = 1.5, lambda = 0.45 (Trusted)
+            tempMeanMidTrusted[rep] = meanLda[9]
 
             # "Trusted" (server adds Laplace noise term to final result)
             if trial == 2:
@@ -457,16 +462,18 @@ for trial in range(4):
                 meanNoise = lapNoise.sample(sample_shape = (1,))
                 minNoise = lapNoise.sample(sample_shape = (1,))
                 maxNoise = lapNoise.sample(sample_shape = (1,))
-                meanSmallBestMidTAggNoise = lapNoise.sample(sample_shape = (1,))
+                meanSmallBestNoise = lapNoise.sample(sample_shape = (1,))
                 meanMidDistNoise = lapNoise.sample(sample_shape = (1,))
+                meanMidTAggNoise = lapNoise.sample(sample_shape = (1,))
                 meanMidTrustedNoise = lapNoise.sample(sample_shape = (1,))
 
                 # define error = squared difference between estimator and ground truth
                 tempMeanEstMSE[rep] = (tempMeanEst[rep] + meanNoise - tempMeanValue[rep])**2
                 tempMinEstMSE[rep] = (tempMinEst[rep] + minNoise - tempMinValue[rep])**2
                 tempMaxEstMSE[rep] = (tempMaxEst[rep] + maxNoise - tempMaxValue[rep])**2
-                tempMeanSmallBestMidTAgg[rep] = (tempMeanSmallBestMidTAgg[rep] + meanSmallBestMidTAggNoise - tempMeanValue[rep])**2
+                tempMeanSmallBest[rep] = (tempMeanSmallBest[rep] + meanSmallBestNoise - tempMeanValue[rep])**2
                 tempMeanMidDist[rep] = (tempMeanMidDist[rep] + meanMidDistNoise - tempMeanValue[rep])**2
+                tempMeanMidTAgg[rep] = (tempMeanMidTAgg[rep] + meanMidTAggNoise - tempMeanValue[rep])**2
                 tempMeanMidTrusted[rep] = (tempMeanMidTrusted[rep] + meanMidTrustedNoise - tempMeanValue[rep])**2
 
                 for l in range(LS):
@@ -486,8 +493,9 @@ for trial in range(4):
                 tempMeanEstMSE[rep] = (tempMeanEst[rep] - tempMeanValue[rep])**2
                 tempMinEstMSE[rep] = (tempMinEst[rep] - tempMinValue[rep])**2
                 tempMaxEstMSE[rep] = (tempMaxEst[rep] - tempMaxValue[rep])**2
-                tempMeanSmallBestMidTAgg[rep] = (tempMeanSmallBestMidTAgg[rep] - tempMeanValue[rep])**2
+                tempMeanSmallBest[rep] = (tempMeanSmallBest[rep] - tempMeanValue[rep])**2
                 tempMeanMidDist[rep] = (tempMeanMidDist[rep] - tempMeanValue[rep])**2
+                tempMeanMidTAgg[rep] = (tempMeanMidTAgg[rep] - tempMeanValue[rep])**2
                 tempMeanMidTrusted[rep] = (tempMeanMidTrusted[rep] - tempMeanValue[rep])**2
 
                 for l in range(LS):
@@ -520,8 +528,9 @@ for trial in range(4):
         meanValue[trial, EPS_FREQ] = np.mean(tempMeanValue)
         meanEstMSE[trial, EPS_FREQ] = np.mean(tempMeanEstMSE)
         meanLdaOpt[trial, EPS_FREQ] = np.mean(tempMeanLdaOpt)
-        meanSmallBestMidTAgg[trial, EPS_FREQ] = np.mean(tempMeanSmallBestMidTAgg)
+        meanSmallBest[trial, EPS_FREQ] = np.mean(tempMeanSmallBest)
         meanMidDist[trial, EPS_FREQ] = np.mean(tempMeanMidDist)
+        meanMidTAgg[trial, EPS_FREQ] = np.mean(tempMeanMidTAgg)
         meanMidTrusted[trial, EPS_FREQ] = np.mean(tempMeanMidTrusted)
         meanPerc[trial, EPS_FREQ] = np.mean(tempMeanPerc)
 
@@ -543,8 +552,9 @@ for trial in range(4):
 
         # compute standard deviation of repeats
         meanEstRange[trial, EPS_FREQ] = np.std(tempMeanEstMSE)
-        meanSmallBestMidTAggRange[trial, EPS_FREQ] = np.std(tempMeanSmallBestMidTAgg)
+        meanSmallBestRange[trial, EPS_FREQ] = np.std(tempMeanSmallBest)
         meanMidDistRange[trial, EPS_FREQ] = np.std(tempMeanMidDist)
+        meanMidTAggRange[trial, EPS_FREQ] = np.std(tempMeanMidTAgg)
         meanMidTrustedRange[trial, EPS_FREQ] = np.std(tempMeanMidTrusted)
 
         for l in range(LS):
@@ -683,15 +693,15 @@ plt.savefig("Exp3_femnist_eps_est_1.5.png")
 plt.clf()
 
 # EXPERIMENT 4: MSE of PRIEST-KLD for best lambdas extracted from experiment 3
-plt.errorbar(epsset, meanSmallBestMidTAgg[0], yerr = np.minimum(meanSmallBestMidTAggRange[0], np.sqrt(meanSmallBestMidTAgg[0]), np.divide(meanSmallBestMidTAgg[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(epsset, meanSmallBestMidTAgg[1], yerr = np.minimum(meanSmallBestMidTAggRange[1], np.sqrt(meanSmallBestMidTAgg[1]), np.divide(meanSmallBestMidTAgg[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(epsset, meanSmallBestMidTAgg[2], yerr = np.minimum(meanSmallBestMidTAggRange[2], np.sqrt(meanSmallBestMidTAgg[2]), np.divide(meanSmallBestMidTAgg[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(epsset, meanSmallBest[0], yerr = np.minimum(meanSmallBestRange[0], np.sqrt(meanSmallBest[0]), np.divide(meanSmallBest[0], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(epsset, meanSmallBest[1], yerr = np.minimum(meanSmallBestRange[1], np.sqrt(meanSmallBest[1]), np.divide(meanSmallBest[1], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(epsset, meanSmallBest[2], yerr = np.minimum(meanSmallBestRange[2], np.sqrt(meanSmallBest[2]), np.divide(meanSmallBest[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
 plt.legend(loc = 'best')
 plt.yscale('log')
 plt.ylim(0.03, 5000)
 plt.xlabel("Value of " + "$\mathit{\u03b5}$")
 plt.ylabel("MSE of PRIEST-KLD")
-plt.savefig("Exp4_femnist_eps_best_0.05_1.5_b.png")
+plt.savefig("Exp4_femnist_eps_best_0.05.png")
 plt.clf()
 
 plt.errorbar(epsset, meanMidDist[0], yerr = np.minimum(meanMidDistRange[0], np.sqrt(meanMidDist[0]), np.divide(meanMidDist[0], 2)), color = 'blue', marker = 'o', label = "Dist")
@@ -703,6 +713,17 @@ plt.ylim(0.03, 6000)
 plt.xlabel("Value of " + "$\mathit{\u03b5}$")
 plt.ylabel("MSE of PRIEST-KLD")
 plt.savefig("Exp4_femnist_eps_best_1.5_a.png")
+plt.clf()
+
+plt.errorbar(epsset, meanMidTAgg[0], yerr = np.minimum(meanMidTAggRange[0], np.sqrt(meanMidTAgg[0]), np.divide(meanMidTAgg[0], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(epsset, meanMidTAgg[1], yerr = np.minimum(meanMidTAggRange[1], np.sqrt(meanMidTAgg[1]), np.divide(meanMidTAgg[1], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(epsset, meanMidTAgg[2], yerr = np.minimum(meanMidTAggRange[2], np.sqrt(meanMidTAgg[2]), np.divide(meanMidTAgg[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.legend(loc = 'best')
+plt.yscale('log')
+plt.ylim(0.03, 6000)
+plt.xlabel("Value of " + "$\mathit{\u03b5}$")
+plt.ylabel("MSE of PRIEST-KLD")
+plt.savefig("Exp4_femnist_eps_best_1.5_b.png")
 plt.clf()
 
 plt.errorbar(epsset, meanMidTrusted[0], yerr = np.minimum(meanMidTrustedRange[0], np.sqrt(meanMidTrusted[0]), np.divide(meanMidTrusted[0], 2)), color = 'blue', marker = 'o', label = "Dist")
