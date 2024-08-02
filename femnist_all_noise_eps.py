@@ -453,8 +453,8 @@ for trial in range(4):
             # eps = 1.5, lambda = 0.55 (TAgg)
             tempMeanMidTAgg[rep] = meanLda[11]
 
-            # eps = 1.5, lambda = 0.45 (Trusted)
-            tempMeanMidTrusted[rep] = meanLda[9]
+            # eps = 1.5, lambda = 0.4 (Trusted)
+            tempMeanMidTrusted[rep] = meanLda[8]
 
             # "Trusted" (server adds Laplace noise term to final result)
             if trial == 2:
