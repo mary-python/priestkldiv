@@ -41,13 +41,13 @@ TS = len(trialset)
 # to store statistics related to mean estimates
 meanValue = np.zeros((TS, ES))
 meanEstMSE = np.zeros((TS, ES))
-meanLdaOpt = np.zeros((TS, ES))
+meanLdaBest = np.zeros((TS, ES))
 meanPerc = np.zeros((TS, ES))
 
 # related to min pairs
 minValue = np.zeros((TS, ES))
 minEstMSE = np.zeros((TS, ES))
-minLdaOpt = np.zeros((TS, ES))
+minLdaBest = np.zeros((TS, ES))
 minDefDist = np.zeros((TS, ES))
 minDefTAgg = np.zeros((TS, ES))
 minLargeBest = np.zeros((TS, ES))
@@ -63,7 +63,7 @@ minTLargeRange = np.zeros((TS, LS))
 # related to max pairs
 maxValue = np.zeros((TS, ES))
 maxEstMSE = np.zeros((TS, ES))
-maxLdaOpt = np.zeros((TS, ES))
+maxLdaBest = np.zeros((TS, ES))
 maxLargeDist = np.zeros((TS, ES))
 maxLargeTAgg = np.zeros((TS, ES))
 maxPerc = np.zeros((TS, ES))
@@ -98,13 +98,13 @@ for trial in range(4):
         tempMeanValue = np.zeros(RS)
         tempMeanEst = np.zeros(RS)
         tempMeanEstMSE = np.zeros(RS)
-        tempMeanLdaOpt = np.zeros(RS)
+        tempMeanLdaBest = np.zeros(RS)
         tempMeanPerc = np.zeros(RS)
             
         tempMinValue = np.zeros(RS)
         tempMinEst = np.zeros(RS)
         tempMinEstMSE = np.zeros(RS)
-        tempMinLdaOpt = np.zeros(RS)
+        tempMinLdaBest = np.zeros(RS)
         tempMinDefDist = np.zeros(RS)
         tempMinDefTAgg = np.zeros(RS)
         tempMinLargeBest = np.zeros(RS)
@@ -115,7 +115,7 @@ for trial in range(4):
         tempMaxValue = np.zeros(RS)
         tempMaxEst = np.zeros(RS)
         tempMaxEstMSE = np.zeros(RS)
-        tempMaxLdaOpt = np.zeros(RS)
+        tempMaxLdaBest = np.zeros(RS)
         tempMaxLargeDist = np.zeros(RS)
         tempMaxLargeTAgg = np.zeros(RS)
         tempMaxPerc = np.zeros(RS)
@@ -435,15 +435,15 @@ for trial in range(4):
             minMinError = minLda[minLdaIndex]
             maxMinError = maxLda[maxLdaIndex]
 
-            # mean / min / max across clients for optimum lambda
+            # mean / min / max across clients for best lambda
             tempMeanEst[rep] = meanMinError
             tempMinEst[rep] = minMinError
             tempMaxEst[rep] = maxMinError
 
-            # optimum lambda
-            tempMeanLdaOpt[rep] = meanLdaIndex * ldaStep
-            tempMinLdaOpt[rep] = minLdaIndex * ldaStep
-            tempMaxLdaOpt[rep] = maxLdaIndex * ldaStep
+            # best lambda
+            tempMeanLdaBest[rep] = meanLdaIndex * ldaStep
+            tempMinLdaBest[rep] = minLdaIndex * ldaStep
+            tempMaxLdaBest[rep] = maxLdaIndex * ldaStep
 
             # T = 180, lambda = 0.45
             tempMinDefDist[rep] = minLda[9]
@@ -541,12 +541,12 @@ for trial in range(4):
         # compute mean of repeats
         meanValue[trial, T_FREQ] = np.mean(tempMeanValue)
         meanEstMSE[trial, T_FREQ] = np.mean(tempMeanEstMSE)
-        meanLdaOpt[trial, T_FREQ] = np.mean(tempMeanLdaOpt)
+        meanLdaBest[trial, T_FREQ] = np.mean(tempMeanLdaBest)
         meanPerc[trial, T_FREQ] = np.mean(tempMeanPerc)
 
         minValue[trial, T_FREQ] = np.mean(tempMinValue)
         minEstMSE[trial, T_FREQ] = np.mean(tempMinEstMSE)
-        minLdaOpt[trial, T_FREQ] = np.mean(tempMinLdaOpt)
+        minLdaBest[trial, T_FREQ] = np.mean(tempMinLdaBest)
         minDefDist[trial, T_FREQ] = np.mean(tempMinDefDist)
         minDefTAgg[trial, T_FREQ] = np.mean(tempMinDefTAgg)
         minLargeBest[trial, T_FREQ] = np.mean(tempMinLargeBest)
@@ -560,7 +560,7 @@ for trial in range(4):
 
         maxValue[trial, T_FREQ] = np.mean(tempMaxValue)
         maxEstMSE[trial, T_FREQ] = np.mean(tempMaxEstMSE)
-        maxLdaOpt[trial, T_FREQ] = np.mean(tempMaxLdaOpt)
+        maxLdaBest[trial, T_FREQ] = np.mean(tempMaxLdaBest)
         maxLargeDist[trial, T_FREQ] = np.mean(tempMaxLargeDist)
         maxLargeTAgg[trial, T_FREQ] = np.mean(tempMaxLargeTAgg)
         maxPerc[trial, T_FREQ] = np.mean(tempMaxPerc)
@@ -597,17 +597,17 @@ for trial in range(4):
             maxfile.write(f"\nT = {T}\n")
   
         meanfile.write(f"\nMean MSE: {round(meanEstMSE[trial, T_FREQ], 2)}\n")
-        meanfile.write(f"Optimal Lambda: {round(meanLdaOpt[trial, T_FREQ], 2)}\n")
+        meanfile.write(f"Best Lambda: {round(meanLdaBest[trial, T_FREQ], 2)}\n")
         meanfile.write(f"Ground Truth: {round(meanValue[trial, T_FREQ], 2)}\n")
         meanfile.write(f"Noise: {np.round(meanPerc[trial, T_FREQ], 2)}%\n")
 
         minfile.write(f"\nMin MSE: {round(minEstMSE[trial, T_FREQ], 2)}\n")
-        minfile.write(f"Optimal Lambda: {round(minLdaOpt[trial, T_FREQ], 2)}\n")
+        minfile.write(f"Best Lambda: {round(minLdaBest[trial, T_FREQ], 2)}\n")
         minfile.write(f"Ground Truth: {round(minValue[trial, T_FREQ], 2)}\n")
         minfile.write(f"Noise: {np.round(minPerc[trial, T_FREQ], 2)}%\n")
 
         maxfile.write(f"\nMax MSE: {round(maxEstMSE[trial, T_FREQ], 2)}\n")
-        maxfile.write(f"Optimal Lambda: {round(maxLdaOpt[trial, T_FREQ], 2)}\n")
+        maxfile.write(f"Best Lambda: {round(maxLdaBest[trial, T_FREQ], 2)}\n")
         maxfile.write(f"Ground Truth: {round(maxValue[trial, T_FREQ], 2)}\n")
         maxfile.write(f"Noise: {np.round(maxPerc[trial, T_FREQ], 2)}%\n")
 

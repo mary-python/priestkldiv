@@ -24,7 +24,7 @@ TS = len(trialset)
 
 # to store statistics related to mean estimates
 meanEstMSE = np.zeros((TS, CS))
-meanLdaOpt = np.zeros((TS, CS))
+meanLdaBest = np.zeros((TS, CS))
 meanSmallBest = np.zeros((TS, CS))
 meanDefBest = np.zeros((TS, CS))
 meanMidBest = np.zeros((TS, CS))
@@ -117,7 +117,7 @@ for trial in range(8):
 
         tempMeanEst = np.zeros(RS)
         tempMeanEstMSE = np.zeros(RS)
-        tempMeanLdaOpt = np.zeros(RS)
+        tempMeanLdaBest = np.zeros(RS)
         tempMeanSmallBest = np.zeros(RS)
         tempMeanSmallLarge = np.zeros(RS)
         tempMeanDefBest = np.zeros(RS)
@@ -199,11 +199,11 @@ for trial in range(8):
             ldaIndex = np.argmin(meanLda)
             meanMinError = meanLda[ldaIndex]
 
-            # mean across clients for optimum lambda
+            # mean across clients for best lambda
             tempMeanEst[rep] = meanMinError
 
-            # optimum lambda
-            tempMeanLdaOpt[rep] = ldaIndex * ldaStep
+            # best lambda
+            tempMeanLdaBest[rep] = ldaIndex * ldaStep
 
             # split into small and large KL divergence
             if trial < 3 or trial == 6:
@@ -314,7 +314,7 @@ for trial in range(8):
         
         # compute mean of repeats
         meanEstMSE[trial, C_COUNT] = np.mean(tempMeanEstMSE)
-        meanLdaOpt[trial, C_COUNT] = np.mean(tempMeanLdaOpt)
+        meanLdaBest[trial, C_COUNT] = np.mean(tempMeanLdaBest)
         meanSmallBest[trial, C_COUNT] = np.mean(tempMeanSmallBest)
         meanDefBest[trial, C_COUNT] = np.mean(tempMeanDefBest)
         meanMidBest[trial, C_COUNT] = np.mean(tempMeanMidBest)
@@ -355,7 +355,7 @@ for trial in range(8):
             datafile.write(f"\nC = {C}\n")
 
         datafile.write(f"\nMean MSE: {round(meanEstMSE[trial, C_COUNT], 2)}\n")
-        datafile.write(f"Optimal Lambda: {round(meanLdaOpt[trial, C_COUNT], 2)}\n")
+        datafile.write(f"Best Lambda: {round(meanLdaBest[trial, C_COUNT], 2)}\n")
         datafile.write(f"Ground Truth: {round(float(groundTruth), 2)}\n")
         datafile.write(f"Noise: {np.round(meanPerc[trial, C_COUNT], 2)}%\n")
 

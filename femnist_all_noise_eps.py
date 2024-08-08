@@ -42,7 +42,7 @@ TS = len(trialset)
 # to store statistics related to mean estimates
 meanValue = np.zeros((TS, ES))
 meanEstMSE = np.zeros((TS, ES))
-meanLdaOpt = np.zeros((TS, ES))
+meanLdaBest = np.zeros((TS, ES))
 meanSmallBest = np.zeros((TS, ES))
 meanMidDist = np.zeros((TS, ES))
 meanMidTAgg = np.zeros((TS, ES))
@@ -62,7 +62,7 @@ meanEpsMidRange = np.zeros((TS, LS))
 # related to min pairs
 minValue = np.zeros((TS, ES))
 minEstMSE = np.zeros((TS, ES))
-minLdaOpt = np.zeros((TS, ES))
+minLdaBest = np.zeros((TS, ES))
 minPerc = np.zeros((TS, ES))
 minEstRange = np.zeros((TS, ES))
 minPercRange = np.zeros((TS, ES))
@@ -70,7 +70,7 @@ minPercRange = np.zeros((TS, ES))
 # related to max pairs
 maxValue = np.zeros((TS, ES))
 maxEstMSE = np.zeros((TS, ES))
-maxLdaOpt = np.zeros((TS, ES))
+maxLdaBest = np.zeros((TS, ES))
 maxPerc = np.zeros((TS, ES))
 maxEstRange = np.zeros((TS, ES))
 maxPercRange = np.zeros((TS, ES))
@@ -100,7 +100,7 @@ for trial in range(4):
         tempMeanValue = np.zeros(RS)
         tempMeanEst = np.zeros(RS)
         tempMeanEstMSE = np.zeros(RS)
-        tempMeanLdaOpt = np.zeros(RS)
+        tempMeanLdaBest = np.zeros(RS)
         tempMeanSmallBest = np.zeros(RS)
         tempMeanMidDist = np.zeros(RS)
         tempMeanMidTAgg = np.zeros(RS)
@@ -112,13 +112,13 @@ for trial in range(4):
         tempMinValue = np.zeros(RS)
         tempMinEst = np.zeros(RS)
         tempMinEstMSE = np.zeros(RS)
-        tempMinLdaOpt = np.zeros(RS)
+        tempMinLdaBest = np.zeros(RS)
         tempMinPerc = np.zeros(RS)
 
         tempMaxValue = np.zeros(RS)
         tempMaxEst = np.zeros(RS)
         tempMaxEstMSE = np.zeros(RS)
-        tempMaxLdaOpt = np.zeros(RS)
+        tempMaxLdaBest = np.zeros(RS)
         tempMaxPerc = np.zeros(RS)
 
         for rep in range(RS):
@@ -434,15 +434,15 @@ for trial in range(4):
             minMinError = minLda[minLdaIndex]
             maxMinError = maxLda[maxLdaIndex]
 
-            # mean / min / max across clients for optimum lambda
+            # mean / min / max across clients for best lambda
             tempMeanEst[rep] = meanMinError
             tempMinEst[rep] = minMinError
             tempMaxEst[rep] = maxMinError
 
-            # optimum lambda
-            tempMeanLdaOpt[rep] = meanLdaIndex * ldaStep
-            tempMinLdaOpt[rep] = minLdaIndex * ldaStep
-            tempMaxLdaOpt[rep] = maxLdaIndex * ldaStep
+            # best lambda
+            tempMeanLdaBest[rep] = meanLdaIndex * ldaStep
+            tempMinLdaBest[rep] = minLdaIndex * ldaStep
+            tempMaxLdaBest[rep] = maxLdaIndex * ldaStep
 
             # eps = 0.05, lambda = 0.6 (Dist)
             tempMeanSmallBest[rep] = meanLda[12]
@@ -527,7 +527,7 @@ for trial in range(4):
         # compute mean of repeats
         meanValue[trial, EPS_FREQ] = np.mean(tempMeanValue)
         meanEstMSE[trial, EPS_FREQ] = np.mean(tempMeanEstMSE)
-        meanLdaOpt[trial, EPS_FREQ] = np.mean(tempMeanLdaOpt)
+        meanLdaBest[trial, EPS_FREQ] = np.mean(tempMeanLdaBest)
         meanSmallBest[trial, EPS_FREQ] = np.mean(tempMeanSmallBest)
         meanMidDist[trial, EPS_FREQ] = np.mean(tempMeanMidDist)
         meanMidTAgg[trial, EPS_FREQ] = np.mean(tempMeanMidTAgg)
@@ -542,12 +542,12 @@ for trial in range(4):
 
         minValue[trial, EPS_FREQ] = np.mean(tempMinValue)
         minEstMSE[trial, EPS_FREQ] = np.mean(tempMinEstMSE)
-        minLdaOpt[trial, EPS_FREQ] = np.mean(tempMinLdaOpt)
+        minLdaBest[trial, EPS_FREQ] = np.mean(tempMinLdaBest)
         minPerc[trial, EPS_FREQ] = np.mean(tempMinPerc)
 
         maxValue[trial, EPS_FREQ] = np.mean(tempMaxValue)
         maxEstMSE[trial, EPS_FREQ] = np.mean(tempMaxEstMSE)
-        maxLdaOpt[trial, EPS_FREQ] = np.mean(tempMaxLdaOpt)
+        maxLdaBest[trial, EPS_FREQ] = np.mean(tempMaxLdaBest)
         maxPerc[trial, EPS_FREQ] = np.mean(tempMaxPerc)
 
         # compute standard deviation of repeats
@@ -579,17 +579,17 @@ for trial in range(4):
             maxfile.write(f"\nEps = {eps}\n")
 
         meanfile.write(f"\nMean MSE: {round(meanEstMSE[trial, EPS_FREQ], 2)}\n")
-        meanfile.write(f"Optimal Lambda: {round(meanLdaOpt[trial, EPS_FREQ], 2)}\n")
+        meanfile.write(f"Best Lambda: {round(meanLdaBest[trial, EPS_FREQ], 2)}\n")
         meanfile.write(f"Ground Truth: {round(meanValue[trial, EPS_FREQ], 2)}\n")
         meanfile.write(f"Noise: {np.round(meanPerc[trial, EPS_FREQ], 2)}%\n")
         
         minfile.write(f"\nMin MSE: {round(minEstMSE[trial, EPS_FREQ], 2)}\n")
-        minfile.write(f"Optimal Lambda: {round(minLdaOpt[trial, EPS_FREQ], 2)}\n")
+        minfile.write(f"Best Lambda: {round(minLdaBest[trial, EPS_FREQ], 2)}\n")
         minfile.write(f"Ground Truth: {round(minValue[trial, EPS_FREQ], 2)}\n")
         minfile.write(f"Noise: {np.round(minPerc[trial, EPS_FREQ], 2)}%\n")
         
         maxfile.write(f"\nMax MSE: {round(maxEstMSE[trial, EPS_FREQ], 2)}\n")
-        maxfile.write(f"Optimal Lambda: {round(maxLdaOpt[trial, EPS_FREQ], 2)}\n")
+        maxfile.write(f"Best Lambda: {round(maxLdaBest[trial, EPS_FREQ], 2)}\n")
         maxfile.write(f"Ground Truth: {round(maxValue[trial, EPS_FREQ], 2)}\n")
         maxfile.write(f"Noise: {np.round(maxPerc[trial, EPS_FREQ], 2)}%\n")
 
