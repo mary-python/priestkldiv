@@ -143,17 +143,17 @@ for trial in range(8):
 
             for j in range(C):
 
-                # "Dist" (each client adds Gaussian noise term)
-                if trial % 3 == 0 and trial != 6:
-                    startSample = abs(probGaussNoise.sample(sample_shape = (1,)))
-                    startNoise.append(startSample)
-                    p = p + startSample
-
                 # each client gets N points from pre-processed sample
                 qClientSamp = qOrderedRound[0][N*j : N*(j + 1)]
 
                 # compute ratio between unknown and known distributions
                 logr = abs(p.log_prob(qClientSamp) - q.log_prob(qClientSamp))
+
+                # "Dist" (each client adds Gaussian noise term)
+                if trial % 3 == 0 and trial != 6:
+                    startSample = abs(probGaussNoise.sample(sample_shape = (1,)))
+                    startNoise.append(startSample)
+                    logr = logr + log(startSample)
 
                 r = np.exp(logr)
                 LDA_COUNT = 0
