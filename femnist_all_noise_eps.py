@@ -346,19 +346,17 @@ for trial in range(4):
                     for j in range(0, E):
                         nDist[C, D, j] = eProbsSet[D, j] * (np.log((eProbsSet[D, j]) / (eProbsSet[C, j])))
 
-                    # compute ratio between exact unknown distributions
-                    ratio = abs(sum(nDist[C, D]) / sum(uDist[C, D]))
-                    invRatio = abs(sum(uDist[C, D]) / sum(nDist[C, D]))
-
-                    # eliminate all divide by zero errors
-                    if ratio != 0.0 and sum(uDist[C, D]) != 0.0:
-
                         # "Dist" (each client adds Gaussian noise term)
                         if trial == 0:
                             startSample = abs(probGaussNoise.sample(sample_shape = (1,)))
                             startNoise.append(startSample)
-                            ratio = ratio + startSample
-                    
+                            nDist[C, D, j] = nDist[C, D, j] + startSample
+
+                    # compute ratio between exact unknown distributions
+                    ratio = abs(sum(nDist[C, D]) / sum(uDist[C, D]))
+
+                    # eliminate all divide by zero errors
+                    if ratio != 0.0 and sum(uDist[C, D]) != 0.0:   
                         rList.append(ratio)
         
             # store for PRIEST-KLD
