@@ -42,38 +42,58 @@ TS = len(trialset)
 # to store statistics related to mean estimates
 meanValue = np.zeros((TS, ES))
 meanEstMSE = np.zeros((TS, ES))
-meanLdaBest = np.zeros((TS, ES))
 meanSmallBest = np.zeros((TS, ES))
 meanMidDist = np.zeros((TS, ES))
 meanMidTAgg = np.zeros((TS, ES))
 meanMidTrusted = np.zeros((TS, ES))
 meanPerc = np.zeros((TS, ES))
 meanEpsSmall = np.zeros((TS, LS))
+meanEpsDef = np.zeros((TS, LS))
 meanEpsMid = np.zeros((TS, LS))
+meanEpsLarge = np.zeros((TS, LS))
 
 meanEstRange = np.zeros((TS, ES))
 meanSmallBestRange = np.zeros((TS, ES))
 meanMidDistRange = np.zeros((TS, ES))
 meanMidTAggRange = np.zeros((TS, ES))
 meanMidTrustedRange = np.zeros((TS, ES))
+meanPercRange = np.zeros((TS, ES))
 meanEpsSmallRange = np.zeros((TS, LS))
+meanEpsDefRange = np.zeros((TS, LS))
 meanEpsMidRange = np.zeros((TS, LS))
+meanEpsLargeRange = np.zeros((TS, LS))
 
 # related to min pairs
 minValue = np.zeros((TS, ES))
 minEstMSE = np.zeros((TS, ES))
-minLdaBest = np.zeros((TS, ES))
 minPerc = np.zeros((TS, ES))
+minEpsSmall = np.zeros((TS, LS))
+minEpsDef = np.zeros((TS, LS))
+minEpsMid = np.zeros((TS, LS))
+minEpsLarge = np.zeros((TS, LS))
+
 minEstRange = np.zeros((TS, ES))
 minPercRange = np.zeros((TS, ES))
+minEpsSmallRange = np.zeros((TS, LS))
+minEpsDefRange = np.zeros((TS, LS))
+minEpsMidRange = np.zeros((TS, LS))
+minEpsLargeRange = np.zeros((TS, LS))
 
 # related to max pairs
 maxValue = np.zeros((TS, ES))
 maxEstMSE = np.zeros((TS, ES))
-maxLdaBest = np.zeros((TS, ES))
 maxPerc = np.zeros((TS, ES))
+maxEpsSmall = np.zeros((TS, LS))
+maxEpsDef = np.zeros((TS, LS))
+maxEpsMid = np.zeros((TS, LS))
+maxEpsLarge = np.zeros((TS, LS))
+
 maxEstRange = np.zeros((TS, ES))
 maxPercRange = np.zeros((TS, ES))
+maxEpsSmallRange = np.zeros((TS, LS))
+maxEpsDefRange = np.zeros((TS, LS))
+maxEpsMidRange = np.zeros((TS, LS))
+maxEpsLargeRange = np.zeros((TS, LS))
 
 # global parameters
 ALPHA = 0.01 # smoothing parameter
@@ -85,12 +105,12 @@ ldaStep = 0.05
 RS = 10
 SEED_FREQ = 0
 SMALL_INDEX = 0
+DEF_INDEX = 3
 MID_INDEX = 7
+LARGE_INDEX = 10
 
 for trial in range(4):
-    meanfile = open(f"Data_{trialset[trial]}_eps_a.txt", "w", encoding = 'utf-8')
-    minfile = open(f"Data_{trialset[trial]}_eps_b.txt", "w", encoding = 'utf-8')
-    maxfile = open(f"Data_{trialset[trial]}_eps_c.txt", "w", encoding = 'utf-8')
+
     EPS_FREQ = 0
 
     for eps in epsset:
@@ -100,26 +120,33 @@ for trial in range(4):
         tempMeanValue = np.zeros(RS)
         tempMeanEst = np.zeros(RS)
         tempMeanEstMSE = np.zeros(RS)
-        tempMeanLdaBest = np.zeros(RS)
         tempMeanSmallBest = np.zeros(RS)
         tempMeanMidDist = np.zeros(RS)
         tempMeanMidTAgg = np.zeros(RS)
         tempMeanMidTrusted = np.zeros(RS)
         tempMeanPerc = np.zeros(RS)
         tempMeanEpsSmall = np.zeros((LS, RS))
+        tempMeanEpsDef = np.zeros((LS, RS))
         tempMeanEpsMid = np.zeros((LS, RS))
+        tempMeanEpsLarge = np.zeros((LS, RS))
             
         tempMinValue = np.zeros(RS)
         tempMinEst = np.zeros(RS)
         tempMinEstMSE = np.zeros(RS)
-        tempMinLdaBest = np.zeros(RS)
         tempMinPerc = np.zeros(RS)
+        tempMinEpsSmall = np.zeros((LS, RS))
+        tempMinEpsDef = np.zeros((LS, RS))
+        tempMinEpsMid = np.zeros((LS, RS))
+        tempMinEpsLarge = np.zeros((LS, RS))
 
         tempMaxValue = np.zeros(RS)
         tempMaxEst = np.zeros(RS)
         tempMaxEstMSE = np.zeros(RS)
-        tempMaxLdaBest = np.zeros(RS)
         tempMaxPerc = np.zeros(RS)
+        tempMaxEpsSmall = np.zeros((LS, RS))
+        tempMaxEpsDef = np.zeros((LS, RS))
+        tempMaxEpsMid = np.zeros((LS, RS))
+        tempMaxEpsLarge = np.zeros((LS, RS))
 
         for rep in range(RS):
             print(f"epsilon = {eps}, repeat {rep + 1}...")
@@ -418,29 +445,40 @@ for trial in range(4):
                 # mean across lambdas for eps = 0.05 (small)
                 if EPS_FREQ == SMALL_INDEX:
                     tempMeanEpsSmall[l, rep] = meanLda[l]
+                    tempMinEpsSmall[l, rep] = minLda[l]
+                    tempMaxEpsSmall[l, rep] = maxLda[l]
+                
+                # eps = 0.5 (def)
+                if EPS_FREQ == DEF_INDEX:
+                    tempMeanEpsDef[l, rep] = meanLda[l]
+                    tempMinEpsDef[l, rep] = minLda[l]
+                    tempMaxEpsDef[l, rep] = maxLda[l]
 
                 # eps = 1.5 (mid)
                 if EPS_FREQ == MID_INDEX:
                     tempMeanEpsMid[l, rep] = meanLda[l]
+                    tempMinEpsMid[l, rep] = minLda[l]
+                    tempMaxEpsMid[l, rep] = maxLda[l]
+                
+                # eps = 3 (large)
+                if EPS_FREQ == LARGE_INDEX:
+                    tempMeanEpsLarge[l, rep] = meanLda[l]
+                    tempMinEpsLarge[l, rep] = minLda[l]
+                    tempMaxEpsLarge[l, rep] = maxLda[l]
 
-            # find lambda that produces minimum error
-            meanLdaIndex = np.argmin(meanLda)
-            minLdaIndex = np.argmin(minLda)
-            maxLdaIndex = np.argmin(maxLda)
+            # choose best lambda from experiment 1
+            meanLdaIndex = 10
+            minLdaIndex = 10
+            maxLdaIndex = 10
 
-            meanMinError = meanLda[meanLdaIndex]
-            minMinError = minLda[minLdaIndex]
-            maxMinError = maxLda[maxLdaIndex]
+            meanLdaError = meanLda[meanLdaIndex]
+            minLdaError = minLda[minLdaIndex]
+            maxLdaError = maxLda[maxLdaIndex]
 
             # mean / min / max across clients for best lambda
-            tempMeanEst[rep] = meanMinError
-            tempMinEst[rep] = minMinError
-            tempMaxEst[rep] = maxMinError
-
-            # best lambda
-            tempMeanLdaBest[rep] = meanLdaIndex * ldaStep
-            tempMinLdaBest[rep] = minLdaIndex * ldaStep
-            tempMaxLdaBest[rep] = maxLdaIndex * ldaStep
+            tempMeanEst[rep] = meanLdaError
+            tempMinEst[rep] = minLdaError
+            tempMaxEst[rep] = maxLdaError
 
             # eps = 0.05, lambda = 0.6 (Dist)
             tempMeanSmallBest[rep] = meanLda[12]
@@ -479,12 +517,38 @@ for trial in range(4):
                     # eps = 0.05 (small)
                     if EPS_FREQ == SMALL_INDEX:
                         meanSmallNoise = lapNoise.sample(sample_shape = (1,))
+                        minSmallNoise = lapNoise.sample(sample_shape = (1,))
+                        maxSmallNoise = lapNoise.sample(sample_shape = (1,))
                         tempMeanEpsSmall[l, rep] = (tempMeanEpsSmall[l, rep] + meanSmallNoise - tempMeanValue[rep])**2
+                        tempMinEpsSmall[l, rep] = (tempMinEpsSmall[l, rep] + minSmallNoise - tempMinValue[rep])**2
+                        tempMaxEpsSmall[l, rep] = (tempMaxEpsSmall[l, rep] + maxSmallNoise - tempMaxValue[rep])**2
+
+                    # eps = 0.5 (def)
+                    if EPS_FREQ == DEF_INDEX:
+                        meanDefNoise = lapNoise.sample(sample_shape = (1,))
+                        minDefNoise = lapNoise.sample(sample_shape = (1,))
+                        maxDefNoise = lapNoise.sample(sample_shape = (1,))
+                        tempMeanEpsDef[l, rep] = (tempMeanEpsDef[l, rep] + meanDefNoise - tempMeanValue[rep])**2
+                        tempMinEpsDef[l, rep] = (tempMinEpsDef[l, rep] + minDefNoise - tempMinValue[rep])**2
+                        tempMaxEpsDef[l, rep] = (tempMaxEpsDef[l, rep] + maxDefNoise - tempMaxValue[rep])**2
 
                     # eps = 1.5 (mid)
                     if EPS_FREQ == MID_INDEX:
                         meanMidNoise = lapNoise.sample(sample_shape = (1,))
+                        minMidNoise = lapNoise.sample(sample_shape = (1,))
+                        maxMidNoise = lapNoise.sample(sample_shape = (1,))
                         tempMeanEpsMid[l, rep] = (tempMeanEpsMid[l, rep] + meanMidNoise - tempMeanValue[rep])**2
+                        tempMinEpsMid[l, rep] = (tempMinEpsMid[l, rep] + minMidNoise - tempMinValue[rep])**2
+                        tempMaxEpsMid[l, rep] = (tempMaxEpsMid[l, rep] + maxMidNoise - tempMaxValue[rep])**2
+
+                    # eps = 3 (large)
+                    if EPS_FREQ == LARGE_INDEX:
+                        meanLargeNoise = lapNoise.sample(sample_shape = (1,))
+                        minLargeNoise = lapNoise.sample(sample_shape = (1,))
+                        maxLargeNoise = lapNoise.sample(sample_shape = (1,))
+                        tempMeanEpsLarge[l, rep] = (tempMeanEpsLarge[l, rep] + meanLargeNoise - tempMeanValue[rep])**2
+                        tempMinEpsLarge[l, rep] = (tempMinEpsLarge[l, rep] + minLargeNoise - tempMinValue[rep])**2
+                        tempMaxEpsLarge[l, rep] = (tempMaxEpsLarge[l, rep] + maxLargeNoise - tempMaxValue[rep])**2
         
             # clients or intermediate server already added Gaussian noise term
             else:
@@ -501,10 +565,26 @@ for trial in range(4):
                     # eps = 0.05 (small)
                     if EPS_FREQ == SMALL_INDEX:
                         tempMeanEpsSmall[l, rep] = (tempMeanEpsSmall[l, rep] - tempMeanValue[rep])**2
+                        tempMinEpsSmall[l, rep] = (tempMinEpsSmall[l, rep] - tempMinValue[rep])**2
+                        tempMaxEpsSmall[l, rep] = (tempMaxEpsSmall[l, rep] - tempMaxValue[rep])**2
+
+                    # eps = 0.5 (def)
+                    if EPS_FREQ == DEF_INDEX:
+                        tempMeanEpsDef[l, rep] = (tempMeanEpsDef[l, rep] - tempMeanValue[rep])**2
+                        tempMinEpsDef[l, rep] = (tempMinEpsDef[l, rep] - tempMinValue[rep])**2
+                        tempMaxEpsDef[l, rep] = (tempMaxEpsDef[l, rep] - tempMaxValue[rep])**2
 
                     # eps = 1.5 (mid)
                     if EPS_FREQ == MID_INDEX:
                         tempMeanEpsMid[l, rep] = (tempMeanEpsMid[l, rep] - tempMeanValue[rep])**2
+                        tempMinEpsMid[l, rep] = (tempMinEpsMid[l, rep] - tempMinValue[rep])**2
+                        tempMaxEpsMid[l, rep] = (tempMaxEpsMid[l, rep] - tempMaxValue[rep])**2
+                    
+                    # eps = 3 (large)
+                    if EPS_FREQ == LARGE_INDEX:
+                        tempMeanEpsLarge[l, rep] = (tempMeanEpsLarge[l, rep] - tempMeanValue[rep])**2
+                        tempMinEpsLarge[l, rep] = (tempMinEpsLarge[l, rep] - tempMinValue[rep])**2
+                        tempMaxEpsLarge[l, rep] = (tempMaxEpsLarge[l, rep] - tempMaxValue[rep])**2
             
             # compute % of noise vs ground truth and extract MSE of noise for Theorem 4.4
             if trial == 0:
@@ -513,10 +593,12 @@ for trial in range(4):
                 tempMaxPerc[rep] = float(abs(np.array(sum(startNoise)) / (np.array(sum(startNoise)) + tempMaxValue[rep])))*100      
 
             if trial == 1:
+                tempMeanPerc[rep] = abs((np.sum(meanLdaNoise)) / (np.sum(meanLdaNoise) + tempMeanValue[rep]))*100
                 tempMinPerc[rep] = abs((np.sum(meanLdaNoise)) / (np.sum(meanLdaNoise) + tempMinValue[rep]))*100
                 tempMaxPerc[rep] = abs((np.sum(meanLdaNoise)) / (np.sum(meanLdaNoise) + tempMaxValue[rep]))*100
             
             if trial == 2:
+                tempMeanPerc[rep] = float(abs(np.array(meanNoise) / (np.array(meanNoise) + tempMaxValue[rep])))*100
                 tempMinPerc[rep] = float(abs(np.array(meanNoise) / (np.array(meanNoise) + tempMinValue[rep])))*100
                 tempMaxPerc[rep] = float(abs(np.array(meanNoise) / (np.array(meanNoise) + tempMaxValue[rep])))*100
             
@@ -525,7 +607,6 @@ for trial in range(4):
         # compute mean of repeats
         meanValue[trial, EPS_FREQ] = np.mean(tempMeanValue)
         meanEstMSE[trial, EPS_FREQ] = np.mean(tempMeanEstMSE)
-        meanLdaBest[trial, EPS_FREQ] = np.mean(tempMeanLdaBest)
         meanSmallBest[trial, EPS_FREQ] = np.mean(tempMeanSmallBest)
         meanMidDist[trial, EPS_FREQ] = np.mean(tempMeanMidDist)
         meanMidTAgg[trial, EPS_FREQ] = np.mean(tempMeanMidTAgg)
@@ -535,18 +616,40 @@ for trial in range(4):
         for l in range(LS):
             if EPS_FREQ == SMALL_INDEX:
                 meanEpsSmall[trial, l] = np.mean(tempMeanEpsSmall[l])
+            if EPS_FREQ == DEF_INDEX:
+                meanEpsDef[trial, l] = np.mean(tempMeanEpsDef[l])
             if EPS_FREQ == MID_INDEX:
                 meanEpsMid[trial, l] = np.mean(tempMeanEpsMid[l])
+            if EPS_FREQ == LARGE_INDEX:
+                meanEpsLarge[trial, l] = np.mean(tempMeanEpsLarge[l])
 
         minValue[trial, EPS_FREQ] = np.mean(tempMinValue)
         minEstMSE[trial, EPS_FREQ] = np.mean(tempMinEstMSE)
-        minLdaBest[trial, EPS_FREQ] = np.mean(tempMinLdaBest)
         minPerc[trial, EPS_FREQ] = np.mean(tempMinPerc)
+
+        for l in range(LS):
+            if EPS_FREQ == SMALL_INDEX:
+                minEpsSmall[trial, l] = np.mean(tempMinEpsSmall[l])
+            if EPS_FREQ == DEF_INDEX:
+                minEpsDef[trial, l] = np.mean(tempMinEpsDef[l])
+            if EPS_FREQ == MID_INDEX:
+                minEpsMid[trial, l] = np.mean(tempMinEpsMid[l])
+            if EPS_FREQ == LARGE_INDEX:
+                minEpsLarge[trial, l] = np.mean(tempMinEpsLarge[l])
 
         maxValue[trial, EPS_FREQ] = np.mean(tempMaxValue)
         maxEstMSE[trial, EPS_FREQ] = np.mean(tempMaxEstMSE)
-        maxLdaBest[trial, EPS_FREQ] = np.mean(tempMaxLdaBest)
         maxPerc[trial, EPS_FREQ] = np.mean(tempMaxPerc)
+
+        for l in range(LS):
+            if EPS_FREQ == SMALL_INDEX:
+                maxEpsSmall[trial, l] = np.mean(tempMaxEpsSmall[l])
+            if EPS_FREQ == DEF_INDEX:
+                maxEpsDef[trial, l] = np.mean(tempMaxEpsDef[l])
+            if EPS_FREQ == MID_INDEX:
+                maxEpsMid[trial, l] = np.mean(tempMaxEpsMid[l])
+            if EPS_FREQ == LARGE_INDEX:
+                maxEpsLarge[trial, l] = np.mean(tempMaxEpsLarge[l])
 
         # compute standard deviation of repeats
         meanEstRange[trial, EPS_FREQ] = np.std(tempMeanEstMSE)
@@ -558,42 +661,112 @@ for trial in range(4):
         for l in range(LS):
             if EPS_FREQ == SMALL_INDEX:
                 meanEpsSmallRange[trial, l] = np.std(tempMeanEpsSmall[l])
+            if EPS_FREQ == DEF_INDEX:
+                meanEpsDefRange[trial, l] = np.std(tempMeanEpsDef[l])
             if EPS_FREQ == MID_INDEX:
                 meanEpsMidRange[trial, l] = np.std(tempMeanEpsMid[l])
+            if EPS_FREQ == LARGE_INDEX:
+                meanEpsLargeRange[trial, l] = np.std(tempMeanEpsLarge[l])
 
         minEstRange[trial, EPS_FREQ] = np.std(tempMinEstMSE)
         minPercRange[trial, EPS_FREQ] = np.std(tempMinPerc)
+
+        for l in range(LS):
+            if EPS_FREQ == SMALL_INDEX:
+                minEpsSmallRange[trial, l] = np.std(tempMinEpsSmall[l])
+            if EPS_FREQ == DEF_INDEX:
+                minEpsDefRange[trial, l] = np.std(tempMinEpsDef[l])
+            if EPS_FREQ == MID_INDEX:
+                minEpsMidRange[trial, l] = np.std(tempMinEpsMid[l])
+            if EPS_FREQ == LARGE_INDEX:
+                minEpsLargeRange[trial, l] = np.std(tempMinEpsLarge[l])
+
         maxEstRange[trial, EPS_FREQ] = np.std(tempMaxEstMSE)
         maxPercRange[trial, EPS_FREQ] = np.std(tempMaxPerc)
 
-        # write statistics on data files
-        if eps == epsset[0]:
-            meanfile.write(f"FEMNIST: Eps = {eps}\n")
-            minfile.write(f"FEMNIST: Eps = {eps}\n")
-            maxfile.write(f"FEMNIST: Eps = {eps}\n")
-        else:
-            meanfile.write(f"\nEps = {eps}\n")
-            minfile.write(f"\nEps = {eps}\n")
-            maxfile.write(f"\nEps = {eps}\n")
-
-        meanfile.write(f"\nMean MSE: {round(meanEstMSE[trial, EPS_FREQ], 2)}\n")
-        meanfile.write(f"Best Lambda: {round(meanLdaBest[trial, EPS_FREQ], 2)}\n")
-        meanfile.write(f"Ground Truth: {round(meanValue[trial, EPS_FREQ], 2)}\n")
-        meanfile.write(f"Noise: {np.round(meanPerc[trial, EPS_FREQ], 2)}%\n")
-        
-        minfile.write(f"\nMin MSE: {round(minEstMSE[trial, EPS_FREQ], 2)}\n")
-        minfile.write(f"Best Lambda: {round(minLdaBest[trial, EPS_FREQ], 2)}\n")
-        minfile.write(f"Ground Truth: {round(minValue[trial, EPS_FREQ], 2)}\n")
-        minfile.write(f"Noise: {np.round(minPerc[trial, EPS_FREQ], 2)}%\n")
-        
-        maxfile.write(f"\nMax MSE: {round(maxEstMSE[trial, EPS_FREQ], 2)}\n")
-        maxfile.write(f"Best Lambda: {round(maxLdaBest[trial, EPS_FREQ], 2)}\n")
-        maxfile.write(f"Ground Truth: {round(maxValue[trial, EPS_FREQ], 2)}\n")
-        maxfile.write(f"Noise: {np.round(maxPerc[trial, EPS_FREQ], 2)}%\n")
+        for l in range(LS):
+            if EPS_FREQ == SMALL_INDEX:
+                maxEpsSmallRange[trial, l] = np.std(tempMaxEpsSmall[l])
+            if EPS_FREQ == DEF_INDEX:
+                maxEpsDefRange[trial, l] = np.std(tempMaxEpsDef[l])
+            if EPS_FREQ == MID_INDEX:
+                maxEpsMidRange[trial, l] = np.std(tempMaxEpsMid[l])
+            if EPS_FREQ == LARGE_INDEX:
+                maxEpsLargeRange[trial, l] = np.std(tempMaxEpsLarge[l])
 
         EPS_FREQ = EPS_FREQ + 1
 
-# EXPERIMENT 1: MSE of PRIEST-KLD for each epsilon
+# EXPERIMENT 1: MSE of PRIEST-KLD for fixed epsilons (0.05, 1.5)
+plt.errorbar(ldaset, meanEpsSmall[0], yerr = np.minimum(meanEpsSmallRange[0], np.sqrt(meanEpsSmall[0]), np.divide(meanEpsSmall[0], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(ldaset, meanEpsSmall[1], yerr = np.minimum(meanEpsSmallRange[1], np.sqrt(meanEpsSmall[1]), np.divide(meanEpsSmall[1], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(ldaset, meanEpsSmall[2], yerr = np.minimum(meanEpsSmallRange[2], np.sqrt(meanEpsSmall[2]), np.divide(meanEpsSmall[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(ldaset, meanEpsSmall[3], yerr = np.minimum(meanEpsSmallRange[3], np.sqrt(meanEpsSmall[3]), np.divide(meanEpsSmall[3], 2)), color = 'red', marker = '*', label = "no privacy")
+plt.legend(loc = 'lower right')
+plt.yscale('log')
+plt.ylim(0.005, 10000)
+plt.xlabel("Value of " + "$\mathit{\u03bb}$")
+plt.ylabel("MSE of PRIEST-KLD")
+plt.savefig("Exp1_femnist_eps_est_0.05.png")
+plt.clf()
+
+plt.errorbar(ldaset, meanEpsMid[0], yerr = np.minimum(meanEpsMidRange[0], np.sqrt(meanEpsMid[0]), np.divide(meanEpsMid[0], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(ldaset, meanEpsMid[1], yerr = np.minimum(meanEpsMidRange[1], np.sqrt(meanEpsMid[1]), np.divide(meanEpsMid[1], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(ldaset, meanEpsMid[2], yerr = np.minimum(meanEpsMidRange[2], np.sqrt(meanEpsMid[2]), np.divide(meanEpsMid[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(ldaset, meanEpsMid[3], yerr = np.minimum(meanEpsMidRange[3], np.sqrt(meanEpsMid[3]), np.divide(meanEpsMid[3], 2)), color = 'red', marker = '*', label = "no privacy")
+plt.legend(loc = 'best')
+plt.yscale('log')
+plt.ylim(0.03, 70)
+plt.xlabel("Value of " + "$\mathit{\u03bb}$")
+plt.ylabel("MSE of PRIEST-KLD")
+plt.savefig("Exp1_femnist_eps_est_1.5.png")
+plt.clf()
+
+# EXPERIMENT 2: MSE of PRIEST-KLD for best lambdas extracted from experiment 1
+plt.errorbar(epsset, meanSmallBest[0], yerr = np.minimum(meanSmallBestRange[0], np.sqrt(meanSmallBest[0]), np.divide(meanSmallBest[0], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(epsset, meanSmallBest[1], yerr = np.minimum(meanSmallBestRange[1], np.sqrt(meanSmallBest[1]), np.divide(meanSmallBest[1], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(epsset, meanSmallBest[2], yerr = np.minimum(meanSmallBestRange[2], np.sqrt(meanSmallBest[2]), np.divide(meanSmallBest[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.legend(loc = 'best')
+plt.yscale('log')
+plt.ylim(0.03, 5000)
+plt.xlabel("Value of " + "$\mathit{\u03b5}$")
+plt.ylabel("MSE of PRIEST-KLD")
+plt.savefig("Exp2_femnist_eps_best_0.05.png")
+plt.clf()
+
+plt.errorbar(epsset, meanMidDist[0], yerr = np.minimum(meanMidDistRange[0], np.sqrt(meanMidDist[0]), np.divide(meanMidDist[0], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(epsset, meanMidDist[1], yerr = np.minimum(meanMidDistRange[1], np.sqrt(meanMidDist[1]), np.divide(meanMidDist[1], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(epsset, meanMidDist[2], yerr = np.minimum(meanMidDistRange[2], np.sqrt(meanMidDist[2]), np.divide(meanMidDist[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.legend(loc = 'best')
+plt.yscale('log')
+plt.ylim(0.03, 6000)
+plt.xlabel("Value of " + "$\mathit{\u03b5}$")
+plt.ylabel("MSE of PRIEST-KLD")
+plt.savefig("Exp2_femnist_eps_best_1.5_a.png")
+plt.clf()
+
+plt.errorbar(epsset, meanMidTAgg[0], yerr = np.minimum(meanMidTAggRange[0], np.sqrt(meanMidTAgg[0]), np.divide(meanMidTAgg[0], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(epsset, meanMidTAgg[1], yerr = np.minimum(meanMidTAggRange[1], np.sqrt(meanMidTAgg[1]), np.divide(meanMidTAgg[1], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(epsset, meanMidTAgg[2], yerr = np.minimum(meanMidTAggRange[2], np.sqrt(meanMidTAgg[2]), np.divide(meanMidTAgg[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.legend(loc = 'best')
+plt.yscale('log')
+plt.ylim(0.03, 6000)
+plt.xlabel("Value of " + "$\mathit{\u03b5}$")
+plt.ylabel("MSE of PRIEST-KLD")
+plt.savefig("Exp2_femnist_eps_best_1.5_b.png")
+plt.clf()
+
+plt.errorbar(epsset, meanMidTrusted[0], yerr = np.minimum(meanMidTrustedRange[0], np.sqrt(meanMidTrusted[0]), np.divide(meanMidTrusted[0], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(epsset, meanMidTrusted[1], yerr = np.minimum(meanMidTrustedRange[1], np.sqrt(meanMidTrusted[1]), np.divide(meanMidTrusted[1], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(epsset, meanMidTrusted[2], yerr = np.minimum(meanMidTrustedRange[2], np.sqrt(meanMidTrusted[2]), np.divide(meanMidTrusted[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.legend(loc = 'best')
+plt.yscale('log')
+plt.ylim(0.03, 6000)
+plt.xlabel("Value of " + "$\mathit{\u03b5}$")
+plt.ylabel("MSE of PRIEST-KLD")
+plt.savefig("Exp2_femnist_eps_best_1.5_c.png")
+plt.clf()
+
+# EXPERIMENT 3: MSE of PRIEST-KLD for each epsilon
 plt.errorbar(epsset, meanEstMSE[0], yerr = np.minimum(meanEstRange[0], np.sqrt(meanEstMSE[0]), np.divide(meanEstMSE[0], 2)), color = 'blueviolet', marker = 'o', label = "mean")
 plt.errorbar(epsset, minEstMSE[0], yerr = np.minimum(minEstRange[0], np.sqrt(minEstMSE[0]), np.divide(minEstMSE[0], 2)), color = 'lime', marker = 'o', label = "min pair")
 plt.errorbar(epsset, maxEstMSE[0], yerr = np.minimum(maxEstRange[0], np.sqrt(maxEstMSE[0]), np.divide(maxEstMSE[0], 2)), color = 'gold', marker = 'o', label = "max pair")
@@ -602,7 +775,7 @@ plt.yscale('log')
 plt.ylim(0.1, 40)
 plt.xlabel("Value of " + "$\mathit{\u03b5}$")
 plt.ylabel("MSE of PRIEST-KLD")
-plt.savefig("Exp1_femnist_eps_est_a.png")
+plt.savefig("Exp3_femnist_eps_est_a.png")
 plt.clf()
 
 plt.errorbar(epsset, meanEstMSE[1], yerr = np.minimum(meanEstRange[1], np.sqrt(meanEstMSE[1]), np.divide(meanEstMSE[1], 2)), color = 'blueviolet', marker = 'o', label = "mean")
@@ -613,7 +786,7 @@ plt.yscale('log')
 plt.ylim(0.3, 30000)
 plt.xlabel("Value of " + "$\mathit{\u03b5}$")
 plt.ylabel("MSE of PRIEST-KLD")
-plt.savefig("Exp1_femnist_eps_est_b.png")
+plt.savefig("Exp3_femnist_eps_est_b.png")
 plt.clf()
 
 plt.errorbar(epsset, meanEstMSE[2], yerr = np.minimum(meanEstRange[2], np.sqrt(meanEstMSE[2]), np.divide(meanEstMSE[2], 2)), color = 'blueviolet', marker = 'o', label = "mean")
@@ -624,7 +797,7 @@ plt.yscale('log')
 plt.ylim(0.4, 6000)
 plt.xlabel("Value of " + "$\mathit{\u03b5}$")
 plt.ylabel("MSE of PRIEST-KLD")
-plt.savefig("Exp1_femnist_eps_est_c.png")
+plt.savefig("Exp3_femnist_eps_est_c.png")
 plt.clf()
 
 plt.errorbar(epsset, meanEstMSE[0], yerr = np.minimum(meanEstRange[0], np.sqrt(meanEstMSE[0]), np.divide(meanEstMSE[0], 2)), color = 'blue', marker = 'o', label = "Dist")
@@ -635,10 +808,10 @@ plt.yscale('log')
 plt.ylim(0.3, 30000)
 plt.xlabel("Value of " + "$\mathit{\u03b5}$")
 plt.ylabel("MSE of PRIEST-KLD")
-plt.savefig("Exp1_femnist_eps_est_d.png")
+plt.savefig("Exp3_femnist_eps_est_d.png")
 plt.clf()
 
-# EXPERIMENT 2: % of noise vs ground truth for each epsilon (min / max pairs)
+# EXPERIMENT 4: % of noise vs ground truth for each epsilon (min / max pairs)
 plt.errorbar(epsset, minPerc[0], yerr = np.minimum(minPercRange[0], np.sqrt(minPerc[0]), np.divide(minPerc[0], 2)), color = 'blue', marker = 'o', label = "Dist")
 plt.errorbar(epsset, minPerc[1], yerr = np.minimum(minPercRange[1], np.sqrt(minPerc[1]), np.divide(minPerc[1], 2)), color = 'green', marker = 'o', label = "TAgg")
 plt.errorbar(epsset, minPerc[2], yerr = np.minimum(minPercRange[2], np.sqrt(minPerc[2]), np.divide(minPerc[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
@@ -649,7 +822,7 @@ plt.ylim(0.1, 700)
 plt.gca().yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
 plt.xlabel("Value of " + "$\mathit{\u03b5}$")
 plt.ylabel("Noise (%)")
-plt.savefig("Exp2_femnist_eps_perc_a.png")
+plt.savefig("Exp4_femnist_eps_perc_a.png")
 plt.clf()
 
 plt.errorbar(epsset, maxPerc[0], yerr = np.minimum(maxPercRange[0], np.sqrt(maxPerc[0]), np.divide(maxPerc[0], 2)), color = 'blue', marker = 'o', label = "Dist")
@@ -662,77 +835,7 @@ plt.ylim(0.02, 400)
 plt.gca().yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
 plt.xlabel("Value of " + "$\mathit{\u03b5}$")
 plt.ylabel("Noise (%)")
-plt.savefig("Exp2_femnist_eps_perc_b.png")
-plt.clf()
-
-# EXPERIMENT 3: MSE of PRIEST-KLD for fixed epsilons (0.05, 1.5)
-plt.errorbar(ldaset, meanEpsSmall[0], yerr = np.minimum(meanEpsSmallRange[0], np.sqrt(meanEpsSmall[0]), np.divide(meanEpsSmall[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(ldaset, meanEpsSmall[1], yerr = np.minimum(meanEpsSmallRange[1], np.sqrt(meanEpsSmall[1]), np.divide(meanEpsSmall[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(ldaset, meanEpsSmall[2], yerr = np.minimum(meanEpsSmallRange[2], np.sqrt(meanEpsSmall[2]), np.divide(meanEpsSmall[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.errorbar(ldaset, meanEpsSmall[3], yerr = np.minimum(meanEpsSmallRange[3], np.sqrt(meanEpsSmall[3]), np.divide(meanEpsSmall[3], 2)), color = 'red', marker = '*', label = "no privacy")
-plt.legend(loc = 'lower right')
-plt.yscale('log')
-plt.ylim(0.005, 10000)
-plt.xlabel("Value of " + "$\mathit{\u03bb}$")
-plt.ylabel("MSE of PRIEST-KLD")
-plt.savefig("Exp3_femnist_eps_est_0.05.png")
-plt.clf()
-
-plt.errorbar(ldaset, meanEpsMid[0], yerr = np.minimum(meanEpsMidRange[0], np.sqrt(meanEpsMid[0]), np.divide(meanEpsMid[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(ldaset, meanEpsMid[1], yerr = np.minimum(meanEpsMidRange[1], np.sqrt(meanEpsMid[1]), np.divide(meanEpsMid[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(ldaset, meanEpsMid[2], yerr = np.minimum(meanEpsMidRange[2], np.sqrt(meanEpsMid[2]), np.divide(meanEpsMid[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.errorbar(ldaset, meanEpsMid[3], yerr = np.minimum(meanEpsMidRange[3], np.sqrt(meanEpsMid[3]), np.divide(meanEpsMid[3], 2)), color = 'red', marker = '*', label = "no privacy")
-plt.legend(loc = 'best')
-plt.yscale('log')
-plt.ylim(0.03, 70)
-plt.xlabel("Value of " + "$\mathit{\u03bb}$")
-plt.ylabel("MSE of PRIEST-KLD")
-plt.savefig("Exp3_femnist_eps_est_1.5.png")
-plt.clf()
-
-# EXPERIMENT 4: MSE of PRIEST-KLD for best lambdas extracted from experiment 3
-plt.errorbar(epsset, meanSmallBest[0], yerr = np.minimum(meanSmallBestRange[0], np.sqrt(meanSmallBest[0]), np.divide(meanSmallBest[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(epsset, meanSmallBest[1], yerr = np.minimum(meanSmallBestRange[1], np.sqrt(meanSmallBest[1]), np.divide(meanSmallBest[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(epsset, meanSmallBest[2], yerr = np.minimum(meanSmallBestRange[2], np.sqrt(meanSmallBest[2]), np.divide(meanSmallBest[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.legend(loc = 'best')
-plt.yscale('log')
-plt.ylim(0.03, 5000)
-plt.xlabel("Value of " + "$\mathit{\u03b5}$")
-plt.ylabel("MSE of PRIEST-KLD")
-plt.savefig("Exp4_femnist_eps_best_0.05.png")
-plt.clf()
-
-plt.errorbar(epsset, meanMidDist[0], yerr = np.minimum(meanMidDistRange[0], np.sqrt(meanMidDist[0]), np.divide(meanMidDist[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(epsset, meanMidDist[1], yerr = np.minimum(meanMidDistRange[1], np.sqrt(meanMidDist[1]), np.divide(meanMidDist[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(epsset, meanMidDist[2], yerr = np.minimum(meanMidDistRange[2], np.sqrt(meanMidDist[2]), np.divide(meanMidDist[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.legend(loc = 'best')
-plt.yscale('log')
-plt.ylim(0.03, 6000)
-plt.xlabel("Value of " + "$\mathit{\u03b5}$")
-plt.ylabel("MSE of PRIEST-KLD")
-plt.savefig("Exp4_femnist_eps_best_1.5_a.png")
-plt.clf()
-
-plt.errorbar(epsset, meanMidTAgg[0], yerr = np.minimum(meanMidTAggRange[0], np.sqrt(meanMidTAgg[0]), np.divide(meanMidTAgg[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(epsset, meanMidTAgg[1], yerr = np.minimum(meanMidTAggRange[1], np.sqrt(meanMidTAgg[1]), np.divide(meanMidTAgg[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(epsset, meanMidTAgg[2], yerr = np.minimum(meanMidTAggRange[2], np.sqrt(meanMidTAgg[2]), np.divide(meanMidTAgg[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.legend(loc = 'best')
-plt.yscale('log')
-plt.ylim(0.03, 6000)
-plt.xlabel("Value of " + "$\mathit{\u03b5}$")
-plt.ylabel("MSE of PRIEST-KLD")
-plt.savefig("Exp4_femnist_eps_best_1.5_b.png")
-plt.clf()
-
-plt.errorbar(epsset, meanMidTrusted[0], yerr = np.minimum(meanMidTrustedRange[0], np.sqrt(meanMidTrusted[0]), np.divide(meanMidTrusted[0], 2)), color = 'blue', marker = 'o', label = "Dist")
-plt.errorbar(epsset, meanMidTrusted[1], yerr = np.minimum(meanMidTrustedRange[1], np.sqrt(meanMidTrusted[1]), np.divide(meanMidTrusted[1], 2)), color = 'green', marker = 'o', label = "TAgg")
-plt.errorbar(epsset, meanMidTrusted[2], yerr = np.minimum(meanMidTrustedRange[2], np.sqrt(meanMidTrusted[2]), np.divide(meanMidTrusted[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
-plt.legend(loc = 'best')
-plt.yscale('log')
-plt.ylim(0.03, 6000)
-plt.xlabel("Value of " + "$\mathit{\u03b5}$")
-plt.ylabel("MSE of PRIEST-KLD")
-plt.savefig("Exp4_femnist_eps_best_1.5_c.png")
+plt.savefig("Exp4_femnist_eps_perc_b.png")
 plt.clf()
 
 # compute total runtime

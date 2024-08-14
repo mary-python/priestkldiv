@@ -41,13 +41,11 @@ TS = len(trialset)
 # to store statistics related to mean estimates
 meanValue = np.zeros((TS, ES))
 meanEstMSE = np.zeros((TS, ES))
-meanLdaBest = np.zeros((TS, ES))
 meanPerc = np.zeros((TS, ES))
 
 # related to min pairs
 minValue = np.zeros((TS, ES))
 minEstMSE = np.zeros((TS, ES))
-minLdaBest = np.zeros((TS, ES))
 minDefDist = np.zeros((TS, ES))
 minDefTAgg = np.zeros((TS, ES))
 minLargeBest = np.zeros((TS, ES))
@@ -63,7 +61,6 @@ minTLargeRange = np.zeros((TS, LS))
 # related to max pairs
 maxValue = np.zeros((TS, ES))
 maxEstMSE = np.zeros((TS, ES))
-maxLdaBest = np.zeros((TS, ES))
 maxLargeDist = np.zeros((TS, ES))
 maxLargeTAgg = np.zeros((TS, ES))
 maxPerc = np.zeros((TS, ES))
@@ -79,16 +76,13 @@ EPS = 0.5
 DTA = 0.1
 A = 0 # parameter for addition of noise
 R1 = 90
-ldaStep = 0.05
 RS = 10
 SEED_FREQ = 0
 DEF_INDEX = 4
 LARGE_INDEX = 10
 
 for trial in range(4):
-    meanfile = open(f"Data_{trialset[trial]}_T_a.txt", "w", encoding = 'utf-8')
-    minfile = open(f"Data_{trialset[trial]}_T_b.txt", "w", encoding = 'utf-8')
-    maxfile = open(f"Data_{trialset[trial]}_T_c.txt", "w", encoding = 'utf-8')
+
     T_FREQ = 0
 
     for T in Tset:
@@ -98,13 +92,11 @@ for trial in range(4):
         tempMeanValue = np.zeros(RS)
         tempMeanEst = np.zeros(RS)
         tempMeanEstMSE = np.zeros(RS)
-        tempMeanLdaBest = np.zeros(RS)
         tempMeanPerc = np.zeros(RS)
             
         tempMinValue = np.zeros(RS)
         tempMinEst = np.zeros(RS)
         tempMinEstMSE = np.zeros(RS)
-        tempMinLdaBest = np.zeros(RS)
         tempMinDefDist = np.zeros(RS)
         tempMinDefTAgg = np.zeros(RS)
         tempMinLargeBest = np.zeros(RS)
@@ -115,7 +107,6 @@ for trial in range(4):
         tempMaxValue = np.zeros(RS)
         tempMaxEst = np.zeros(RS)
         tempMaxEstMSE = np.zeros(RS)
-        tempMaxLdaBest = np.zeros(RS)
         tempMaxLargeDist = np.zeros(RS)
         tempMaxLargeTAgg = np.zeros(RS)
         tempMaxPerc = np.zeros(RS)
@@ -425,24 +416,19 @@ for trial in range(4):
                     tempMinTLarge[l, rep] = minLda[l]
                     tempMaxTLarge[l, rep] = maxLda[l]
 
-            # find lambda that produces minimum error
-            meanLdaIndex = np.argmin(meanLda)
-            minLdaIndex = np.argmin(minLda)
-            maxLdaIndex = np.argmin(maxLda)
+            # choose best lambda from experiment 1
+            meanLdaIndex = 10
+            minLdaIndex = 10
+            maxLdaIndex = 10
 
-            meanMinError = meanLda[meanLdaIndex]
-            minMinError = minLda[minLdaIndex]
-            maxMinError = maxLda[maxLdaIndex]
+            meanLdaError = meanLda[meanLdaIndex]
+            minLdaError = minLda[minLdaIndex]
+            maxLdaError = maxLda[maxLdaIndex]
 
             # mean / min / max across clients for best lambda
-            tempMeanEst[rep] = meanMinError
-            tempMinEst[rep] = minMinError
-            tempMaxEst[rep] = maxMinError
-
-            # best lambda
-            tempMeanLdaBest[rep] = meanLdaIndex * ldaStep
-            tempMinLdaBest[rep] = minLdaIndex * ldaStep
-            tempMaxLdaBest[rep] = maxLdaIndex * ldaStep
+            tempMeanEst[rep] = meanLdaError
+            tempMinEst[rep] = minLdaError
+            tempMaxEst[rep] = maxLdaError
 
             # T = 180, lambda = 0.45
             tempMinDefDist[rep] = minLda[9]
@@ -540,12 +526,10 @@ for trial in range(4):
         # compute mean of repeats
         meanValue[trial, T_FREQ] = np.mean(tempMeanValue)
         meanEstMSE[trial, T_FREQ] = np.mean(tempMeanEstMSE)
-        meanLdaBest[trial, T_FREQ] = np.mean(tempMeanLdaBest)
         meanPerc[trial, T_FREQ] = np.mean(tempMeanPerc)
 
         minValue[trial, T_FREQ] = np.mean(tempMinValue)
         minEstMSE[trial, T_FREQ] = np.mean(tempMinEstMSE)
-        minLdaBest[trial, T_FREQ] = np.mean(tempMinLdaBest)
         minDefDist[trial, T_FREQ] = np.mean(tempMinDefDist)
         minDefTAgg[trial, T_FREQ] = np.mean(tempMinDefTAgg)
         minLargeBest[trial, T_FREQ] = np.mean(tempMinLargeBest)
@@ -559,7 +543,6 @@ for trial in range(4):
 
         maxValue[trial, T_FREQ] = np.mean(tempMaxValue)
         maxEstMSE[trial, T_FREQ] = np.mean(tempMaxEstMSE)
-        maxLdaBest[trial, T_FREQ] = np.mean(tempMaxLdaBest)
         maxLargeDist[trial, T_FREQ] = np.mean(tempMaxLargeDist)
         maxLargeTAgg[trial, T_FREQ] = np.mean(tempMaxLargeTAgg)
         maxPerc[trial, T_FREQ] = np.mean(tempMaxPerc)
@@ -585,34 +568,9 @@ for trial in range(4):
             if T_FREQ == LARGE_INDEX:
                 maxTLargeRange[trial, l] = np.std(tempMaxTLarge[l])
 
-        # write statistics on data files
-        if T == Tset[0]:
-            meanfile.write(f"FEMNIST: T = {T}\n")
-            minfile.write(f"FEMNIST: T = {T}\n")
-            maxfile.write(f"FEMNIST: T = {T}\n")
-        else:
-            meanfile.write(f"\nT = {T}\n")
-            minfile.write(f"\nT = {T}\n")
-            maxfile.write(f"\nT = {T}\n")
-  
-        meanfile.write(f"\nMean MSE: {round(meanEstMSE[trial, T_FREQ], 2)}\n")
-        meanfile.write(f"Best Lambda: {round(meanLdaBest[trial, T_FREQ], 2)}\n")
-        meanfile.write(f"Ground Truth: {round(meanValue[trial, T_FREQ], 2)}\n")
-        meanfile.write(f"Noise: {np.round(meanPerc[trial, T_FREQ], 2)}%\n")
-
-        minfile.write(f"\nMin MSE: {round(minEstMSE[trial, T_FREQ], 2)}\n")
-        minfile.write(f"Best Lambda: {round(minLdaBest[trial, T_FREQ], 2)}\n")
-        minfile.write(f"Ground Truth: {round(minValue[trial, T_FREQ], 2)}\n")
-        minfile.write(f"Noise: {np.round(minPerc[trial, T_FREQ], 2)}%\n")
-
-        maxfile.write(f"\nMax MSE: {round(maxEstMSE[trial, T_FREQ], 2)}\n")
-        maxfile.write(f"Best Lambda: {round(maxLdaBest[trial, T_FREQ], 2)}\n")
-        maxfile.write(f"Ground Truth: {round(maxValue[trial, T_FREQ], 2)}\n")
-        maxfile.write(f"Noise: {np.round(maxPerc[trial, T_FREQ], 2)}%\n")
-
         T_FREQ = T_FREQ + 1
 
-# EXPERIMENT 3: MSE of PRIEST-KLD for fixed T (180, 540)
+# EXPERIMENT 1: MSE of PRIEST-KLD for fixed T (180, 540)
 plt.errorbar(ldaset, minTDef[0], yerr = np.minimum(minTDefRange[0], np.sqrt(minTDef[0]), np.divide(minTDef[0], 2)), color = 'blue', marker = 'o', label = "Dist")
 plt.errorbar(ldaset, minTDef[1], yerr = np.minimum(minTDefRange[1], np.sqrt(minTDef[1]), np.divide(minTDef[1], 2)), color = 'green', marker = 'o', label = "TAgg")
 plt.errorbar(ldaset, minTDef[2], yerr = np.minimum(minTDefRange[2], np.sqrt(minTDef[2]), np.divide(minTDef[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
@@ -622,7 +580,7 @@ plt.yscale('log')
 plt.ylim(0.01, 4000)
 plt.xlabel("Value of " + "$\mathit{\u03bb}$")
 plt.ylabel("MSE of PRIEST-KLD")
-plt.savefig("Exp3_femnist_T_est_180.png")
+plt.savefig("Exp1_femnist_T_est_180.png")
 plt.clf()
 
 plt.errorbar(ldaset, minTLarge[0], yerr = np.minimum(minTLargeRange[0], np.sqrt(minTLarge[0]), np.divide(minTLarge[0], 2)), color = 'blue', marker = 'o', label = "Dist")
@@ -634,7 +592,7 @@ plt.yscale('log')
 plt.ylim(0.1, 3000)
 plt.xlabel("Value of " + "$\mathit{\u03bb}$")
 plt.ylabel("MSE of PRIEST-KLD")
-plt.savefig("Exp3_femnist_T_est_540_a.png")
+plt.savefig("Exp1_femnist_T_est_540_a.png")
 plt.clf()
 
 plt.errorbar(ldaset, maxTLarge[0], yerr = np.minimum(maxTLargeRange[0], np.sqrt(maxTLarge[0]), np.divide(maxTLarge[0], 2)), color = 'blue', marker = 'o', label = "Dist")
@@ -645,10 +603,10 @@ plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of " + "$\mathit{\u03bb}$")
 plt.ylabel("MSE of PRIEST-KLD")
-plt.savefig("Exp3_femnist_T_est_540_b.png")
+plt.savefig("Exp1_femnist_T_est_540_b.png")
 plt.clf()
 
-# EXPERIMENT 4: MSE of PRIEST-KLD for best lambdas extracted from experiment 3
+# EXPERIMENT 2: MSE of PRIEST-KLD for best lambdas extracted from experiment 1
 plt.errorbar(Tset, minDefDist[0], yerr = np.minimum(minDefDistRange[0], np.sqrt(minDefDist[0]), np.divide(minDefDist[0], 2)), color = 'blue', marker = 'o', label = "Dist")
 plt.errorbar(Tset, minDefDist[1], yerr = np.minimum(minDefDistRange[1], np.sqrt(minDefDist[1]), np.divide(minDefDist[1], 2)), color = 'green', marker = 'o', label = "TAgg")
 plt.errorbar(Tset, minDefDist[2], yerr = np.minimum(minDefDistRange[2], np.sqrt(minDefDist[2]), np.divide(minDefDist[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
@@ -658,7 +616,7 @@ plt.yscale('log')
 plt.ylim(0.01, 3000)
 plt.xlabel("Number of clients " + "$\mathit{n}$")
 plt.ylabel("MSE of PRIEST-KLD")
-plt.savefig("Exp4_femnist_T_best_180_a.png")
+plt.savefig("Exp2_femnist_T_best_180_a.png")
 plt.clf()
 
 plt.errorbar(Tset, minDefTAgg[0], yerr = np.minimum(minDefTAggRange[0], np.sqrt(minDefTAgg[0]), np.divide(minDefTAgg[0], 2)), color = 'blue', marker = 'o', label = "Dist")
@@ -670,7 +628,7 @@ plt.yscale('log')
 plt.ylim(0.01, 3000)
 plt.xlabel("Number of clients " + "$\mathit{n}$")
 plt.ylabel("MSE of PRIEST-KLD")
-plt.savefig("Exp4_femnist_T_best_180_b.png")
+plt.savefig("Exp2_femnist_T_best_180_b.png")
 plt.clf()
 
 plt.errorbar(Tset, minLargeBest[0], yerr = np.minimum(minLargeBestRange[0], np.sqrt(minLargeBest[0]), np.divide(minLargeBest[0], 2)), color = 'blue', marker = 'o', label = "Dist")
@@ -682,7 +640,7 @@ plt.yscale('log')
 plt.ylim(0.01, 4000)
 plt.xlabel("Number of clients " + "$\mathit{n}$")
 plt.ylabel("MSE of PRIEST-KLD")
-plt.savefig("Exp4_femnist_T_best_540_a.png")
+plt.savefig("Exp2_femnist_T_best_540_a.png")
 plt.clf()
 
 plt.errorbar(Tset, maxLargeDist[0], yerr = np.minimum(maxLargeDistRange[0], np.sqrt(maxLargeDist[0]), np.divide(maxLargeDist[0], 2)), color = 'blue', marker = 'o', label = "Dist")
@@ -694,7 +652,7 @@ plt.yscale('log')
 plt.ylim(3, 4000)
 plt.xlabel("Number of clients " + "$\mathit{n}$")
 plt.ylabel("MSE of PRIEST-KLD")
-plt.savefig("Exp4_femnist_T_best_540_b.png")
+plt.savefig("Exp2_femnist_T_best_540_b.png")
 plt.clf()
 
 plt.errorbar(Tset, maxLargeTAgg[0], yerr = np.minimum(maxLargeTAggRange[0], np.sqrt(maxLargeTAgg[0]), np.divide(maxLargeTAgg[0], 2)), color = 'blue', marker = 'o', label = "Dist")
@@ -706,7 +664,7 @@ plt.yscale('log')
 plt.ylim(3, 2000)
 plt.xlabel("Number of clients " + "$\mathit{n}$")
 plt.ylabel("MSE of PRIEST-KLD")
-plt.savefig("Exp4_femnist_T_best_540_c.png")
+plt.savefig("Exp2_femnist_T_best_540_c.png")
 plt.clf()
 
 # compute total runtime
