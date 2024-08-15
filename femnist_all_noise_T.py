@@ -3,6 +3,7 @@ create static, animated, and interactive visualisations, provide both a high- an
 to the HDF5 library, work with arrays, and carry out fast numerical computations in Python."""
 import time
 from math import log
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import h5py
 import numpy as np
@@ -42,6 +43,17 @@ TS = len(trialset)
 meanValue = np.zeros((TS, ES))
 meanEstMSE = np.zeros((TS, ES))
 meanPerc = np.zeros((TS, ES))
+meanTSmall = np.zeros((TS, LS))
+meanTDef = np.zeros((TS, LS))
+meanTMid = np.zeros((TS, LS))
+meanTLarge = np.zeros((TS, LS))
+
+meanEstRange = np.zeros((TS, ES))
+meanPercRange = np.zeros((TS, ES))
+meanTSmallRange = np.zeros((TS, LS))
+meanTDefRange = np.zeros((TS, LS))
+meanTMidRange = np.zeros((TS, LS))
+meanTLargeRange = np.zeros((TS, LS))
 
 # related to min pairs
 minValue = np.zeros((TS, ES))
@@ -50,12 +62,19 @@ minDefDist = np.zeros((TS, ES))
 minDefTAgg = np.zeros((TS, ES))
 minLargeBest = np.zeros((TS, ES))
 minPerc = np.zeros((TS, ES))
+minTSmall = np.zeros((TS, LS))
 minTDef = np.zeros((TS, LS))
+minTMid = np.zeros((TS, LS))
 minTLarge = np.zeros((TS, LS))
+
+minEstRange = np.zeros((TS, ES))
 minDefDistRange = np.zeros((TS, ES))
 minDefTAggRange = np.zeros((TS, ES))
 minLargeBestRange = np.zeros((TS, ES))
+minPercRange = np.zeros((TS, ES))
+minTSmallRange = np.zeros((TS, LS))
 minTDefRange = np.zeros((TS, LS))
+minTMidRange = np.zeros((TS, LS))
 minTLargeRange = np.zeros((TS, LS))
 
 # related to max pairs
@@ -64,9 +83,18 @@ maxEstMSE = np.zeros((TS, ES))
 maxLargeDist = np.zeros((TS, ES))
 maxLargeTAgg = np.zeros((TS, ES))
 maxPerc = np.zeros((TS, ES))
+maxTSmall = np.zeros((TS, LS))
+maxTDef = np.zeros((TS, LS))
+maxTMid = np.zeros((TS, LS))
 maxTLarge = np.zeros((TS, LS))
+
+maxEstRange = np.zeros((TS, ES))
 maxLargeDistRange = np.zeros((TS, ES))
 maxLargeTAggRange = np.zeros((TS, ES))
+maxPercRange = np.zeros((TS, ES))
+maxTSmallRange = np.zeros((TS, LS))
+maxTDefRange = np.zeros((TS, LS))
+maxTMidRange = np.zeros((TS, LS))
 maxTLargeRange = np.zeros((TS, LS))
 
 # global parameters
@@ -78,8 +106,10 @@ A = 0 # parameter for addition of noise
 R1 = 90
 RS = 10
 SEED_FREQ = 0
+SMALL_INDEX = 0
 DEF_INDEX = 4
-LARGE_INDEX = 10
+MID_INDEX = 8
+LARGE_INDEX = 13
 
 for trial in range(4):
 
@@ -93,6 +123,10 @@ for trial in range(4):
         tempMeanEst = np.zeros(RS)
         tempMeanEstMSE = np.zeros(RS)
         tempMeanPerc = np.zeros(RS)
+        tempMeanTSmall = np.zeros((LS, RS))
+        tempMeanTDef = np.zeros((LS, RS))
+        tempMeanTMid = np.zeros((LS, RS))
+        tempMeanTLarge = np.zeros((LS, RS))
             
         tempMinValue = np.zeros(RS)
         tempMinEst = np.zeros(RS)
@@ -101,7 +135,9 @@ for trial in range(4):
         tempMinDefTAgg = np.zeros(RS)
         tempMinLargeBest = np.zeros(RS)
         tempMinPerc = np.zeros(RS)
+        tempMinTSmall = np.zeros((LS, RS))
         tempMinTDef = np.zeros((LS, RS))
+        tempMinTMid = np.zeros((LS, RS))
         tempMinTLarge = np.zeros((LS, RS))
 
         tempMaxValue = np.zeros(RS)
@@ -110,6 +146,9 @@ for trial in range(4):
         tempMaxLargeDist = np.zeros(RS)
         tempMaxLargeTAgg = np.zeros(RS)
         tempMaxPerc = np.zeros(RS)
+        tempMaxTSmall = np.zeros((LS, RS))
+        tempMaxTDef = np.zeros((LS, RS))
+        tempMaxTMid = np.zeros((LS, RS))
         tempMaxTLarge = np.zeros((LS, RS))
 
         for rep in range(RS):      
@@ -470,15 +509,39 @@ for trial in range(4):
 
                 for l in range(LS):
 
+                    # T = 36 (small)
+                    if T_FREQ == SMALL_INDEX:
+                        meanSmallNoise = lapNoise.sample(sample_shape = (1,))
+                        minSmallNoise = lapNoise.sample(sample_shape = (1,))
+                        maxSmallNoise = lapNoise.sample(sample_shape = (1,))
+                        tempMeanTSmall[l, rep] = (tempMeanTSmall[l, rep] + meanSmallNoise - tempMeanValue[rep])**2
+                        tempMinTSmall[l, rep] = (tempMinTSmall[l, rep] + minSmallNoise - tempMinValue[rep])**2
+                        tempMaxTSmall[l, rep] = (tempMaxTSmall[l, rep] + maxSmallNoise - tempMaxValue[rep])**2
+
                     # T = 180 (def)
                     if T_FREQ == DEF_INDEX:
+                        meanDefNoise = lapNoise.sample(sample_shape = (1,))
                         minDefNoise = lapNoise.sample(sample_shape = (1,))
+                        maxDefNoise = lapNoise.sample(sample_shape = (1,))
+                        tempMeanTDef[l, rep] = (tempMeanTDef[l, rep] + meanDefNoise - tempMeanValue[rep])**2
                         tempMinTDef[l, rep] = (tempMinTDef[l, rep] + minDefNoise - tempMinValue[rep])**2
+                        tempMaxTDef[l, rep] = (tempMaxTDef[l, rep] + maxDefNoise - tempMaxValue[rep])**2
 
-                    # T = 540 (large)
+                    # T = 360 (mid)
+                    if T_FREQ == MID_INDEX:
+                        meanMidNoise = lapNoise.sample(sample_shape = (1,))
+                        minMidNoise = lapNoise.sample(sample_shape = (1,))
+                        maxMidNoise = lapNoise.sample(sample_shape = (1,))
+                        tempMeanTMid[l, rep] = (tempMeanTMid[l, rep] + meanMidNoise - tempMeanValue[rep])**2
+                        tempMinTMid[l, rep] = (tempMinTMid[l, rep] + minMidNoise - tempMinValue[rep])**2
+                        tempMaxTMid[l, rep] = (tempMaxTMid[l, rep] + maxMidNoise - tempMaxValue[rep])**2
+
+                    # T = 720 (large)
                     if T_FREQ == LARGE_INDEX:
+                        meanLargeNoise = lapNoise.sample(sample_shape = (1,))
                         minLargeNoise = lapNoise.sample(sample_shape = (1,))
                         maxLargeNoise = lapNoise.sample(sample_shape = (1,))
+                        tempMeanTLarge[l, rep] = (tempMeanTLarge[l, rep] + meanLargeNoise - tempMeanValue[rep])**2
                         tempMinTLarge[l, rep] = (tempMinTLarge[l, rep] + minLargeNoise - tempMinValue[rep])**2
                         tempMaxTLarge[l, rep] = (tempMaxTLarge[l, rep] + maxLargeNoise - tempMaxValue[rep])**2
         
@@ -495,13 +558,28 @@ for trial in range(4):
                 tempMaxLargeTAgg[rep] = (tempMaxLargeTAgg[rep] - tempMaxValue[rep])**2
 
                 for l in range(LS):
+                    
+                    # T = 36 (small)
+                    if T_FREQ == SMALL_INDEX:
+                        tempMeanTSmall[l, rep] = (tempMeanTSmall[l, rep] - tempMeanValue[rep])**2
+                        tempMinTSmall[l, rep] = (tempMinTSmall[l, rep] - tempMinValue[rep])**2
+                        tempMaxTSmall[l, rep] = (tempMaxTSmall[l, rep] - tempMaxValue[rep])**2
 
                     # T = 180 (def)
                     if T_FREQ == DEF_INDEX:
+                        tempMeanTDef[l, rep] = (tempMeanTDef[l, rep] - tempMeanValue[rep])**2
                         tempMinTDef[l, rep] = (tempMinTDef[l, rep] - tempMinValue[rep])**2
+                        tempMaxTDef[l, rep] = (tempMaxTDef[l, rep] - tempMaxValue[rep])**2
 
-                    # T = 540 (large)
+                    # T = 360 (mid)
+                    if T_FREQ == MID_INDEX:
+                        tempMeanTMid[l, rep] = (tempMeanTMid[l, rep] - tempMeanValue[rep])**2
+                        tempMinTMid[l, rep] = (tempMinTMid[l, rep] - tempMinValue[rep])**2
+                        tempMaxTMid[l, rep] = (tempMaxTMid[l, rep] - tempMaxValue[rep])**2  
+
+                    # T = 720 (large)
                     if T_FREQ == LARGE_INDEX:
+                        tempMeanTLarge[l, rep] = (tempMeanTLarge[l, rep] - tempMeanValue[rep])**2
                         tempMinTLarge[l, rep] = (tempMinTLarge[l, rep] - tempMinValue[rep])**2
                         tempMaxTLarge[l, rep] = (tempMaxTLarge[l, rep] - tempMaxValue[rep])**2
 
@@ -535,12 +613,6 @@ for trial in range(4):
         minLargeBest[trial, T_FREQ] = np.mean(tempMinLargeBest)
         minPerc[trial, T_FREQ] = np.mean(tempMinPerc)
 
-        for l in range(LS):
-            if T_FREQ == DEF_INDEX:
-                minTDef[trial, l] = np.mean(tempMinTDef[l])
-            if T_FREQ == LARGE_INDEX:
-                minTLarge[trial, l] = np.mean(tempMinTLarge[l])
-
         maxValue[trial, T_FREQ] = np.mean(tempMaxValue)
         maxEstMSE[trial, T_FREQ] = np.mean(tempMaxEstMSE)
         maxLargeDist[trial, T_FREQ] = np.mean(tempMaxLargeDist)
@@ -548,29 +620,102 @@ for trial in range(4):
         maxPerc[trial, T_FREQ] = np.mean(tempMaxPerc)
 
         for l in range(LS):
+            if T_FREQ == SMALL_INDEX:
+                meanTSmall[trial, l] = np.mean(tempMinTSmall[l])
+                minTSmall[trial, l] = np.mean(tempMinTSmall[l])
+                maxTSmall[trial, l] = np.mean(tempMaxTSmall[l])
+            if T_FREQ == DEF_INDEX:
+                meanTDef[trial, l] = np.mean(tempMinTDef[l])
+                minTDef[trial, l] = np.mean(tempMinTDef[l])
+                maxTDef[trial, l] = np.mean(tempMaxTDef[l])
+            if T_FREQ == MID_INDEX:
+                meanTMid[trial, l] = np.mean(tempMinTMid[l])
+                minTMid[trial, l] = np.mean(tempMinTMid[l])
+                maxTMid[trial, l] = np.mean(tempMaxTMid[l])
             if T_FREQ == LARGE_INDEX:
+                meanTLarge[trial, l] = np.mean(tempMinTLarge[l])
+                minTLarge[trial, l] = np.mean(tempMinTLarge[l])
                 maxTLarge[trial, l] = np.mean(tempMaxTLarge[l])
+        
+        meanEstRange[trial, T_FREQ] = np.std(tempMeanEstMSE)
+        meanPercRange[trial, T_FREQ] = np.std(tempMeanPerc)
 
+        minEstRange[trial, T_FREQ] = np.std(tempMinEstMSE)
+        minPercRange[trial, T_FREQ] = np.std(tempMinPerc)
         minDefDistRange[trial, T_FREQ] = np.std(tempMinDefDist)
         minDefTAggRange[trial, T_FREQ] = np.std(tempMinDefTAgg)
         minLargeBestRange[trial, T_FREQ] = np.std(tempMinLargeBest)
 
-        for l in range(LS):
-            if T_FREQ == DEF_INDEX:
-                minTDefRange[trial, l] = np.std(tempMinTDef[l])
-            if T_FREQ == LARGE_INDEX:
-                minTLargeRange[trial, l] = np.std(tempMinTLarge[l])
-   
+        maxEstRange[trial, T_FREQ] = np.std(tempMaxEstMSE)
+        maxPercRange[trial, T_FREQ] = np.std(tempMaxPerc)
         maxLargeDistRange[trial, T_FREQ] = np.std(tempMaxLargeDist)
         maxLargeTAggRange[trial, T_FREQ] = np.std(tempMaxLargeTAgg)
 
         for l in range(LS):
+            if T_FREQ == SMALL_INDEX:
+                meanTSmallRange[trial, l] = np.std(tempMinTSmall[l])
+                minTSmallRange[trial, l] = np.std(tempMinTSmall[l])
+                maxTSmallRange[trial, l] = np.std(tempMaxTSmall[l])
+            if T_FREQ == DEF_INDEX:
+                meanTDefRange[trial, l] = np.std(tempMinTDef[l])
+                minTDefRange[trial, l] = np.std(tempMinTDef[l])
+                maxTDefRange[trial, l] = np.std(tempMaxTDef[l])
+            if T_FREQ == MID_INDEX:
+                meanTMidRange[trial, l] = np.std(tempMinTMid[l])
+                minTMidRange[trial, l] = np.std(tempMinTMid[l])
+                maxTMidRange[trial, l] = np.std(tempMaxTMid[l])
             if T_FREQ == LARGE_INDEX:
+                meanTLargeRange[trial, l] = np.std(tempMinTLarge[l])
+                minTLargeRange[trial, l] = np.std(tempMinTLarge[l])
                 maxTLargeRange[trial, l] = np.std(tempMaxTLarge[l])
 
         T_FREQ = T_FREQ + 1
 
-# EXPERIMENT 1: MSE of PRIEST-KLD for fixed T (180, 540)
+# EXPERIMENT 1: MSE of PRIEST-KLD for fixed T (36, 180, 360, 720)
+plt.errorbar(ldaset, meanTSmall[0], yerr = np.minimum(meanTSmallRange[0], np.sqrt(meanTSmall[0]), np.divide(meanTSmall[0], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(ldaset, meanTSmall[1], yerr = np.minimum(meanTSmallRange[1], np.sqrt(meanTSmall[1]), np.divide(meanTSmall[1], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(ldaset, meanTSmall[2], yerr = np.minimum(meanTSmallRange[2], np.sqrt(meanTSmall[2]), np.divide(meanTSmall[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(ldaset, meanTSmall[3], yerr = np.minimum(meanTSmallRange[3], np.sqrt(meanTSmall[3]), np.divide(meanTSmall[3], 2)), color = 'red', marker = '*', label = "no privacy")
+plt.legend(loc = 'best')
+plt.yscale('log')
+plt.xlabel("Value of " + "$\mathit{\u03bb}$")
+plt.ylabel("MSE of PRIEST-KLD")
+plt.savefig("Exp1_femnist_T_est_36_a.png")
+plt.clf()
+
+plt.errorbar(ldaset, minTSmall[0], yerr = np.minimum(minTSmallRange[0], np.sqrt(minTSmall[0]), np.divide(minTSmall[0], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(ldaset, minTSmall[1], yerr = np.minimum(minTSmallRange[1], np.sqrt(minTSmall[1]), np.divide(minTSmall[1], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(ldaset, minTSmall[2], yerr = np.minimum(minTSmallRange[2], np.sqrt(minTSmall[2]), np.divide(minTSmall[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(ldaset, minTSmall[3], yerr = np.minimum(minTSmallRange[3], np.sqrt(minTSmall[3]), np.divide(minTSmall[3], 2)), color = 'red', marker = '*', label = "no privacy")
+plt.legend(loc = 'best')
+plt.yscale('log')
+plt.xlabel("Value of " + "$\mathit{\u03bb}$")
+plt.ylabel("MSE of PRIEST-KLD")
+plt.savefig("Exp1_femnist_T_est_36_b.png")
+plt.clf()
+
+plt.errorbar(ldaset, maxTSmall[0], yerr = np.minimum(maxTSmallRange[0], np.sqrt(maxTSmall[0]), np.divide(maxTSmall[0], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(ldaset, maxTSmall[1], yerr = np.minimum(maxTSmallRange[1], np.sqrt(maxTSmall[1]), np.divide(maxTSmall[1], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(ldaset, maxTSmall[2], yerr = np.minimum(maxTSmallRange[2], np.sqrt(maxTSmall[2]), np.divide(maxTSmall[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(ldaset, maxTSmall[3], yerr = np.minimum(maxTSmallRange[3], np.sqrt(maxTSmall[3]), np.divide(maxTSmall[3], 2)), color = 'red', marker = '*', label = "no privacy")
+plt.legend(loc = 'best')
+plt.yscale('log')
+plt.xlabel("Value of " + "$\mathit{\u03bb}$")
+plt.ylabel("MSE of PRIEST-KLD")
+plt.savefig("Exp1_femnist_T_est_36_c.png")
+plt.clf()
+
+plt.errorbar(ldaset, meanTDef[0], yerr = np.minimum(meanTDefRange[0], np.sqrt(meanTDef[0]), np.divide(meanTDef[0], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(ldaset, meanTDef[1], yerr = np.minimum(meanTDefRange[1], np.sqrt(meanTDef[1]), np.divide(meanTDef[1], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(ldaset, meanTDef[2], yerr = np.minimum(meanTDefRange[2], np.sqrt(meanTDef[2]), np.divide(meanTDef[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(ldaset, meanTDef[3], yerr = np.minimum(meanTDefRange[3], np.sqrt(meanTDef[3]), np.divide(meanTDef[3], 2)), color = 'red', marker = '*', label = "no privacy")
+plt.legend(loc = 'best')
+plt.yscale('log')
+plt.xlabel("Value of " + "$\mathit{\u03bb}$")
+plt.ylabel("MSE of PRIEST-KLD")
+plt.savefig("Exp1_femnist_T_est_180_a.png")
+plt.clf()
+
 plt.errorbar(ldaset, minTDef[0], yerr = np.minimum(minTDefRange[0], np.sqrt(minTDef[0]), np.divide(minTDef[0], 2)), color = 'blue', marker = 'o', label = "Dist")
 plt.errorbar(ldaset, minTDef[1], yerr = np.minimum(minTDefRange[1], np.sqrt(minTDef[1]), np.divide(minTDef[1], 2)), color = 'green', marker = 'o', label = "TAgg")
 plt.errorbar(ldaset, minTDef[2], yerr = np.minimum(minTDefRange[2], np.sqrt(minTDef[2]), np.divide(minTDef[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
@@ -580,7 +725,62 @@ plt.yscale('log')
 plt.ylim(0.01, 4000)
 plt.xlabel("Value of " + "$\mathit{\u03bb}$")
 plt.ylabel("MSE of PRIEST-KLD")
-plt.savefig("Exp1_femnist_T_est_180.png")
+plt.savefig("Exp1_femnist_T_est_180_b.png")
+plt.clf()
+
+plt.errorbar(ldaset, maxTDef[0], yerr = np.minimum(maxTDefRange[0], np.sqrt(maxTDef[0]), np.divide(maxTDef[0], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(ldaset, maxTDef[1], yerr = np.minimum(maxTDefRange[1], np.sqrt(maxTDef[1]), np.divide(maxTDef[1], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(ldaset, maxTDef[2], yerr = np.minimum(maxTDefRange[2], np.sqrt(maxTDef[2]), np.divide(maxTDef[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(ldaset, maxTDef[3], yerr = np.minimum(maxTDefRange[3], np.sqrt(maxTDef[3]), np.divide(maxTDef[3], 2)), color = 'red', marker = '*', label = "no privacy")
+plt.legend(loc = 'best')
+plt.yscale('log')
+plt.xlabel("Value of " + "$\mathit{\u03bb}$")
+plt.ylabel("MSE of PRIEST-KLD")
+plt.savefig("Exp1_femnist_T_est_180_c.png")
+plt.clf()
+
+plt.errorbar(ldaset, meanTMid[0], yerr = np.minimum(meanTMidRange[0], np.sqrt(meanTMid[0]), np.divide(meanTMid[0], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(ldaset, meanTMid[1], yerr = np.minimum(meanTMidRange[1], np.sqrt(meanTMid[1]), np.divide(meanTMid[1], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(ldaset, meanTMid[2], yerr = np.minimum(meanTMidRange[2], np.sqrt(meanTMid[2]), np.divide(meanTMid[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(ldaset, meanTMid[3], yerr = np.minimum(meanTMidRange[3], np.sqrt(meanTMid[3]), np.divide(meanTMid[3], 2)), color = 'red', marker = '*', label = "no privacy")
+plt.legend(loc = 'best')
+plt.yscale('log')
+plt.xlabel("Value of " + "$\mathit{\u03bb}$")
+plt.ylabel("MSE of PRIEST-KLD")
+plt.savefig("Exp1_femnist_T_est_360_a.png")
+plt.clf()
+
+plt.errorbar(ldaset, minTMid[0], yerr = np.minimum(minTMidRange[0], np.sqrt(minTMid[0]), np.divide(minTMid[0], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(ldaset, minTMid[1], yerr = np.minimum(minTMidRange[1], np.sqrt(minTMid[1]), np.divide(minTMid[1], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(ldaset, minTMid[2], yerr = np.minimum(minTMidRange[2], np.sqrt(minTMid[2]), np.divide(minTMid[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(ldaset, minTMid[3], yerr = np.minimum(minTMidRange[3], np.sqrt(minTMid[3]), np.divide(minTMid[3], 2)), color = 'red', marker = '*', label = "no privacy")
+plt.legend(loc = 'best')
+plt.yscale('log')
+plt.xlabel("Value of " + "$\mathit{\u03bb}$")
+plt.ylabel("MSE of PRIEST-KLD")
+plt.savefig("Exp1_femnist_T_est_360_b.png")
+plt.clf()
+
+plt.errorbar(ldaset, maxTMid[0], yerr = np.minimum(maxTMidRange[0], np.sqrt(maxTMid[0]), np.divide(maxTMid[0], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(ldaset, maxTMid[1], yerr = np.minimum(maxTMidRange[1], np.sqrt(maxTMid[1]), np.divide(maxTMid[1], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(ldaset, maxTMid[2], yerr = np.minimum(maxTMidRange[2], np.sqrt(maxTMid[2]), np.divide(maxTMid[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(ldaset, maxTMid[3], yerr = np.minimum(maxTMidRange[3], np.sqrt(maxTMid[3]), np.divide(maxTMid[3], 2)), color = 'red', marker = '*', label = "no privacy")
+plt.legend(loc = 'best')
+plt.yscale('log')
+plt.xlabel("Value of " + "$\mathit{\u03bb}$")
+plt.ylabel("MSE of PRIEST-KLD")
+plt.savefig("Exp1_femnist_T_est_360_c.png")
+plt.clf()
+
+plt.errorbar(ldaset, meanTLarge[0], yerr = np.minimum(meanTLargeRange[0], np.sqrt(meanTLarge[0]), np.divide(meanTLarge[0], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(ldaset, meanTLarge[1], yerr = np.minimum(meanTLargeRange[1], np.sqrt(meanTLarge[1]), np.divide(meanTLarge[1], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(ldaset, meanTLarge[2], yerr = np.minimum(meanTLargeRange[2], np.sqrt(meanTLarge[2]), np.divide(meanTLarge[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(ldaset, meanTLarge[3], yerr = np.minimum(meanTLargeRange[3], np.sqrt(meanTLarge[3]), np.divide(meanTLarge[3], 2)), color = 'red', marker = '*', label = "no privacy")
+plt.legend(loc = 'lower right')
+plt.yscale('log')
+plt.xlabel("Value of " + "$\mathit{\u03bb}$")
+plt.ylabel("MSE of PRIEST-KLD")
+plt.savefig("Exp1_femnist_T_est_720_a.png")
 plt.clf()
 
 plt.errorbar(ldaset, minTLarge[0], yerr = np.minimum(minTLargeRange[0], np.sqrt(minTLarge[0]), np.divide(minTLarge[0], 2)), color = 'blue', marker = 'o', label = "Dist")
@@ -592,7 +792,7 @@ plt.yscale('log')
 plt.ylim(0.1, 3000)
 plt.xlabel("Value of " + "$\mathit{\u03bb}$")
 plt.ylabel("MSE of PRIEST-KLD")
-plt.savefig("Exp1_femnist_T_est_540_a.png")
+plt.savefig("Exp1_femnist_T_est_720_b.png")
 plt.clf()
 
 plt.errorbar(ldaset, maxTLarge[0], yerr = np.minimum(maxTLargeRange[0], np.sqrt(maxTLarge[0]), np.divide(maxTLarge[0], 2)), color = 'blue', marker = 'o', label = "Dist")
@@ -603,7 +803,7 @@ plt.legend(loc = 'best')
 plt.yscale('log')
 plt.xlabel("Value of " + "$\mathit{\u03bb}$")
 plt.ylabel("MSE of PRIEST-KLD")
-plt.savefig("Exp1_femnist_T_est_540_b.png")
+plt.savefig("Exp1_femnist_T_est_720_c.png")
 plt.clf()
 
 # EXPERIMENT 2: MSE of PRIEST-KLD for best lambdas extracted from experiment 1
@@ -665,6 +865,107 @@ plt.ylim(3, 2000)
 plt.xlabel("Number of clients " + "$\mathit{n}$")
 plt.ylabel("MSE of PRIEST-KLD")
 plt.savefig("Exp2_femnist_T_best_540_c.png")
+plt.clf()
+
+# EXPERIMENT 3: MSE of PRIEST-KLD for each T
+plt.errorbar(Tset, meanEstMSE[0], yerr = np.minimum(meanEstRange[0], np.sqrt(meanEstMSE[0]), np.divide(meanEstMSE[0], 2)), color = 'blueviolet', marker = 'o', label = "mean")
+plt.errorbar(Tset, minEstMSE[0], yerr = np.minimum(minEstRange[0], np.sqrt(minEstMSE[0]), np.divide(minEstMSE[0], 2)), color = 'lime', marker = 'o', label = "min pair")
+plt.errorbar(Tset, maxEstMSE[0], yerr = np.minimum(maxEstRange[0], np.sqrt(maxEstMSE[0]), np.divide(maxEstMSE[0], 2)), color = 'gold', marker = 'o', label = "max pair")
+plt.legend(loc = 'best')
+plt.yscale('log')
+plt.xlabel("Number of clients " + "$\mathit{n}$")
+plt.ylabel("MSE of PRIEST-KLD")
+plt.savefig("Exp3_femnist_T_est_a.png")
+plt.clf()
+
+plt.errorbar(Tset, meanEstMSE[1], yerr = np.minimum(meanEstRange[1], np.sqrt(meanEstMSE[1]), np.divide(meanEstMSE[1], 2)), color = 'blueviolet', marker = 'o', label = "mean")
+plt.errorbar(Tset, minEstMSE[1], yerr = np.minimum(minEstRange[1], np.sqrt(minEstMSE[1]), np.divide(minEstMSE[1], 2)), color = 'lime', marker = 'o', label = "min pair")
+plt.errorbar(Tset, maxEstMSE[1], yerr = np.minimum(maxEstRange[1], np.sqrt(maxEstMSE[1]), np.divide(maxEstMSE[1], 2)), color = 'gold', marker = 'o', label = "max pair")
+plt.legend(loc = 'best')
+plt.yscale('log')
+plt.xlabel("Number of clients " + "$\mathit{n}$")
+plt.ylabel("MSE of PRIEST-KLD")
+plt.savefig("Exp3_femnist_T_est_b.png")
+plt.clf()
+
+plt.errorbar(Tset, meanEstMSE[2], yerr = np.minimum(meanEstRange[2], np.sqrt(meanEstMSE[2]), np.divide(meanEstMSE[2], 2)), color = 'blueviolet', marker = 'o', label = "mean")
+plt.errorbar(Tset, minEstMSE[2], yerr = np.minimum(minEstRange[2], np.sqrt(minEstMSE[2]), np.divide(minEstMSE[2], 2)), color = 'lime', marker = 'o', label = "min pair")
+plt.errorbar(Tset, maxEstMSE[2], yerr = np.minimum(maxEstRange[2], np.sqrt(maxEstMSE[2]), np.divide(maxEstMSE[2], 2)), color = 'gold', marker = 'o', label = "max pair")
+plt.legend(loc = 'best')
+plt.yscale('log')
+plt.xlabel("Number of clients " + "$\mathit{n}$")
+plt.ylabel("MSE of PRIEST-KLD")
+plt.savefig("Exp3_femnist_T_est_c.png")
+plt.clf()
+
+plt.errorbar(Tset, meanEstMSE[0], yerr = np.minimum(meanEstRange[0], np.sqrt(meanEstMSE[0]), np.divide(meanEstMSE[0], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(Tset, meanEstMSE[1], yerr = np.minimum(meanEstRange[1], np.sqrt(meanEstMSE[1]), np.divide(meanEstMSE[1], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(Tset, meanEstMSE[2], yerr = np.minimum(meanEstRange[2], np.sqrt(meanEstMSE[2]), np.divide(meanEstMSE[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(Tset, meanEstMSE[3], yerr = np.minimum(meanEstRange[3], np.sqrt(meanEstMSE[3]), np.divide(meanEstMSE[3], 2)), color = 'red', marker = '*', label = "no privacy")
+plt.legend(loc = 'best')
+plt.yscale('log')
+plt.xlabel("Number of clients " + "$\mathit{n}$")
+plt.ylabel("MSE of PRIEST-KLD")
+plt.savefig("Exp3_femnist_T_est_d.png")
+plt.clf()
+
+plt.errorbar(Tset, minEstMSE[0], yerr = np.minimum(minEstRange[0], np.sqrt(minEstMSE[0]), np.divide(minEstMSE[0], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(Tset, minEstMSE[1], yerr = np.minimum(minEstRange[1], np.sqrt(minEstMSE[1]), np.divide(minEstMSE[1], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(Tset, minEstMSE[2], yerr = np.minimum(minEstRange[2], np.sqrt(minEstMSE[2]), np.divide(minEstMSE[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(Tset, minEstMSE[3], yerr = np.minimum(minEstRange[3], np.sqrt(minEstMSE[3]), np.divide(minEstMSE[3], 2)), color = 'red', marker = '*', label = "no privacy")
+plt.legend(loc = 'best')
+plt.yscale('log')
+plt.xlabel("Number of clients " + "$\mathit{n}$")
+plt.ylabel("MSE of PRIEST-KLD")
+plt.savefig("Exp3_femnist_T_est_e.png")
+plt.clf()
+
+plt.errorbar(Tset, maxEstMSE[0], yerr = np.minimum(maxEstRange[0], np.sqrt(maxEstMSE[0]), np.divide(maxEstMSE[0], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(Tset, maxEstMSE[1], yerr = np.minimum(maxEstRange[1], np.sqrt(maxEstMSE[1]), np.divide(maxEstMSE[1], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(Tset, maxEstMSE[2], yerr = np.minimum(maxEstRange[2], np.sqrt(maxEstMSE[2]), np.divide(maxEstMSE[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(Tset, maxEstMSE[3], yerr = np.minimum(maxEstRange[3], np.sqrt(maxEstMSE[3]), np.divide(maxEstMSE[3], 2)), color = 'red', marker = '*', label = "no privacy")
+plt.legend(loc = 'best')
+plt.yscale('log')
+plt.xlabel("Number of clients " + "$\mathit{n}$")
+plt.ylabel("MSE of PRIEST-KLD")
+plt.savefig("Exp3_femnist_T_est_f.png")
+plt.clf()
+
+# EXPERIMENT 4: % of noise vs ground truth for each T
+plt.errorbar(Tset, meanPerc[0], yerr = np.minimum(meanPercRange[0], np.sqrt(meanPerc[0]), np.divide(meanPerc[0], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(Tset, meanPerc[1], yerr = np.minimum(meanPercRange[1], np.sqrt(meanPerc[1]), np.divide(meanPerc[1], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(Tset, meanPerc[2], yerr = np.minimum(meanPercRange[2], np.sqrt(meanPerc[2]), np.divide(meanPerc[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(Tset, meanPerc[3], yerr = np.minimum(meanPercRange[3], np.sqrt(meanPerc[3]), np.divide(meanPerc[3], 2)), color = 'red', marker = '*', label = "no privacy")
+plt.legend(loc = 'best')
+plt.yscale('log')
+plt.gca().yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
+plt.xlabel("Number of clients " + "$\mathit{n}$")
+plt.ylabel("Noise (%)")
+plt.savefig("Exp4_femnist_T_perc_a.png")
+plt.clf()
+
+plt.errorbar(Tset, minPerc[0], yerr = np.minimum(minPercRange[0], np.sqrt(minPerc[0]), np.divide(minPerc[0], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(Tset, minPerc[1], yerr = np.minimum(minPercRange[1], np.sqrt(minPerc[1]), np.divide(minPerc[1], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(Tset, minPerc[2], yerr = np.minimum(minPercRange[2], np.sqrt(minPerc[2]), np.divide(minPerc[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(Tset, minPerc[3], yerr = np.minimum(minPercRange[3], np.sqrt(minPerc[3]), np.divide(minPerc[3], 2)), color = 'red', marker = '*', label = "no privacy")
+plt.legend(loc = 'best')
+plt.yscale('log')
+plt.gca().yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
+plt.xlabel("Number of clients " + "$\mathit{n}$")
+plt.ylabel("Noise (%)")
+plt.savefig("Exp4_femnist_T_perc_b.png")
+plt.clf()
+
+plt.errorbar(Tset, maxPerc[0], yerr = np.minimum(maxPercRange[0], np.sqrt(maxPerc[0]), np.divide(maxPerc[0], 2)), color = 'blue', marker = 'o', label = "Dist")
+plt.errorbar(Tset, maxPerc[1], yerr = np.minimum(maxPercRange[1], np.sqrt(maxPerc[1]), np.divide(maxPerc[1], 2)), color = 'green', marker = 'o', label = "TAgg")
+plt.errorbar(Tset, maxPerc[2], yerr = np.minimum(maxPercRange[2], np.sqrt(maxPerc[2]), np.divide(maxPerc[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
+plt.errorbar(Tset, maxPerc[3], yerr = np.minimum(maxPercRange[3], np.sqrt(maxPerc[3]), np.divide(maxPerc[3], 2)), color = 'red', marker = '*', label = "no privacy")
+plt.legend(loc = 'best')
+plt.yscale('log')
+plt.gca().yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
+plt.xlabel("Number of clients " + "$\mathit{n}$")
+plt.ylabel("Noise (%)")
+plt.savefig("Exp4_femnist_T_perc_c.png")
 plt.clf()
 
 # compute total runtime
