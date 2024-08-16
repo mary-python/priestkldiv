@@ -155,10 +155,9 @@ for trial in range(8):
 
             # choose best lambda from experiment 1
             ldaIndex = 10
-            ldaError = meanLda[ldaIndex]
 
             # mean across clients for best lambda
-            tempMeanEst[rep] = ldaError
+            tempMeanEst[rep] = meanLda[ldaIndex]
             
             # "Trusted" (server adds Laplace noise term to final result)
             if trial % 3 == 2:
@@ -196,7 +195,7 @@ for trial in range(8):
 
         C_COUNT = C_COUNT + 1
 
-# EXPERIMENT 3: MSE of PRIEST-KLD for each C
+# EXPERIMENT 2: MSE of PRIEST-KLD for each C
 plt.errorbar(Cset, meanEstMSE[0], yerr = np.minimum(meanEstRange[0], np.sqrt(meanEstMSE[0]), np.divide(meanEstMSE[0], 2)), color = 'blue', marker = 'o', label = "Dist")
 plt.errorbar(Cset, meanEstMSE[1], yerr = np.minimum(meanEstRange[1], np.sqrt(meanEstMSE[1]), np.divide(meanEstMSE[1], 2)), color = 'green', marker = 'o', label = "TAgg")
 plt.errorbar(Cset, meanEstMSE[2], yerr = np.minimum(meanEstRange[2], np.sqrt(meanEstMSE[2]), np.divide(meanEstMSE[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
@@ -206,7 +205,7 @@ plt.yscale('log')
 plt.ylim(0.2, 100)
 plt.xlabel("Number of clients " + "$\mathit{n}$")
 plt.ylabel("MSE of PRIEST-KLD")
-plt.savefig("Exp3_synth_C_est_a.png")
+plt.savefig("Exp2_synth_C_est_a.png")
 plt.clf()
 
 plt.errorbar(Cset, meanEstMSE[3], yerr = np.minimum(meanEstRange[3], np.sqrt(meanEstMSE[3]), np.divide(meanEstMSE[3], 2)), color = 'blue', marker = 'o', label = "Dist")
@@ -219,10 +218,10 @@ plt.yticks([1, 10, 60])
 plt.ylim(1, 60)
 plt.xlabel("Number of clients " + "$\mathit{n}$")
 plt.ylabel("MSE of PRIEST-KLD")
-plt.savefig("Exp3_synth_C_est_b.png")
+plt.savefig("Exp2_synth_C_est_b.png")
 plt.clf()
 
-# EXPERIMENT 4: % of noise vs ground truth for each epsilon
+# EXPERIMENT 3: % of noise vs ground truth for each epsilon
 plt.errorbar(Cset, meanPerc[0], yerr = np.minimum(meanPercRange[0], np.sqrt(meanPerc[0]), np.divide(meanPerc[0], 2)), color = 'blue', marker = 'o', label = "Dist")
 plt.errorbar(Cset, meanPerc[1], yerr = np.minimum(meanPercRange[1], np.sqrt(meanPerc[1]), np.divide(meanPerc[1], 2)), color = 'green', marker = 'o', label = "TAgg")
 plt.errorbar(Cset, meanPerc[2], yerr = np.minimum(meanPercRange[2], np.sqrt(meanPerc[2]), np.divide(meanPerc[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
@@ -232,7 +231,7 @@ plt.yscale('log')
 plt.gca().yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
 plt.xlabel("Value of " + "$\mathit{\u03b5}$")
 plt.ylabel("Noise (%)")
-plt.savefig("Exp4_synth_C_perc_a.png")
+plt.savefig("Exp3_synth_C_perc_a.png")
 plt.clf()
 
 plt.errorbar(Cset, meanPerc[3], yerr = np.minimum(meanPercRange[3], np.sqrt(meanPerc[3]), np.divide(meanPerc[3], 2)), color = 'blue', marker = 'o', label = "Dist")
@@ -244,7 +243,7 @@ plt.yscale('log')
 plt.gca().yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
 plt.xlabel("Value of " + "$\mathit{\u03b5}$")
 plt.ylabel("Noise (%)")
-plt.savefig("Exp4_synth_C_perc_b.png")
+plt.savefig("Exp3_synth_C_perc_b.png")
 plt.clf()
 
 # compute total runtime
