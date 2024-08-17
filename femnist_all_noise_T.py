@@ -431,12 +431,27 @@ for trial in range(4):
                     minLda[l] = minLda[l] + minLdaNoise[l]
                     maxLda[l] = maxLda[l] + maxLdaNoise[l]
             
-                # min across lambdas for T = 180 (~5% of clients, default)
-                if T_FREQ == DEF_INDEX:
-                    tempMinTDef[l, rep] = minLda[l]
+                # mean / min / max across lambdas for T = 36 (~1% of clients, small)
+                if T_FREQ == SMALL_INDEX:
+                    tempMeanTSmall[l, rep] = meanLda[l]
+                    tempMinTSmall[l, rep] = minLda[l]
+                    tempMaxTSmall[l, rep] = maxLda[l]
 
-                # min / max across lambdas for T = 600 (~16.6% of clients, large)
+                # T = 180 (~5% of clients, def)
+                if T_FREQ == DEF_INDEX:
+                    tempMeanTDef[l, rep] = meanLda[l]
+                    tempMinTDef[l, rep] = minLda[l]
+                    tempMaxTDef[l, rep] = maxLda[l]
+
+                # T = 360 (~10% of clients, mid)
+                if T_FREQ == DEF_INDEX:
+                    tempMeanTDef[l, rep] = meanLda[l]
+                    tempMinTDef[l, rep] = minLda[l]
+                    tempMaxTDef[l, rep] = maxLda[l]
+
+                # T = 720 (~20% of clients, large)
                 if T_FREQ == LARGE_INDEX:
+                    tempMeanTLarge[l, rep] = meanLda[l]
                     tempMinTLarge[l, rep] = minLda[l]
                     tempMaxTLarge[l, rep] = maxLda[l]
 
@@ -650,6 +665,7 @@ plt.errorbar(ldaset, meanTLarge[2], yerr = np.minimum(meanTLargeRange[2], np.sqr
 plt.errorbar(ldaset, meanTLarge[3], yerr = np.minimum(meanTLargeRange[3], np.sqrt(meanTLarge[3]), np.divide(meanTLarge[3], 2)), color = 'red', marker = '*', label = "no privacy")
 plt.legend(loc = 'lower right')
 plt.yscale('log')
+plt.ylim(0.01, 3500)
 plt.xlabel("Value of " + "$\mathit{\u03bb}$")
 plt.ylabel("MSE of PRIEST-KLD")
 plt.savefig("Exp1_femnist_T_est_a_720.png")
@@ -672,7 +688,7 @@ plt.errorbar(ldaset, minTDef[2], yerr = np.minimum(minTDefRange[2], np.sqrt(minT
 plt.errorbar(ldaset, minTDef[3], yerr = np.minimum(minTDefRange[3], np.sqrt(minTDef[3]), np.divide(minTDef[3], 2)), color = 'red', marker = '*', label = "no privacy")
 plt.legend(loc = 'best')
 plt.yscale('log')
-plt.ylim(0.01, 4000)
+plt.ylim(0.03, 4000)
 plt.xlabel("Value of " + "$\mathit{\u03bb}$")
 plt.ylabel("MSE of PRIEST-KLD")
 plt.savefig("Exp1_femnist_T_est_b_180.png")
@@ -695,7 +711,7 @@ plt.errorbar(ldaset, minTLarge[2], yerr = np.minimum(minTLargeRange[2], np.sqrt(
 plt.errorbar(ldaset, minTLarge[3], yerr = np.minimum(minTLargeRange[3], np.sqrt(minTLarge[3]), np.divide(minTLarge[3], 2)), color = 'red', marker = '*', label = "no privacy")
 plt.legend(loc = 'lower right')
 plt.yscale('log')
-plt.ylim(0.1, 3000)
+plt.ylim(0.01, 3000)
 plt.xlabel("Value of " + "$\mathit{\u03bb}$")
 plt.ylabel("MSE of PRIEST-KLD")
 plt.savefig("Exp1_femnist_T_est_b_720.png")
@@ -751,6 +767,7 @@ plt.errorbar(Tset, minEstMSE[0], yerr = np.minimum(minEstRange[0], np.sqrt(minEs
 plt.errorbar(Tset, maxEstMSE[0], yerr = np.minimum(maxEstRange[0], np.sqrt(maxEstMSE[0]), np.divide(maxEstMSE[0], 2)), color = 'gold', marker = 'o', label = "max pair")
 plt.legend(loc = 'best')
 plt.yscale('log')
+plt.ylim(0.1, 90)
 plt.xlabel("Number of clients " + "$\mathit{n}$")
 plt.ylabel("MSE of PRIEST-KLD")
 plt.savefig("Exp2_femnist_T_est_a.png")
@@ -761,6 +778,7 @@ plt.errorbar(Tset, minEstMSE[1], yerr = np.minimum(minEstRange[1], np.sqrt(minEs
 plt.errorbar(Tset, maxEstMSE[1], yerr = np.minimum(maxEstRange[1], np.sqrt(maxEstMSE[1]), np.divide(maxEstMSE[1], 2)), color = 'gold', marker = 'o', label = "max pair")
 plt.legend(loc = 'best')
 plt.yscale('log')
+plt.ylim(0.1, 70)
 plt.xlabel("Number of clients " + "$\mathit{n}$")
 plt.ylabel("MSE of PRIEST-KLD")
 plt.savefig("Exp2_femnist_T_est_b.png")
@@ -771,6 +789,7 @@ plt.errorbar(Tset, minEstMSE[2], yerr = np.minimum(minEstRange[2], np.sqrt(minEs
 plt.errorbar(Tset, maxEstMSE[2], yerr = np.minimum(maxEstRange[2], np.sqrt(maxEstMSE[2]), np.divide(maxEstMSE[2], 2)), color = 'gold', marker = 'o', label = "max pair")
 plt.legend(loc = 'best')
 plt.yscale('log')
+plt.ylim(100, 4000)
 plt.xlabel("Number of clients " + "$\mathit{n}$")
 plt.ylabel("MSE of PRIEST-KLD")
 plt.savefig("Exp2_femnist_T_est_c.png")
@@ -782,6 +801,7 @@ plt.errorbar(Tset, meanEstMSE[2], yerr = np.minimum(meanEstRange[2], np.sqrt(mea
 plt.errorbar(Tset, meanEstMSE[3], yerr = np.minimum(meanEstRange[3], np.sqrt(meanEstMSE[3]), np.divide(meanEstMSE[3], 2)), color = 'red', marker = '*', label = "no privacy")
 plt.legend(loc = 'best')
 plt.yscale('log')
+plt.ylim(0.1, 5000)
 plt.xlabel("Number of clients " + "$\mathit{n}$")
 plt.ylabel("MSE of PRIEST-KLD")
 plt.savefig("Exp2_femnist_T_est_d.png")
@@ -793,6 +813,7 @@ plt.errorbar(Tset, minEstMSE[2], yerr = np.minimum(minEstRange[2], np.sqrt(minEs
 plt.errorbar(Tset, minEstMSE[3], yerr = np.minimum(minEstRange[3], np.sqrt(minEstMSE[3]), np.divide(minEstMSE[3], 2)), color = 'red', marker = '*', label = "no privacy")
 plt.legend(loc = 'best')
 plt.yscale('log')
+plt.ylim(0.1, 7000)
 plt.xlabel("Number of clients " + "$\mathit{n}$")
 plt.ylabel("MSE of PRIEST-KLD")
 plt.savefig("Exp2_femnist_T_est_e.png")
@@ -816,6 +837,8 @@ plt.errorbar(Tset, meanPerc[2], yerr = np.minimum(meanPercRange[2], np.sqrt(mean
 plt.errorbar(Tset, meanPerc[3], yerr = np.minimum(meanPercRange[3], np.sqrt(meanPerc[3]), np.divide(meanPerc[3], 2)), color = 'red', marker = '*', label = "no privacy")
 plt.legend(loc = 'best')
 plt.yscale('log')
+plt.yticks([50, 100, 500, 1000])
+plt.ylim(50, 1000)
 plt.gca().yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
 plt.xlabel("Number of clients " + "$\mathit{n}$")
 plt.ylabel("Noise (%)")
@@ -828,6 +851,8 @@ plt.errorbar(Tset, minPerc[2], yerr = np.minimum(minPercRange[2], np.sqrt(minPer
 plt.errorbar(Tset, minPerc[3], yerr = np.minimum(minPercRange[3], np.sqrt(minPerc[3]), np.divide(minPerc[3], 2)), color = 'red', marker = '*', label = "no privacy")
 plt.legend(loc = 'best')
 plt.yscale('log')
+plt.yticks([60, 200, 400])
+plt.ylim(60, 400)
 plt.gca().yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
 plt.xlabel("Number of clients " + "$\mathit{n}$")
 plt.ylabel("Noise (%)")
@@ -840,6 +865,8 @@ plt.errorbar(Tset, maxPerc[2], yerr = np.minimum(maxPercRange[2], np.sqrt(maxPer
 plt.errorbar(Tset, maxPerc[3], yerr = np.minimum(maxPercRange[3], np.sqrt(maxPerc[3]), np.divide(maxPerc[3], 2)), color = 'red', marker = '*', label = "no privacy")
 plt.legend(loc = 'best')
 plt.yscale('log')
+plt.yticks([30, 100, 400])
+plt.ylim(30, 400)
 plt.gca().yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
 plt.xlabel("Number of clients " + "$\mathit{n}$")
 plt.ylabel("Noise (%)")
