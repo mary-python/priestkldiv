@@ -849,7 +849,7 @@ plt.errorbar(epsset, maxEstMSE[1], yerr = np.minimum(maxEstRange[1], np.sqrt(max
 plt.errorbar(epsset, maxEstMSE[2], yerr = np.minimum(maxEstRange[2], np.sqrt(maxEstMSE[2]), np.divide(maxEstMSE[2], 2)), color = 'orange', marker = 'o', label = "Trusted")
 plt.legend(loc = 'best')
 plt.yscale('log')
-plt.ylim(1, 7000)
+plt.ylim(3, 7000)
 plt.xlabel("Value of " + "$\mathit{\u03b5}$")
 plt.ylabel("MSE of PRIEST-KLD")
 plt.savefig("Exp2_femnist_eps_est_f.png")
