@@ -4,7 +4,7 @@ This repository contains all the supporting files for the **experimental section
 
 ## Environment
 
-- Install the **latest version of Python 3**, and install the additional packages **h5py, matplotlib, numpy, pandas, PIL, scipy, tensorflow, torch and tqdm** using **PIP**.
+- Install the [**latest version of Python 3**](https://www.python.org/downloads/), and install the additional packages **h5py, matplotlib, numpy, pandas, PIL, scipy, tensorflow, torch and tqdm** using **PIP**.
 - Download the Python files **group_by_writer.py**, **converter.py** and **femnist_test.py**, for preprocessing purposes.
 - Download the Python files **femnist_all_noise_eps.py** and/or **femnist_all_noise_T.py**, if interested in the experiments involving the privacy parameter $\varepsilon$ and/or the number of clients $T$.
 - Download the ZIP folder **by_class.zip** (~1GB) from the [**National Institute of Standards and Technology**](https://s3.amazonaws.com/nist-srd/SD19/by_class.zip).
