@@ -1,6 +1,6 @@
 # Privacy-Preserving Estimation of KL Divergence of High-Dimensional Distributions: Experimental Evaluation
 
-This repository contains all the supporting files for the **experimental section** of the paper **Privacy-Preserving Estimation of KL Divergence of High-Dimensional Distributions**, including all the Python files necessary for anyone to repeat all of the experiments given as evidence for the results in the paper.
+This repository contains all the supporting files for the **experimental section** of the paper **_Privacy-Preserving Estimation of KL Divergence of High-Dimensional Distributions_**, including all the Python files necessary for anyone to repeat all of the experiments given as evidence for the results in the paper.
 
 ## Environment
 
@@ -22,7 +22,7 @@ This repository contains all the supporting files for the **experimental section
 
 - If all outputs of **femnist_test.py** are as expected, open and run **femnist_all_noise_eps.py** or **femnist_all_noise_T.py**. There will be various text updates appearing in the terminal, indicating which experiment is being run.
 - When the final text update indicating the runtime appears, the experiments have finished and the final plots have been saved in the same folder as the Python files. This should happen after approximately **6-12 hours**, depending on the computer or laptop used. 
-- These final plots should be **exactly the graphs found in the experimental section** of **Privacy-Preserving Estimation of KL Divergence of High-Dimensional Distributions** featuring the privacy parameter $\varepsilon$ or the number of clients $T$ respectively.
+- These final plots should be **exactly the graphs found in the experimental section** of **_Privacy-Preserving Estimation of KL Divergence of High-Dimensional Distributions_** featuring the privacy parameter $\varepsilon$ or the number of clients $T$ respectively.
 - Repeat all steps in the **Experiments** section with the other Python file, if interested in the experiments featuring the other parameter.
 
 ## Authors
