@@ -363,12 +363,18 @@ for trial in range(4):
 
                         # "Dist" (each client adds Gaussian noise term)
                         if trial == 0:
-                            startSample = abs(probGaussNoise.sample(sample_shape = (1,)))
-                            startNoise.append(startSample)
+                            startSample = probGaussNoise.sample(sample_shape = (1,))
+                            startNoise.append(abs(startSample))
                             nDist[C, D, j] = nDist[C, D, j] + startSample
+                            print(f"\nstartSample: {startSample}")
+                            print(f"nDist[C, D, j]: {nDist[C, D, j]}")
 
                     # compute ratio between exact unknown distributions
                     ratio = abs(sum(nDist[C, D]) / sum(uDist[C, D]))
+                    print(f"\ntrial: {trial}")
+                    print(f"ratio: {ratio}")
+                    print(f"sum(nDist[C, D]): {sum(nDist[C, D])}")
+                    print(f"sum(uDist[C, D]): {sum(uDist[C, D])}")
 
                     # eliminate all divide by zero errors
                     if ratio != 0.0 and sum(uDist[C, D]) != 0.0:   
@@ -425,10 +431,16 @@ for trial in range(4):
                     meanLdaNoise[l] = gaussNoise.sample(sample_shape = (1,))
                     minLdaNoise[l] = gaussNoise.sample(sample_shape = (1,))
                     maxLdaNoise[l] = gaussNoise.sample(sample_shape = (1,))
+                    # print(f"\nmeanLdaNoise[l]: {meanLdaNoise[l]}")
+                    # print(f"minLdaNoise[l]: {minLdaNoise[l]}")
+                    # print(f"maxLdaNoise[l]: {maxLdaNoise[l]}")
 
                     meanLda[l] = meanLda[l] + meanLdaNoise[l]
                     minLda[l] = minLda[l] + minLdaNoise[l]
                     maxLda[l] = maxLda[l] + maxLdaNoise[l]
+                    # print(f"meanLda[l]: {meanLda[l]}")
+                    # print(f"minLda[l]: {minLda[l]}")
+                    # print(f"maxLda[l]: {maxLda[l]}")
             
                 # mean / min / max across lambdas for eps = 0.05 (small)
                 if EPS_FREQ == SMALL_INDEX:
@@ -470,11 +482,16 @@ for trial in range(4):
                 meanNoise = lapNoise.sample(sample_shape = (1,))
                 minNoise = lapNoise.sample(sample_shape = (1,))
                 maxNoise = lapNoise.sample(sample_shape = (1,))
+                # print(f"\nmeanNoise: {meanNoise}")
+                # print(f"minNoise: {minNoise}")
+                # print(f"maxNoise: {maxNoise}")
 
                 # define error = squared difference between estimator and ground truth
                 tempMeanEstMSE[rep] = (tempMeanEst[rep] + meanNoise - tempMeanValue[rep])**2
                 tempMinEstMSE[rep] = (tempMinEst[rep] + minNoise - tempMinValue[rep])**2
                 tempMaxEstMSE[rep] = (tempMaxEst[rep] + maxNoise - tempMaxValue[rep])**2
+                # print(f"tempMeanEst[rep]: {tempMeanEst[rep]}")
+                # print(f"tempMeanValue[rep]: {tempMeanValue[rep]}")
 
                 for l in range(LS):
         
@@ -545,7 +562,7 @@ for trial in range(4):
                         tempMeanEpsLarge[l, rep] = (tempMeanEpsLarge[l, rep] - tempMeanValue[rep])**2
                         tempMinEpsLarge[l, rep] = (tempMinEpsLarge[l, rep] - tempMinValue[rep])**2
                         tempMaxEpsLarge[l, rep] = (tempMaxEpsLarge[l, rep] - tempMaxValue[rep])**2
-            
+
             # compute % of noise vs ground truth and extract MSE of noise for Theorem 4.4
             if trial == 0:
                 tempMeanPerc[rep] = float(abs(np.array(sum(startNoise)) / (np.array(sum(startNoise)) + tempMeanValue[rep])))*100
@@ -810,7 +827,7 @@ handles7, labels7 = ax7.get_legend_handles_labels()
 handles7 = [h7[0] for h7 in handles7]
 ax7.legend(handles7, labels7, loc = 'best')
 ax7.set_yscale('log')
-ax6.set_ylim(0.5, 2000)
+ax7.set_ylim(0.1, 3000)
 ax7.set_xlabel("Value of " + "$\mathit{\u03bb}$")
 ax7.set_ylabel("MSE of PRIEST-KLD")
 ax7.figure.savefig("Exp1_femnist_eps_est_b_1.5.png")
@@ -833,7 +850,7 @@ handles8, labels8 = ax8.get_legend_handles_labels()
 handles8 = [h8[0] for h8 in handles8]
 ax8.legend(handles8, labels8, loc = 'best')
 ax8.set_yscale('log')
-ax6.set_ylim(0.01, 800)
+ax8.set_ylim(0.005, 1000)
 ax8.set_xlabel("Value of " + "$\mathit{\u03bb}$")
 ax8.set_ylabel("MSE of PRIEST-KLD")
 ax8.figure.savefig("Exp1_femnist_eps_est_b_3.png")
@@ -856,7 +873,7 @@ handles9, labels9 = ax9.get_legend_handles_labels()
 handles9 = [h9[0] for h9 in handles9]
 ax9.legend(handles9, labels9, loc = 'center right')
 ax9.set_yscale('log')
-ax6.set_ylim(0.05, 20000)
+ax9.set_ylim(0.05, 20000)
 ax9.set_xlabel("Value of " + "$\mathit{\u03bb}$")
 ax9.set_ylabel("MSE of PRIEST-KLD")
 ax9.figure.savefig("Exp1_femnist_eps_est_c_0.05.png")
@@ -879,7 +896,7 @@ handles10, labels10 = ax10.get_legend_handles_labels()
 handles10 = [h10[0] for h10 in handles10]
 ax10.legend(handles10, labels10, loc = 'best')
 ax10.set_yscale('log')
-ax6.set_ylim(1, 350)
+ax10.set_ylim(1, 350)
 ax10.set_xlabel("Value of " + "$\mathit{\u03bb}$")
 ax10.set_ylabel("MSE of PRIEST-KLD")
 ax10.figure.savefig("Exp1_femnist_eps_est_c_0.5.png")
@@ -902,7 +919,7 @@ handles11, labels11 = ax11.get_legend_handles_labels()
 handles11 = [h11[0] for h11 in handles11]
 ax11.legend(handles11, labels11, loc = 'best')
 ax11.set_yscale('log')
-ax6.set_ylim(1, 200)
+ax11.set_ylim(1, 200)
 ax11.set_xlabel("Value of " + "$\mathit{\u03bb}$")
 ax11.set_ylabel("MSE of PRIEST-KLD")
 ax11.figure.savefig("Exp1_femnist_eps_est_c_1.5.png")
@@ -925,7 +942,7 @@ handles12, labels12 = ax12.get_legend_handles_labels()
 handles12 = [h12[0] for h12 in handles12]
 ax12.legend(handles12, labels12, loc = 'best')
 ax12.set_yscale('log')
-ax6.set_ylim(1, 400)
+ax12.set_ylim(1, 400)
 ax12.set_xlabel("Value of " + "$\mathit{\u03bb}$")
 ax12.set_ylabel("MSE of PRIEST-KLD")
 ax12.figure.savefig("Exp1_femnist_eps_est_c_3.png")
@@ -946,7 +963,7 @@ handles13, labels13 = ax13.get_legend_handles_labels()
 handles13 = [h13[0] for h13 in handles13]
 ax13.legend(handles13, labels13, loc = 'lower right')
 ax13.set_yscale('log')
-ax13.set_ylim(0.07, 25)
+ax13.set_ylim(0.1, 30)
 ax13.set_xlabel("Value of " + "$\mathit{\u03b5}$")
 ax13.set_ylabel("MSE of PRIEST-KLD")
 ax13.figure.savefig("Exp2_femnist_eps_est_a.png")
@@ -966,7 +983,7 @@ handles14, labels14 = ax14.get_legend_handles_labels()
 handles14 = [h14[0] for h14 in handles14]
 ax14.legend(handles14, labels14, loc = 'best')
 ax14.set_yscale('log')
-ax14.set_ylim(0.07, 10000)
+ax14.set_ylim(0.1, 10000)
 ax14.set_xlabel("Value of " + "$\mathit{\u03b5}$")
 ax14.set_ylabel("MSE of PRIEST-KLD")
 ax14.figure.savefig("Exp2_femnist_eps_est_b.png")
@@ -986,7 +1003,7 @@ handles15, labels15 = ax15.get_legend_handles_labels()
 handles15 = [h15[0] for h15 in handles15]
 ax15.legend(handles15, labels15, loc = 'best')
 ax15.set_yscale('log')
-ax15.set_ylim(0.2, 6000)
+ax15.set_ylim(0.1, 10000)
 ax15.set_xlabel("Value of " + "$\mathit{\u03b5}$")
 ax15.set_ylabel("MSE of PRIEST-KLD")
 ax15.figure.savefig("Exp2_femnist_eps_est_c.png")
@@ -1006,7 +1023,7 @@ handles16, labels16 = ax16.get_legend_handles_labels()
 handles16 = [h16[0] for h16 in handles16]
 ax16.legend(handles16, labels16, loc = 'best')
 ax16.set_yscale('log')
-ax16.set_ylim(0.07, 10000)
+ax16.set_ylim(0.1, 10000)
 ax16.set_xlabel("Value of " + "$\mathit{\u03b5}$")
 ax16.set_ylabel("MSE of PRIEST-KLD")
 ax16.figure.savefig("Exp2_femnist_eps_est_d.png")
@@ -1026,7 +1043,7 @@ handles17, labels17 = ax17.get_legend_handles_labels()
 handles17 = [h17[0] for h17 in handles17]
 ax17.legend(handles17, labels17, loc = 'best')
 ax17.set_yscale('log')
-ax17.set_ylim(0.1, 3000)
+ax17.set_ylim(0.1, 10000)
 ax17.set_xlabel("Value of " + "$\mathit{\u03b5}$")
 ax17.set_ylabel("MSE of PRIEST-KLD")
 ax17.figure.savefig("Exp2_femnist_eps_est_e.png")
@@ -1046,7 +1063,7 @@ handles18, labels18 = ax18.get_legend_handles_labels()
 handles18 = [h18[0] for h18 in handles18]
 ax18.legend(handles18, labels18, loc = 'best')
 ax18.set_yscale('log')
-ax18.set_ylim(3, 7000)
+ax18.set_ylim(1, 10000)
 ax18.set_xlabel("Value of " + "$\mathit{\u03b5}$")
 ax18.set_ylabel("MSE of PRIEST-KLD")
 ax18.figure.savefig("Exp2_femnist_eps_est_f.png")

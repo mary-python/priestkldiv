@@ -364,12 +364,18 @@ for trial in range(4):
 
                         # "Dist" (each client adds Gaussian noise term)
                         if trial == 0:
-                            startSample = abs(probGaussNoise.sample(sample_shape = (1,)))
-                            startNoise.append(startSample)
+                            startSample = probGaussNoise.sample(sample_shape = (1,))
+                            startNoise.append(abs(startSample))
                             nDist[C, D, j] = nDist[C, D, j] + startSample
+                            print(f"\nstartSample: {startSample}")
+                            print(f"nDist[C, D, j]: {nDist[C, D, j]}")
 
                     # compute ratio between exact unknown distributions
                     ratio = abs(sum(nDist[C, D]) / sum(uDist[C, D]))
+                    print(f"\ntrial: {trial}")
+                    print(f"ratio: {ratio}")
+                    print(f"sum(nDist[C, D]): {sum(nDist[C, D])}")
+                    print(f"sum(uDist[C, D]): {sum(uDist[C, D])}")
 
                     # eliminate all divide by zero errors
                     if ratio != 0.0 and sum(uDist[C, D]) != 0.0:
@@ -426,10 +432,16 @@ for trial in range(4):
                     meanLdaNoise[l] = gaussNoise.sample(sample_shape = (1,))
                     minLdaNoise[l] = gaussNoise.sample(sample_shape = (1,))
                     maxLdaNoise[l] = gaussNoise.sample(sample_shape = (1,))
+                    # print(f"\nmeanLdaNoise[l]: {meanLdaNoise[l]}")
+                    # print(f"minLdaNoise[l]: {minLdaNoise[l]}")
+                    # print(f"maxLdaNoise[l]: {maxLdaNoise[l]}")
 
                     meanLda[l] = meanLda[l] + meanLdaNoise[l]
                     minLda[l] = minLda[l] + minLdaNoise[l]
                     maxLda[l] = maxLda[l] + maxLdaNoise[l]
+                    # print(f"meanLda[l]: {meanLda[l]}")
+                    # print(f"minLda[l]: {minLda[l]}")
+                    # print(f"maxLda[l]: {maxLda[l]}")
             
                 # mean / min / max across lambdas for T = 36 (~1% of clients, small)
                 if T_FREQ == SMALL_INDEX:
@@ -471,11 +483,16 @@ for trial in range(4):
                 meanNoise = lapNoise.sample(sample_shape = (1,))
                 minNoise = lapNoise.sample(sample_shape = (1,))
                 maxNoise = lapNoise.sample(sample_shape = (1,))
+                # print(f"\nmeanNoise: {meanNoise}")
+                # print(f"minNoise: {minNoise}")
+                # print(f"maxNoise: {maxNoise}")
 
                 # define error = squared difference between estimator and ground truth
                 tempMeanEstMSE[rep] = (tempMeanEst[rep] + meanNoise - tempMeanValue[rep])**2
                 tempMinEstMSE[rep] = (tempMinEst[rep] + minNoise - tempMinValue[rep])**2
                 tempMaxEstMSE[rep] = (tempMaxEst[rep] + maxNoise - tempMaxValue[rep])**2
+                # print(f"tempMeanEst[rep]: {tempMeanEst[rep]}")
+                # print(f"tempMeanValue[rep]: {tempMeanValue[rep]}")
 
                 for l in range(LS):
 
@@ -539,7 +556,7 @@ for trial in range(4):
                     if T_FREQ == MID_INDEX:
                         tempMeanTMid[l, rep] = (tempMeanTMid[l, rep] - tempMeanValue[rep])**2
                         tempMinTMid[l, rep] = (tempMinTMid[l, rep] - tempMinValue[rep])**2
-                        tempMaxTMid[l, rep] = (tempMaxTMid[l, rep] - tempMaxValue[rep])**2  
+                        tempMaxTMid[l, rep] = (tempMaxTMid[l, rep] - tempMaxValue[rep])**2
 
                     # T = 720 (large)
                     if T_FREQ == LARGE_INDEX:
@@ -580,19 +597,19 @@ for trial in range(4):
 
         for l in range(LS):
             if T_FREQ == SMALL_INDEX:
-                meanTSmall[trial, l] = np.mean(tempMinTSmall[l])
+                meanTSmall[trial, l] = np.mean(tempMeanTSmall[l])
                 minTSmall[trial, l] = np.mean(tempMinTSmall[l])
                 maxTSmall[trial, l] = np.mean(tempMaxTSmall[l])
             if T_FREQ == DEF_INDEX:
-                meanTDef[trial, l] = np.mean(tempMinTDef[l])
+                meanTDef[trial, l] = np.mean(tempMeanTDef[l])
                 minTDef[trial, l] = np.mean(tempMinTDef[l])
                 maxTDef[trial, l] = np.mean(tempMaxTDef[l])
             if T_FREQ == MID_INDEX:
-                meanTMid[trial, l] = np.mean(tempMinTMid[l])
+                meanTMid[trial, l] = np.mean(tempMeanTMid[l])
                 minTMid[trial, l] = np.mean(tempMinTMid[l])
                 maxTMid[trial, l] = np.mean(tempMaxTMid[l])
             if T_FREQ == LARGE_INDEX:
-                meanTLarge[trial, l] = np.mean(tempMinTLarge[l])
+                meanTLarge[trial, l] = np.mean(tempMeanTLarge[l])
                 minTLarge[trial, l] = np.mean(tempMinTLarge[l])
                 maxTLarge[trial, l] = np.mean(tempMaxTLarge[l])
         
@@ -607,19 +624,19 @@ for trial in range(4):
 
         for l in range(LS):
             if T_FREQ == SMALL_INDEX:
-                meanTSmallRange[trial, l] = np.std(tempMinTSmall[l])
+                meanTSmallRange[trial, l] = np.std(tempMeanTSmall[l])
                 minTSmallRange[trial, l] = np.std(tempMinTSmall[l])
                 maxTSmallRange[trial, l] = np.std(tempMaxTSmall[l])
             if T_FREQ == DEF_INDEX:
-                meanTDefRange[trial, l] = np.std(tempMinTDef[l])
+                meanTDefRange[trial, l] = np.std(tempMeanTDef[l])
                 minTDefRange[trial, l] = np.std(tempMinTDef[l])
                 maxTDefRange[trial, l] = np.std(tempMaxTDef[l])
             if T_FREQ == MID_INDEX:
-                meanTMidRange[trial, l] = np.std(tempMinTMid[l])
+                meanTMidRange[trial, l] = np.std(tempMeanTMid[l])
                 minTMidRange[trial, l] = np.std(tempMinTMid[l])
                 maxTMidRange[trial, l] = np.std(tempMaxTMid[l])
             if T_FREQ == LARGE_INDEX:
-                meanTLargeRange[trial, l] = np.std(tempMinTLarge[l])
+                meanTLargeRange[trial, l] = np.std(tempMeanTLarge[l])
                 minTLargeRange[trial, l] = np.std(tempMinTLarge[l])
                 maxTLargeRange[trial, l] = np.std(tempMaxTLarge[l])
 
@@ -694,7 +711,7 @@ handles3, labels3 = ax3.get_legend_handles_labels()
 handles3 = [h3[0] for h3 in handles3]
 ax3.legend(handles3, labels3, loc = 'lower right')
 ax3.set_yscale('log')
-ax3.set_ylim(0.1, 4000)
+ax3.set_ylim(0.04, 4000)
 ax3.set_xlabel("Value of " + "$\mathit{\u03bb}$")
 ax3.set_ylabel("MSE of PRIEST-KLD")
 ax3.figure.savefig("Exp1_femnist_T_est_a_360.png")
@@ -717,7 +734,7 @@ handles4, labels4 = ax4.get_legend_handles_labels()
 handles4 = [h4[0] for h4 in handles4]
 ax4.legend(handles4, labels4, loc = 'center right')
 ax4.set_yscale('log')
-ax4.set_ylim(0.07, 4000)
+ax4.set_ylim(0.09, 4000)
 ax4.set_xlabel("Value of " + "$\mathit{\u03bb}$")
 ax4.set_ylabel("MSE of PRIEST-KLD")
 ax4.figure.savefig("Exp1_femnist_T_est_a_720.png")
@@ -763,7 +780,7 @@ handles6, labels6 = ax6.get_legend_handles_labels()
 handles6 = [h6[0] for h6 in handles6]
 ax6.legend(handles6, labels6, loc = 'best')
 ax6.set_yscale('log')
-ax6.set_ylim(0.03, 4000)
+ax6.set_ylim(0.05, 4000)
 ax6.set_xlabel("Value of " + "$\mathit{\u03bb}$")
 ax6.set_ylabel("MSE of PRIEST-KLD")
 ax6.figure.savefig("Exp1_femnist_T_est_b_180.png")
@@ -786,7 +803,7 @@ handles7, labels7 = ax7.get_legend_handles_labels()
 handles7 = [h7[0] for h7 in handles7]
 ax7.legend(handles7, labels7, loc = 'lower right')
 ax7.set_yscale('log')
-ax7.set_ylim(0.1, 4000)
+ax7.set_ylim(0.04, 4000)
 ax7.set_xlabel("Value of " + "$\mathit{\u03bb}$")
 ax7.set_ylabel("MSE of PRIEST-KLD")
 ax7.figure.savefig("Exp1_femnist_T_est_b_360.png")
@@ -809,7 +826,7 @@ handles8, labels8 = ax8.get_legend_handles_labels()
 handles8 = [h8[0] for h8 in handles8]
 ax8.legend(handles8, labels8, loc = 'center right')
 ax8.set_yscale('log')
-ax8.set_ylim(0.07, 4000)
+ax8.set_ylim(0.09, 4000)
 ax8.set_xlabel("Value of " + "$\mathit{\u03bb}$")
 ax8.set_ylabel("MSE of PRIEST-KLD")
 ax8.figure.savefig("Exp1_femnist_T_est_b_720.png")
@@ -832,6 +849,7 @@ handles9, labels9 = ax9.get_legend_handles_labels()
 handles9 = [h9[0] for h9 in handles9]
 ax9.legend(handles9, labels9, loc = 'best')
 ax9.set_yscale('log')
+ax9.set_ylim(2, 3000)
 ax9.set_xlabel("Value of " + "$\mathit{\u03bb}$")
 ax9.set_ylabel("MSE of PRIEST-KLD")
 ax9.figure.savefig("Exp1_femnist_T_est_c_36.png")
@@ -854,6 +872,7 @@ handles10, labels10 = ax10.get_legend_handles_labels()
 handles10 = [h10[0] for h10 in handles10]
 ax10.legend(handles10, labels10, loc = 'best')
 ax10.set_yscale('log')
+ax10.set_ylim(2, 3000)
 ax10.set_xlabel("Value of " + "$\mathit{\u03bb}$")
 ax10.set_ylabel("MSE of PRIEST-KLD")
 ax10.figure.savefig("Exp1_femnist_T_est_c_180.png")
@@ -876,6 +895,7 @@ handles11, labels11 = ax11.get_legend_handles_labels()
 handles11 = [h11[0] for h11 in handles11]
 ax11.legend(handles11, labels11, loc = 'best')
 ax11.set_yscale('log')
+ax11.set_ylim(2, 3000)
 ax11.set_xlabel("Value of " + "$\mathit{\u03bb}$")
 ax11.set_ylabel("MSE of PRIEST-KLD")
 ax11.figure.savefig("Exp1_femnist_T_est_c_360.png")
@@ -898,6 +918,7 @@ handles12, labels12 = ax12.get_legend_handles_labels()
 handles12 = [h12[0] for h12 in handles12]
 ax12.legend(handles12, labels12, loc = 'best')
 ax12.set_yscale('log')
+ax12.set_ylim(2, 3000)
 ax12.set_xlabel("Value of " + "$\mathit{\u03bb}$")
 ax12.set_ylabel("MSE of PRIEST-KLD")
 ax12.figure.savefig("Exp1_femnist_T_est_c_720.png")
@@ -918,7 +939,7 @@ handles13, labels13 = ax13.get_legend_handles_labels()
 handles13 = [h13[0] for h13 in handles13]
 ax13.legend(handles13, labels13, loc = 'best')
 ax13.set_yscale('log')
-ax13.set_ylim(0.1, 90)
+ax13.set_ylim(0.2, 90)
 ax13.set_xlabel("Number of clients " + "$\mathit{n}$")
 ax13.set_ylabel("MSE of PRIEST-KLD")
 ax13.figure.savefig("Exp2_femnist_T_est_a.png")
@@ -938,7 +959,7 @@ handles14, labels14 = ax14.get_legend_handles_labels()
 handles14 = [h14[0] for h14 in handles14]
 ax14.legend(handles14, labels14, loc = 'best')
 ax14.set_yscale('log')
-ax14.set_ylim(0.1, 70)
+ax14.set_ylim(0.2, 70)
 ax14.set_xlabel("Number of clients " + "$\mathit{n}$")
 ax14.set_ylabel("MSE of PRIEST-KLD")
 ax14.figure.savefig("Exp2_femnist_T_est_b.png")
@@ -981,7 +1002,7 @@ handles16, labels16 = ax16.get_legend_handles_labels()
 handles16 = [h16[0] for h16 in handles16]
 ax16.legend(handles16, labels16, loc = 'best')
 ax16.set_yscale('log')
-ax16.set_ylim(0.1, 5000)
+ax16.set_ylim(0.2, 5000)
 ax16.set_xlabel("Number of clients " + "$\mathit{n}$")
 ax16.set_ylabel("MSE of PRIEST-KLD")
 ax16.figure.savefig("Exp2_femnist_T_est_d.png")
@@ -1004,7 +1025,7 @@ handles17, labels17 = ax17.get_legend_handles_labels()
 handles17 = [h17[0] for h17 in handles17]
 ax17.legend(handles17, labels17, loc = 'best')
 ax17.set_yscale('log')
-ax17.set_ylim(0.1, 10000)
+ax17.set_ylim(0.2, 2000)
 ax17.set_xlabel("Number of clients " + "$\mathit{n}$")
 ax17.set_ylabel("MSE of PRIEST-KLD")
 ax17.figure.savefig("Exp2_femnist_T_est_e.png")
@@ -1050,8 +1071,8 @@ handles19, labels19 = ax19.get_legend_handles_labels()
 handles19 = [h19[0] for h19 in handles19]
 ax19.legend(handles19, labels19, loc = 'best')
 ax19.set_yscale('log')
-ax19.set_yticks([50, 100, 500, 1000])
-ax19.set_ylim(50, 1000)
+ax19.set_yticks([60, 100, 500, 1000])
+ax19.set_ylim(60, 1000)
 ax19.yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
 ax19.set_xlabel("Number of clients " + "$\mathit{n}$")
 ax19.set_ylabel("Noise (%)")
@@ -1075,8 +1096,8 @@ handles20, labels20 = ax20.get_legend_handles_labels()
 handles20 = [h20[0] for h20 in handles20]
 ax20.legend(handles20, labels20, loc = 'best')
 ax20.set_yscale('log')
-ax20.set_yticks([60, 100, 200, 300, 400])
-ax20.set_ylim(60, 400)
+ax20.set_yticks([70, 100, 200, 300, 400])
+ax20.set_ylim(70, 400)
 ax20.yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
 ax20.set_xlabel("Number of clients " + "$\mathit{n}$")
 ax20.set_ylabel("Noise (%)")
