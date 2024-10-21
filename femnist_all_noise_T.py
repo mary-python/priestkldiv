@@ -572,13 +572,13 @@ for trial in range(4):
 
             if trial == 1:
                 tempMeanPerc[rep] = abs((np.sum(meanLdaNoise)) / (np.sum(meanLdaNoise) + tempMeanValue[rep]))*100
-                tempMinPerc[rep] = abs((np.sum(meanLdaNoise)) / (np.sum(meanLdaNoise) + tempMinValue[rep]))*100
-                tempMaxPerc[rep] = abs((np.sum(meanLdaNoise)) / (np.sum(meanLdaNoise) + tempMaxValue[rep]))*100
+                tempMinPerc[rep] = abs((np.sum(minLdaNoise)) / (np.sum(minLdaNoise) + tempMinValue[rep]))*100
+                tempMaxPerc[rep] = abs((np.sum(maxLdaNoise)) / (np.sum(maxLdaNoise) + tempMaxValue[rep]))*100
             
             if trial == 2:
                 tempMeanPerc[rep] = float(abs(np.array(meanNoise) / (np.array(meanNoise) + tempMeanValue[rep])))*100
-                tempMinPerc[rep] = float(abs(np.array(meanNoise) / (np.array(meanNoise) + tempMinValue[rep])))*100
-                tempMaxPerc[rep] = float(abs(np.array(meanNoise) / (np.array(meanNoise) + tempMaxValue[rep])))*100
+                tempMinPerc[rep] = float(abs(np.array(minNoise) / (np.array(minNoise) + tempMinValue[rep])))*100
+                tempMaxPerc[rep] = float(abs(np.array(maxNoise) / (np.array(maxNoise) + tempMaxValue[rep])))*100
         
             SEED_FREQ = SEED_FREQ + 1
 
