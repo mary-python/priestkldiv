@@ -363,8 +363,8 @@ for trial in range(4):
 
                         # "Dist" (each client adds Gaussian noise term)
                         if trial == 0:
-                            startSample = probGaussNoise.sample(sample_shape = (1,))
-                            startNoise.append(abs(startSample))
+                            startSample = abs(probGaussNoise.sample(sample_shape = (1,)))
+                            startNoise.append(startSample)
                             nDist[C, D, j] = nDist[C, D, j] + startSample
                             print(f"\nstartSample: {startSample}")
                             print(f"nDist[C, D, j]: {nDist[C, D, j]}")
@@ -393,7 +393,7 @@ for trial in range(4):
                 for lda in ldaset:
 
                     # compute k3 estimator
-                    uRangeEst = lda * (np.exp(uLogr) - 1) - uLogr
+                    uRangeEst = abs(lda * (np.exp(uLogr) - 1) - uLogr)
 
                     # share PRIEST-KLD with server
                     uEst[LDA_FREQ, R_FREQ] = uRangeEst
