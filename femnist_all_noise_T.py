@@ -367,15 +367,9 @@ for trial in range(4):
                             startSample = abs(probGaussNoise.sample(sample_shape = (1,)))
                             startNoise.append(startSample)
                             nDist[C, D, j] = nDist[C, D, j] + startSample
-                            print(f"\nstartSample: {startSample}")
-                            print(f"nDist[C, D, j]: {nDist[C, D, j]}")
 
                     # compute ratio between exact unknown distributions
                     ratio = abs(sum(nDist[C, D]) / sum(uDist[C, D]))
-                    print(f"\ntrial: {trial}")
-                    print(f"ratio: {ratio}")
-                    print(f"sum(nDist[C, D]): {sum(nDist[C, D])}")
-                    print(f"sum(uDist[C, D]): {sum(uDist[C, D])}")
 
                     # eliminate all divide by zero errors
                     if ratio != 0.0 and sum(uDist[C, D]) != 0.0:
@@ -432,16 +426,10 @@ for trial in range(4):
                     meanLdaNoise[l] = gaussNoise.sample(sample_shape = (1,))
                     minLdaNoise[l] = gaussNoise.sample(sample_shape = (1,))
                     maxLdaNoise[l] = gaussNoise.sample(sample_shape = (1,))
-                    # print(f"\nmeanLdaNoise[l]: {meanLdaNoise[l]}")
-                    # print(f"minLdaNoise[l]: {minLdaNoise[l]}")
-                    # print(f"maxLdaNoise[l]: {maxLdaNoise[l]}")
 
                     meanLda[l] = meanLda[l] + meanLdaNoise[l]
                     minLda[l] = minLda[l] + minLdaNoise[l]
                     maxLda[l] = maxLda[l] + maxLdaNoise[l]
-                    # print(f"meanLda[l]: {meanLda[l]}")
-                    # print(f"minLda[l]: {minLda[l]}")
-                    # print(f"maxLda[l]: {maxLda[l]}")
             
                 # mean / min / max across lambdas for T = 36 (~1% of clients, small)
                 if T_FREQ == SMALL_INDEX:
@@ -483,16 +471,11 @@ for trial in range(4):
                 meanNoise = lapNoise.sample(sample_shape = (1,))
                 minNoise = lapNoise.sample(sample_shape = (1,))
                 maxNoise = lapNoise.sample(sample_shape = (1,))
-                # print(f"\nmeanNoise: {meanNoise}")
-                # print(f"minNoise: {minNoise}")
-                # print(f"maxNoise: {maxNoise}")
 
                 # define error = squared difference between estimator and ground truth
                 tempMeanEstMSE[rep] = (tempMeanEst[rep] + meanNoise - tempMeanValue[rep])**2
                 tempMinEstMSE[rep] = (tempMinEst[rep] + minNoise - tempMinValue[rep])**2
                 tempMaxEstMSE[rep] = (tempMaxEst[rep] + maxNoise - tempMaxValue[rep])**2
-                # print(f"tempMeanEst[rep]: {tempMeanEst[rep]}")
-                # print(f"tempMeanValue[rep]: {tempMeanValue[rep]}")
 
                 for l in range(LS):
 
@@ -732,7 +715,7 @@ caplines4c[0].set_marker('')
 caplines4d[0].set_marker('')
 handles4, labels4 = ax4.get_legend_handles_labels()
 handles4 = [h4[0] for h4 in handles4]
-ax4.legend(handles4, labels4, loc = 'center right')
+ax4.legend(handles4, labels4, loc = 'lower right')
 ax4.set_yscale('log')
 ax4.set_ylim(0.01, 5000)
 ax4.set_xlabel("Value of " + "$\mathit{\u03bb}$")
@@ -939,7 +922,7 @@ handles13, labels13 = ax13.get_legend_handles_labels()
 handles13 = [h13[0] for h13 in handles13]
 ax13.legend(handles13, labels13, loc = 'best')
 ax13.set_yscale('log')
-ax13.set_ylim(0.01, 100)
+ax13.set_ylim(0.03, 100)
 ax13.set_xlabel("Number of clients " + "$\mathit{n}$")
 ax13.set_ylabel("MSE of PRIEST-KLD")
 ax13.figure.savefig("Exp2_femnist_T_est_a.png")
@@ -1025,7 +1008,7 @@ handles17, labels17 = ax17.get_legend_handles_labels()
 handles17 = [h17[0] for h17 in handles17]
 ax17.legend(handles17, labels17, loc = 'best')
 ax17.set_yscale('log')
-ax17.set_ylim(0.05, 4000)
+ax17.set_ylim(0.01, 4000)
 ax17.set_xlabel("Number of clients " + "$\mathit{n}$")
 ax17.set_ylabel("MSE of PRIEST-KLD")
 ax17.figure.savefig("Exp2_femnist_T_est_e.png")
@@ -1122,7 +1105,7 @@ handles21 = [h21[0] for h21 in handles21]
 ax21.legend(handles21, labels21, loc = 'best')
 ax21.set_yscale('log')
 ax21.set_yticks([10, 100, 1000])
-ax21.set_ylim(10, 1000)
+ax21.set_ylim(10, 5000)
 ax21.yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
 ax21.set_xlabel("Number of clients " + "$\mathit{n}$")
 ax21.set_ylabel("Noise (%)")

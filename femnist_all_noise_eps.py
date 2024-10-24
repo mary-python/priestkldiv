@@ -366,15 +366,9 @@ for trial in range(4):
                             startSample = abs(probGaussNoise.sample(sample_shape = (1,)))
                             startNoise.append(startSample)
                             nDist[C, D, j] = nDist[C, D, j] + startSample
-                            print(f"\nstartSample: {startSample}")
-                            print(f"nDist[C, D, j]: {nDist[C, D, j]}")
 
                     # compute ratio between exact unknown distributions
                     ratio = abs(sum(nDist[C, D]) / sum(uDist[C, D]))
-                    print(f"\ntrial: {trial}")
-                    print(f"ratio: {ratio}")
-                    print(f"sum(nDist[C, D]): {sum(nDist[C, D])}")
-                    print(f"sum(uDist[C, D]): {sum(uDist[C, D])}")
 
                     # eliminate all divide by zero errors
                     if ratio != 0.0 and sum(uDist[C, D]) != 0.0:   
@@ -431,16 +425,10 @@ for trial in range(4):
                     meanLdaNoise[l] = gaussNoise.sample(sample_shape = (1,))
                     minLdaNoise[l] = gaussNoise.sample(sample_shape = (1,))
                     maxLdaNoise[l] = gaussNoise.sample(sample_shape = (1,))
-                    # print(f"\nmeanLdaNoise[l]: {meanLdaNoise[l]}")
-                    # print(f"minLdaNoise[l]: {minLdaNoise[l]}")
-                    # print(f"maxLdaNoise[l]: {maxLdaNoise[l]}")
 
                     meanLda[l] = meanLda[l] + meanLdaNoise[l]
                     minLda[l] = minLda[l] + minLdaNoise[l]
                     maxLda[l] = maxLda[l] + maxLdaNoise[l]
-                    # print(f"meanLda[l]: {meanLda[l]}")
-                    # print(f"minLda[l]: {minLda[l]}")
-                    # print(f"maxLda[l]: {maxLda[l]}")
             
                 # mean / min / max across lambdas for eps = 0.05 (small)
                 if EPS_FREQ == SMALL_INDEX:
@@ -482,16 +470,11 @@ for trial in range(4):
                 meanNoise = lapNoise.sample(sample_shape = (1,))
                 minNoise = lapNoise.sample(sample_shape = (1,))
                 maxNoise = lapNoise.sample(sample_shape = (1,))
-                # print(f"\nmeanNoise: {meanNoise}")
-                # print(f"minNoise: {minNoise}")
-                # print(f"maxNoise: {maxNoise}")
 
                 # define error = squared difference between estimator and ground truth
                 tempMeanEstMSE[rep] = (tempMeanEst[rep] + meanNoise - tempMeanValue[rep])**2
                 tempMinEstMSE[rep] = (tempMinEst[rep] + minNoise - tempMinValue[rep])**2
                 tempMaxEstMSE[rep] = (tempMaxEst[rep] + maxNoise - tempMaxValue[rep])**2
-                # print(f"tempMeanEst[rep]: {tempMeanEst[rep]}")
-                # print(f"tempMeanValue[rep]: {tempMeanValue[rep]}")
 
                 for l in range(LS):
         
@@ -758,7 +741,7 @@ handles4, labels4 = ax4.get_legend_handles_labels()
 handles4 = [h4[0] for h4 in handles4]
 ax4.legend(handles4, labels4, loc = 'best')
 ax4.set_yscale('log')
-ax4.set_ylim(0.05, 40)
+ax4.set_ylim(0.01, 40)
 ax4.set_xlabel("Value of " + "$\mathit{\u03bb}$")
 ax4.set_ylabel("MSE of PRIEST-KLD")
 ax4.figure.savefig("Exp1_femnist_eps_est_a_3.png")
@@ -1084,8 +1067,8 @@ handles19, labels19 = ax19.get_legend_handles_labels()
 handles19 = [h19[0] for h19 in handles19]
 ax19.legend(handles19, labels19, loc = 'best')
 ax19.set_yscale('log')
-ax19.set_yticks([1, 10, 100, 600])
-ax19.set_ylim(1, 600)
+ax19.set_yticks([1, 10, 100, 1000])
+ax19.set_ylim(1, 1000)
 ax19.yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
 ax19.set_xlabel("Value of " + "$\mathit{\u03b5}$")
 ax19.set_ylabel("Noise (%)")
@@ -1106,7 +1089,7 @@ handles20, labels20 = ax20.get_legend_handles_labels()
 handles20 = [h20[0] for h20 in handles20]
 ax20.legend(handles20, labels20, loc = 'best')
 ax20.set_yscale('log')
-ax20.set_yticks([10, 100, 1000])
+ax20.set_yticks([10, 100, 5000])
 ax20.set_ylim(5, 1000)
 ax20.yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
 ax20.set_xlabel("Value of " + "$\mathit{\u03b5}$")
