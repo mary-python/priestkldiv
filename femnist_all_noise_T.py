@@ -11,6 +11,7 @@ import tensorflow as tf
 import tensorflow_probability as tfp
 np.set_printoptions(suppress = True)
 np.seterr(divide = 'ignore', invalid = 'ignore')
+plt.rcParams.update({'font.size': 12})
 
 # initialising start time
 startTime = time.perf_counter()
@@ -91,7 +92,7 @@ maxTLargeRange = np.zeros((TS, LS))
 ALPHA = 0.01 # smoothing parameter
 E = 17 # size of subset for k3 estimator
 EPS = 0.5
-DTA = 0.1
+DTA = 0.00001
 A = 0 # parameter for addition of noise
 R1 = 90
 RS = 10
