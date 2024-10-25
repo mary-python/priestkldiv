@@ -632,7 +632,7 @@ upTset = np.zeros(ES, dtype = bool)
 loTset = np.ones(ES, dtype = bool)
 
 # EXPERIMENT 1: MSE of PRIEST-KLD for fixed T (36, 180, 360, 720)
-fig, ax1 = plt.subplots()
+fig, ax1 = plt.subplots(layout = 'constrained')
 plotline1a, caplines1a, barlinecols1a = ax1.errorbar(ldaset, meanTSmall[0], yerr = np.minimum(meanTSmallRange[0], np.sqrt(meanTSmall[0]), np.divide(meanTSmall[0], 2)),
                                                      uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
 plotline1b, caplines1b, barlinecols1b = ax1.errorbar(ldaset, meanTSmall[1], yerr = np.minimum(meanTSmallRange[1], np.sqrt(meanTSmall[1]), np.divide(meanTSmall[1], 2)),
@@ -655,7 +655,7 @@ ax1.set_ylabel("MSE of PRIEST-KLD")
 ax1.figure.savefig("Exp1_femnist_T_est_a_36.png")
 plt.close()
 
-fig, ax2 = plt.subplots()
+fig, ax2 = plt.subplots(layout = 'constrained')
 plotline2a, caplines2a, barlinecols2a = ax2.errorbar(ldaset, meanTDef[0], yerr = np.minimum(meanTDefRange[0], np.sqrt(meanTDef[0]), np.divide(meanTDef[0], 2)),
                                                      uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
 plotline2b, caplines2b, barlinecols2b = ax2.errorbar(ldaset, meanTDef[1], yerr = np.minimum(meanTDefRange[1], np.sqrt(meanTDef[1]), np.divide(meanTDef[1], 2)),
@@ -678,7 +678,7 @@ ax2.set_ylabel("MSE of PRIEST-KLD")
 ax2.figure.savefig("Exp1_femnist_T_est_a_180.png")
 plt.close()
 
-fig, ax3 = plt.subplots()
+fig, ax3 = plt.subplots(layout = 'constrained')
 plotline3a, caplines3a, barlinecols3a = ax3.errorbar(ldaset, meanTMid[0], yerr = np.minimum(meanTMidRange[0], np.sqrt(meanTMid[0]), np.divide(meanTMid[0], 2)),
                                                      uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
 plotline3b, caplines3b, barlinecols3b = ax3.errorbar(ldaset, meanTMid[1], yerr = np.minimum(meanTMidRange[1], np.sqrt(meanTMid[1]), np.divide(meanTMid[1], 2)),
@@ -701,7 +701,7 @@ ax3.set_ylabel("MSE of PRIEST-KLD")
 ax3.figure.savefig("Exp1_femnist_T_est_a_360.png")
 plt.close()
 
-fig, ax4 = plt.subplots()
+fig, ax4 = plt.subplots(layout = 'constrained')
 plotline4a, caplines4a, barlinecols4a = ax4.errorbar(ldaset, meanTLarge[0], yerr = np.minimum(meanTLargeRange[0], np.sqrt(meanTLarge[0]), np.divide(meanTLarge[0], 2)),
                                                      uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
 plotline4b, caplines4b, barlinecols4b = ax4.errorbar(ldaset, meanTLarge[1], yerr = np.minimum(meanTLargeRange[1], np.sqrt(meanTLarge[1]), np.divide(meanTLarge[1], 2)),
@@ -724,7 +724,7 @@ ax4.set_ylabel("MSE of PRIEST-KLD")
 ax4.figure.savefig("Exp1_femnist_T_est_a_720.png")
 plt.close()
 
-fig, ax5 = plt.subplots()
+fig, ax5 = plt.subplots(layout = 'constrained')
 plotline5a, caplines5a, barlinecols5a = ax5.errorbar(ldaset, minTSmall[0], yerr = np.minimum(minTSmallRange[0], np.sqrt(minTSmall[0]), np.divide(minTSmall[0], 2)),
                                                      uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
 plotline5b, caplines5b, barlinecols5b = ax5.errorbar(ldaset, minTSmall[1], yerr = np.minimum(minTSmallRange[1], np.sqrt(minTSmall[1]), np.divide(minTSmall[1], 2)),
@@ -747,7 +747,7 @@ ax5.set_ylabel("MSE of PRIEST-KLD")
 ax5.figure.savefig("Exp1_femnist_T_est_b_36.png")
 plt.close()
 
-fig, ax6 = plt.subplots()
+fig, ax6 = plt.subplots(layout = 'constrained')
 plotline6a, caplines6a, barlinecols6a = ax6.errorbar(ldaset, minTDef[0], yerr = np.minimum(minTDefRange[0], np.sqrt(minTDef[0]), np.divide(minTDef[0], 2)),
                                                      uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
 plotline6b, caplines6b, barlinecols6b = ax6.errorbar(ldaset, minTDef[1], yerr = np.minimum(minTDefRange[1], np.sqrt(minTDef[1]), np.divide(minTDef[1], 2)),
@@ -770,7 +770,7 @@ ax6.set_ylabel("MSE of PRIEST-KLD")
 ax6.figure.savefig("Exp1_femnist_T_est_b_180.png")
 plt.close()
 
-fig, ax7 = plt.subplots()
+fig, ax7 = plt.subplots(layout = 'constrained')
 plotline7a, caplines7a, barlinecols7a = ax7.errorbar(ldaset, minTMid[0], yerr = np.minimum(minTMidRange[0], np.sqrt(minTMid[0]), np.divide(minTMid[0], 2)),
                                                      uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
 plotline7b, caplines7b, barlinecols7b = ax7.errorbar(ldaset, minTMid[1], yerr = np.minimum(minTMidRange[1], np.sqrt(minTMid[1]), np.divide(minTMid[1], 2)),
@@ -793,7 +793,7 @@ ax7.set_ylabel("MSE of PRIEST-KLD")
 ax7.figure.savefig("Exp1_femnist_T_est_b_360.png")
 plt.close()
 
-fig, ax8 = plt.subplots()
+fig, ax8 = plt.subplots(layout = 'constrained')
 plotline8a, caplines8a, barlinecols8a = ax8.errorbar(ldaset, minTLarge[0], yerr = np.minimum(minTLargeRange[0], np.sqrt(minTLarge[0]), np.divide(minTLarge[0], 2)),
                                                      uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
 plotline8b, caplines8b, barlinecols8b = ax8.errorbar(ldaset, minTLarge[1], yerr = np.minimum(minTLargeRange[1], np.sqrt(minTLarge[1]), np.divide(minTLarge[1], 2)),
@@ -816,7 +816,7 @@ ax8.set_ylabel("MSE of PRIEST-KLD")
 ax8.figure.savefig("Exp1_femnist_T_est_b_720.png")
 plt.close()
 
-fig, ax9 = plt.subplots()
+fig, ax9 = plt.subplots(layout = 'constrained')
 plotline9a, caplines9a, barlinecols9a = ax9.errorbar(ldaset, maxTSmall[0], yerr = np.minimum(maxTSmallRange[0], np.sqrt(maxTSmall[0]), np.divide(maxTSmall[0], 2)),
                                                      uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
 plotline9b, caplines9b, barlinecols9b = ax9.errorbar(ldaset, maxTSmall[1], yerr = np.minimum(maxTSmallRange[1], np.sqrt(maxTSmall[1]), np.divide(maxTSmall[1], 2)),
@@ -839,7 +839,7 @@ ax9.set_ylabel("MSE of PRIEST-KLD")
 ax9.figure.savefig("Exp1_femnist_T_est_c_36.png")
 plt.close()
 
-fig, ax10 = plt.subplots()
+fig, ax10 = plt.subplots(layout = 'constrained')
 plotline10a, caplines10a, barlinecols10a = ax10.errorbar(ldaset, maxTDef[0], yerr = np.minimum(maxTDefRange[0], np.sqrt(maxTDef[0]), np.divide(maxTDef[0], 2)),
                                                          uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
 plotline10b, caplines10b, barlinecols10b = ax10.errorbar(ldaset, maxTDef[1], yerr = np.minimum(maxTDefRange[1], np.sqrt(maxTDef[1]), np.divide(maxTDef[1], 2)),
@@ -862,7 +862,7 @@ ax10.set_ylabel("MSE of PRIEST-KLD")
 ax10.figure.savefig("Exp1_femnist_T_est_c_180.png")
 plt.close()
 
-fig, ax11 = plt.subplots()
+fig, ax11 = plt.subplots(layout = 'constrained')
 plotline11a, caplines11a, barlinecols11a = ax11.errorbar(ldaset, maxTMid[0], yerr = np.minimum(maxTMidRange[0], np.sqrt(maxTMid[0]), np.divide(maxTMid[0], 2)),
                                                          uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
 plotline11b, caplines11b, barlinecols11b = ax11.errorbar(ldaset, maxTMid[1], yerr = np.minimum(maxTMidRange[1], np.sqrt(maxTMid[1]), np.divide(maxTMid[1], 2)),
@@ -885,7 +885,7 @@ ax11.set_ylabel("MSE of PRIEST-KLD")
 ax11.figure.savefig("Exp1_femnist_T_est_c_360.png")
 plt.close()
 
-fig, ax12 = plt.subplots()
+fig, ax12 = plt.subplots(layout = 'constrained')
 plotline12a, caplines12a, barlinecols12a = ax12.errorbar(ldaset, maxTLarge[0], yerr = np.minimum(maxTLargeRange[0], np.sqrt(maxTLarge[0]), np.divide(maxTLarge[0], 2)),
                                                          uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
 plotline12b, caplines12b, barlinecols12b = ax12.errorbar(ldaset, maxTLarge[1], yerr = np.minimum(maxTLargeRange[1], np.sqrt(maxTLarge[1]), np.divide(maxTLarge[1], 2)),
@@ -909,7 +909,7 @@ ax12.figure.savefig("Exp1_femnist_T_est_c_720.png")
 plt.close()
 
 # EXPERIMENT 2: MSE of PRIEST-KLD for each T
-fig, ax13 = plt.subplots()
+fig, ax13 = plt.subplots(layout = 'constrained')
 plotline13a, caplines13a, barlinecols13a = ax13.errorbar(Tset, meanEstMSE[0], yerr = np.minimum(meanEstRange[0], np.sqrt(meanEstMSE[0]), np.divide(meanEstMSE[0], 2)),
                                                          uplims = upTset, lolims = loTset, color = 'blueviolet', marker = 'o', label = "mean")
 plotline13b, caplines13b, barlinecols13b = ax13.errorbar(Tset, minEstMSE[0], yerr = np.minimum(minEstRange[0], np.sqrt(minEstMSE[0]), np.divide(minEstMSE[0], 2)),
@@ -929,7 +929,7 @@ ax13.set_ylabel("MSE of PRIEST-KLD")
 ax13.figure.savefig("Exp2_femnist_T_est_a.png")
 plt.close()
 
-fig, ax14 = plt.subplots()
+fig, ax14 = plt.subplots(layout = 'constrained')
 plotline14a, caplines14a, barlinecols14a = ax14.errorbar(Tset, meanEstMSE[1], yerr = np.minimum(meanEstRange[1], np.sqrt(meanEstMSE[1]), np.divide(meanEstMSE[1], 2)),
                                                          uplims = upTset, lolims = loTset, color = 'blueviolet', marker = 'o', label = "mean")
 plotline14b, caplines14b, barlinecols14b = ax14.errorbar(Tset, minEstMSE[1], yerr = np.minimum(minEstRange[1], np.sqrt(minEstMSE[1]), np.divide(minEstMSE[1], 2)),
@@ -949,7 +949,7 @@ ax14.set_ylabel("MSE of PRIEST-KLD")
 ax14.figure.savefig("Exp2_femnist_T_est_b.png")
 plt.close()
 
-fig, ax15 = plt.subplots()
+fig, ax15 = plt.subplots(layout = 'constrained')
 plotline15a, caplines15a, barlinecols15a = ax15.errorbar(Tset, meanEstMSE[2], yerr = np.minimum(meanEstRange[2], np.sqrt(meanEstMSE[2]), np.divide(meanEstMSE[2], 2)),
                                                          uplims = upTset, lolims = loTset, color = 'blueviolet', marker = 'o', label = "mean")
 plotline15b, caplines15b, barlinecols15b = ax15.errorbar(Tset, minEstMSE[2], yerr = np.minimum(minEstRange[2], np.sqrt(minEstMSE[2]), np.divide(minEstMSE[2], 2)),
@@ -969,7 +969,7 @@ ax15.set_ylabel("MSE of PRIEST-KLD")
 ax15.figure.savefig("Exp2_femnist_T_est_c.png")
 plt.close()
 
-fig, ax16 = plt.subplots()
+fig, ax16 = plt.subplots(layout = 'constrained')
 plotline16a, caplines16a, barlinecols16a = ax16.errorbar(Tset, meanEstMSE[0], yerr = np.minimum(meanEstRange[0], np.sqrt(meanEstMSE[0]), np.divide(meanEstMSE[0], 2)),
                                                          uplims = upTset, lolims = loTset, color = 'blue', marker = 'o', label = "Dist")
 plotline16b, caplines16b, barlinecols16b = ax16.errorbar(Tset, meanEstMSE[1], yerr = np.minimum(meanEstRange[1], np.sqrt(meanEstMSE[1]), np.divide(meanEstMSE[1], 2)),
@@ -992,7 +992,7 @@ ax16.set_ylabel("MSE of PRIEST-KLD")
 ax16.figure.savefig("Exp2_femnist_T_est_d.png")
 plt.close()
 
-fig, ax17 = plt.subplots()
+fig, ax17 = plt.subplots(layout = 'constrained')
 plotline17a, caplines17a, barlinecols17a = ax17.errorbar(Tset, minEstMSE[0], yerr = np.minimum(minEstRange[0], np.sqrt(minEstMSE[0]), np.divide(minEstMSE[0], 2)),
                                                          uplims = upTset, lolims = loTset, color = 'blue', marker = 'o', label = "Dist")
 plotline17b, caplines17b, barlinecols17b = ax17.errorbar(Tset, minEstMSE[1], yerr = np.minimum(minEstRange[1], np.sqrt(minEstMSE[1]), np.divide(minEstMSE[1], 2)),
@@ -1015,7 +1015,7 @@ ax17.set_ylabel("MSE of PRIEST-KLD")
 ax17.figure.savefig("Exp2_femnist_T_est_e.png")
 plt.close()
 
-fig, ax18 = plt.subplots()
+fig, ax18 = plt.subplots(layout = 'constrained')
 plotline18a, caplines18a, barlinecols18a = ax18.errorbar(Tset, maxEstMSE[0], yerr = np.minimum(maxEstRange[0], np.sqrt(maxEstMSE[0]), np.divide(maxEstMSE[0], 2)),
                                                          uplims = upTset, lolims = loTset, color = 'blue', marker = 'o', label = "Dist")
 plotline18b, caplines18b, barlinecols18b = ax18.errorbar(Tset, maxEstMSE[1], yerr = np.minimum(maxEstRange[1], np.sqrt(maxEstMSE[1]), np.divide(maxEstMSE[1], 2)),
@@ -1038,7 +1038,7 @@ ax18.figure.savefig("Exp2_femnist_T_est_f.png")
 plt.close()
 
 # EXPERIMENT 3: % of noise vs ground truth for each T
-fig, ax19 = plt.subplots()
+fig, ax19 = plt.subplots(layout = 'constrained')
 plotline19a, caplines19a, barlinecols19a = ax19.errorbar(Tset, meanPerc[0], yerr = np.minimum(meanPercRange[0], np.sqrt(meanPerc[0]), np.divide(meanPerc[0], 2)),
                                                          uplims = upTset, lolims = loTset, color = 'blue', marker = 'o', label = "Dist")
 plotline19b, caplines19b, barlinecols19b = ax19.errorbar(Tset, meanPerc[1], yerr = np.minimum(meanPercRange[1], np.sqrt(meanPerc[1]), np.divide(meanPerc[1], 2)),
@@ -1063,7 +1063,7 @@ ax19.set_ylabel("Noise (%)")
 ax19.figure.savefig("Exp3_femnist_T_perc_a.png")
 plt.close()
 
-fig, ax20 = plt.subplots()
+fig, ax20 = plt.subplots(layout = 'constrained')
 plotline20a, caplines20a, barlinecols20a = ax20.errorbar(Tset, minPerc[0], yerr = np.minimum(minPercRange[0], np.sqrt(minPerc[0]), np.divide(minPerc[0], 2)),
                                                          uplims = upTset, lolims = loTset, color = 'blue', marker = 'o', label = "Dist")
 plotline20b, caplines20b, barlinecols20b = ax20.errorbar(Tset, minPerc[1], yerr = np.minimum(minPercRange[1], np.sqrt(minPerc[1]), np.divide(minPerc[1], 2)),
@@ -1088,7 +1088,7 @@ ax20.set_ylabel("Noise (%)")
 ax20.figure.savefig("Exp3_femnist_T_perc_b.png")
 plt.close()
 
-fig, ax21 = plt.subplots()
+fig, ax21 = plt.subplots(layout = 'constrained')
 plotline21a, caplines21a, barlinecols21a = ax21.errorbar(Tset, maxPerc[0], yerr = np.minimum(maxPercRange[0], np.sqrt(maxPerc[0]), np.divide(maxPerc[0], 2)),
                                                          uplims = upTset, lolims = loTset, color = 'blue', marker = 'o', label = "Dist")
 plotline21b, caplines21b, barlinecols21b = ax21.errorbar(Tset, maxPerc[1], yerr = np.minimum(maxPercRange[1], np.sqrt(maxPerc[1]), np.divide(maxPerc[1], 2)),

@@ -656,7 +656,7 @@ upepsset = np.zeros(ES, dtype = bool)
 loepsset = np.ones(ES, dtype = bool)
 
 # EXPERIMENT 1: MSE of PRIEST-KLD for fixed epsilons (0.05, 0.5, 1.5, 3)
-fig, ax1 = plt.subplots()
+fig, ax1 = plt.subplots(layout = 'constrained')
 plotline1a, caplines1a, barlinecols1a = ax1.errorbar(ldaset, meanEpsSmall[0], yerr = np.minimum(meanEpsSmallRange[0], np.sqrt(meanEpsSmall[0]), np.divide(meanEpsSmall[0], 2)),
                                                      uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
 plotline1b, caplines1b, barlinecols1b = ax1.errorbar(ldaset, meanEpsSmall[1], yerr = np.minimum(meanEpsSmallRange[1], np.sqrt(meanEpsSmall[1]), np.divide(meanEpsSmall[1], 2)),
@@ -679,7 +679,7 @@ ax1.set_ylabel("MSE of PRIEST-KLD")
 ax1.figure.savefig("Exp1_femnist_eps_est_a_0.05.png")
 plt.close()
 
-fig, ax2 = plt.subplots()
+fig, ax2 = plt.subplots(layout = 'constrained')
 plotline2a, caplines2a, barlinecols2a = ax2.errorbar(ldaset, meanEpsDef[0], yerr = np.minimum(meanEpsDefRange[0], np.sqrt(meanEpsDef[0]), np.divide(meanEpsDef[0], 2)),
                                                      uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
 plotline2b, caplines2b, barlinecols2b = ax2.errorbar(ldaset, meanEpsDef[1], yerr = np.minimum(meanEpsDefRange[1], np.sqrt(meanEpsDef[1]), np.divide(meanEpsDef[1], 2)),
@@ -702,7 +702,7 @@ ax2.set_ylabel("MSE of PRIEST-KLD")
 ax2.figure.savefig("Exp1_femnist_eps_est_a_0.5.png")
 plt.close()
 
-fig, ax3 = plt.subplots()
+fig, ax3 = plt.subplots(layout = 'constrained')
 plotline3a, caplines3a, barlinecols3a = ax3.errorbar(ldaset, meanEpsMid[0], yerr = np.minimum(meanEpsMidRange[0], np.sqrt(meanEpsMid[0]), np.divide(meanEpsMid[0], 2)),
                                                      uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
 plotline3b, caplines3b, barlinecols3b = ax3.errorbar(ldaset, meanEpsMid[1], yerr = np.minimum(meanEpsMidRange[1], np.sqrt(meanEpsMid[1]), np.divide(meanEpsMid[1], 2)),
@@ -725,7 +725,7 @@ ax3.set_ylabel("MSE of PRIEST-KLD")
 ax3.figure.savefig("Exp1_femnist_eps_est_a_1.5.png")
 plt.close()
 
-fig, ax4 = plt.subplots()
+fig, ax4 = plt.subplots(layout = 'constrained')
 plotline4a, caplines4a, barlinecols4a = ax4.errorbar(ldaset, meanEpsLarge[0], yerr = np.minimum(meanEpsLargeRange[0], np.sqrt(meanEpsLarge[0]), np.divide(meanEpsLarge[0], 2)),
                                                      uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
 plotline4b, caplines4b, barlinecols4b = ax4.errorbar(ldaset, meanEpsLarge[1], yerr = np.minimum(meanEpsLargeRange[1], np.sqrt(meanEpsLarge[1]), np.divide(meanEpsLarge[1], 2)),
@@ -748,7 +748,7 @@ ax4.set_ylabel("MSE of PRIEST-KLD")
 ax4.figure.savefig("Exp1_femnist_eps_est_a_3.png")
 plt.close()
 
-fig, ax5 = plt.subplots()
+fig, ax5 = plt.subplots(layout = 'constrained')
 plotline5a, caplines5a, barlinecols5a = ax5.errorbar(ldaset, minEpsSmall[0], yerr = np.minimum(minEpsSmallRange[0], np.sqrt(minEpsSmall[0]), np.divide(minEpsSmall[0], 2)),
                                                      uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
 plotline5b, caplines5b, barlinecols5b = ax5.errorbar(ldaset, minEpsSmall[1], yerr = np.minimum(minEpsSmallRange[1], np.sqrt(minEpsSmall[1]), np.divide(minEpsSmall[1], 2)),
@@ -771,7 +771,7 @@ ax5.set_ylabel("MSE of PRIEST-KLD")
 ax5.figure.savefig("Exp1_femnist_eps_est_b_0.05.png")
 plt.close()
 
-fig, ax6 = plt.subplots()
+fig, ax6 = plt.subplots(layout = 'constrained')
 plotline6a, caplines6a, barlinecols6a = ax6.errorbar(ldaset, minEpsDef[0], yerr = np.minimum(minEpsDefRange[0], np.sqrt(minEpsDef[0]), np.divide(minEpsDef[0], 2)),
                                                      uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
 plotline6b, caplines6b, barlinecols6b = ax6.errorbar(ldaset, minEpsDef[1], yerr = np.minimum(minEpsDefRange[1], np.sqrt(minEpsDef[1]), np.divide(minEpsDef[1], 2)),
@@ -794,7 +794,7 @@ ax6.set_ylabel("MSE of PRIEST-KLD")
 ax6.figure.savefig("Exp1_femnist_eps_est_b_0.5.png")
 plt.close()
 
-fig, ax7 = plt.subplots()
+fig, ax7 = plt.subplots(layout = 'constrained')
 plotline7a, caplines7a, barlinecols7a = ax7.errorbar(ldaset, minEpsMid[0], yerr = np.minimum(minEpsMidRange[0], np.sqrt(minEpsMid[0]), np.divide(minEpsMid[0], 2)),
                                                      uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
 plotline7b, caplines7b, barlinecols7b = ax7.errorbar(ldaset, minEpsMid[1], yerr = np.minimum(minEpsMidRange[1], np.sqrt(minEpsMid[1]), np.divide(minEpsMid[1], 2)),
@@ -817,7 +817,7 @@ ax7.set_ylabel("MSE of PRIEST-KLD")
 ax7.figure.savefig("Exp1_femnist_eps_est_b_1.5.png")
 plt.close()
 
-fig, ax8 = plt.subplots()
+fig, ax8 = plt.subplots(layout = 'constrained')
 plotline8a, caplines8a, barlinecols8a = ax8.errorbar(ldaset, minEpsLarge[0], yerr = np.minimum(minEpsLargeRange[0], np.sqrt(minEpsLarge[0]), np.divide(minEpsLarge[0], 2)),
                                                      uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
 plotline8b, caplines8b, barlinecols8b = ax8.errorbar(ldaset, minEpsLarge[1], yerr = np.minimum(minEpsLargeRange[1], np.sqrt(minEpsLarge[1]), np.divide(minEpsLarge[1], 2)),
@@ -840,7 +840,7 @@ ax8.set_ylabel("MSE of PRIEST-KLD")
 ax8.figure.savefig("Exp1_femnist_eps_est_b_3.png")
 plt.close()
 
-fig, ax9 = plt.subplots()
+fig, ax9 = plt.subplots(layout = 'constrained')
 plotline9a, caplines9a, barlinecols9a = ax9.errorbar(ldaset, maxEpsSmall[0], yerr = np.minimum(maxEpsSmallRange[0], np.sqrt(maxEpsSmall[0]), np.divide(maxEpsSmall[0], 2)),
                                                      uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
 plotline9b, caplines9b, barlinecols9b = ax9.errorbar(ldaset, maxEpsSmall[1], yerr = np.minimum(maxEpsSmallRange[1], np.sqrt(maxEpsSmall[1]), np.divide(maxEpsSmall[1], 2)),
@@ -863,7 +863,7 @@ ax9.set_ylabel("MSE of PRIEST-KLD")
 ax9.figure.savefig("Exp1_femnist_eps_est_c_0.05.png")
 plt.close()
 
-fig, ax10 = plt.subplots()
+fig, ax10 = plt.subplots(layout = 'constrained')
 plotline10a, caplines10a, barlinecols10a = ax10.errorbar(ldaset, maxEpsDef[0], yerr = np.minimum(maxEpsDefRange[0], np.sqrt(maxEpsDef[0]), np.divide(maxEpsDef[0], 2)),
                                                          uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
 plotline10b, caplines10b, barlinecols10b = ax10.errorbar(ldaset, maxEpsDef[1], yerr = np.minimum(maxEpsDefRange[1], np.sqrt(maxEpsDef[1]), np.divide(maxEpsDef[1], 2)),
@@ -886,7 +886,7 @@ ax10.set_ylabel("MSE of PRIEST-KLD")
 ax10.figure.savefig("Exp1_femnist_eps_est_c_0.5.png")
 plt.close()
 
-fig, ax11 = plt.subplots()
+fig, ax11 = plt.subplots(layout = 'constrained')
 plotline11a, caplines11a, barlinecols11a = ax11.errorbar(ldaset, maxEpsMid[0], yerr = np.minimum(maxEpsMidRange[0], np.sqrt(maxEpsMid[0]), np.divide(maxEpsMid[0], 2)),
                                                          uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
 plotline11b, caplines11b, barlinecols11b = ax11.errorbar(ldaset, maxEpsMid[1], yerr = np.minimum(maxEpsMidRange[1], np.sqrt(maxEpsMid[1]), np.divide(maxEpsMid[1], 2)),
@@ -909,7 +909,7 @@ ax11.set_ylabel("MSE of PRIEST-KLD")
 ax11.figure.savefig("Exp1_femnist_eps_est_c_1.5.png")
 plt.close()
 
-fig, ax12 = plt.subplots()
+fig, ax12 = plt.subplots(layout = 'constrained')
 plotline12a, caplines12a, barlinecols12a = ax12.errorbar(ldaset, maxEpsLarge[0], yerr = np.minimum(maxEpsLargeRange[0], np.sqrt(maxEpsLarge[0]), np.divide(maxEpsLarge[0], 2)),
                                                          uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
 plotline12b, caplines12b, barlinecols12b = ax12.errorbar(ldaset, maxEpsLarge[1], yerr = np.minimum(maxEpsLargeRange[1], np.sqrt(maxEpsLarge[1]), np.divide(maxEpsLarge[1], 2)),
@@ -933,7 +933,7 @@ ax12.figure.savefig("Exp1_femnist_eps_est_c_3.png")
 plt.close()
 
 # EXPERIMENT 2: MSE of PRIEST-KLD for each epsilon
-fig, ax13 = plt.subplots()
+fig, ax13 = plt.subplots(layout = 'constrained')
 plotline13a, caplines13a, barlinecols13a = ax13.errorbar(epsset, meanEstMSE[0], yerr = np.minimum(meanEstRange[0], np.sqrt(meanEstMSE[0]), np.divide(meanEstMSE[0], 2)),
                                                          uplims = upepsset, lolims = loepsset, color = 'blueviolet', marker = 'o', label = "mean")
 plotline13b, caplines13b, barlinecols13b = ax13.errorbar(epsset, minEstMSE[0], yerr = np.minimum(minEstRange[0], np.sqrt(minEstMSE[0]), np.divide(minEstMSE[0], 2)),
@@ -953,7 +953,7 @@ ax13.set_ylabel("MSE of PRIEST-KLD")
 ax13.figure.savefig("Exp2_femnist_eps_est_a.png")
 plt.close()
 
-fig, ax14 = plt.subplots()
+fig, ax14 = plt.subplots(layout = 'constrained')
 plotline14a, caplines14a, barlinecols14a = ax14.errorbar(epsset, meanEstMSE[1], yerr = np.minimum(meanEstRange[1], np.sqrt(meanEstMSE[1]), np.divide(meanEstMSE[1], 2)),
                                                          uplims = upepsset, lolims = loepsset, color = 'blueviolet', marker = 'o', label = "mean")
 plotline14b, caplines14b, barlinecols14b = ax14.errorbar(epsset, minEstMSE[1], yerr = np.minimum(minEstRange[1], np.sqrt(minEstMSE[1]), np.divide(minEstMSE[1], 2)),
@@ -973,7 +973,7 @@ ax14.set_ylabel("MSE of PRIEST-KLD")
 ax14.figure.savefig("Exp2_femnist_eps_est_b.png")
 plt.close()
 
-fig, ax15 = plt.subplots()
+fig, ax15 = plt.subplots(layout = 'constrained')
 plotline15a, caplines15a, barlinecols15a = ax15.errorbar(epsset, meanEstMSE[2], yerr = np.minimum(meanEstRange[2], np.sqrt(meanEstMSE[2]), np.divide(meanEstMSE[2], 2)),
                                                          uplims = upepsset, lolims = loepsset, color = 'blueviolet', marker = 'o', label = "mean")
 plotline15b, caplines15b, barlinecols15b = ax15.errorbar(epsset, minEstMSE[2], yerr = np.minimum(minEstRange[2], np.sqrt(minEstMSE[2]), np.divide(minEstMSE[2], 2)),
@@ -993,7 +993,7 @@ ax15.set_ylabel("MSE of PRIEST-KLD")
 ax15.figure.savefig("Exp2_femnist_eps_est_c.png")
 plt.close()
 
-fig, ax16 = plt.subplots()
+fig, ax16 = plt.subplots(layout = 'constrained')
 plotline16a, caplines16a, barlinecols16a = ax16.errorbar(epsset, meanEstMSE[0], yerr = np.minimum(meanEstRange[0], np.sqrt(meanEstMSE[0]), np.divide(meanEstMSE[0], 2)),
                                                          uplims = upepsset, lolims = loepsset, color = 'blue', marker = 'o', label = "Dist")
 plotline16b, caplines16b, barlinecols16b = ax16.errorbar(epsset, meanEstMSE[1], yerr = np.minimum(meanEstRange[1], np.sqrt(meanEstMSE[1]), np.divide(meanEstMSE[1], 2)),
@@ -1013,7 +1013,7 @@ ax16.set_ylabel("MSE of PRIEST-KLD")
 ax16.figure.savefig("Exp2_femnist_eps_est_d.png")
 plt.close()
 
-fig, ax17 = plt.subplots()
+fig, ax17 = plt.subplots(layout = 'constrained')
 plotline17a, caplines17a, barlinecols17a = ax17.errorbar(epsset, minEstMSE[0], yerr = np.minimum(minEstRange[0], np.sqrt(minEstMSE[0]), np.divide(minEstMSE[0], 2)),
                                                          uplims = upepsset, lolims = loepsset, color = 'blue', marker = 'o', label = "Dist")
 plotline17b, caplines17b, barlinecols17b = ax17.errorbar(epsset, minEstMSE[1], yerr = np.minimum(minEstRange[1], np.sqrt(minEstMSE[1]), np.divide(minEstMSE[1], 2)),
@@ -1033,7 +1033,7 @@ ax17.set_ylabel("MSE of PRIEST-KLD")
 ax17.figure.savefig("Exp2_femnist_eps_est_e.png")
 plt.close()
 
-fig, ax18 = plt.subplots()
+fig, ax18 = plt.subplots(layout = 'constrained')
 plotline18a, caplines18a, barlinecols18a = ax18.errorbar(epsset, maxEstMSE[0], yerr = np.minimum(maxEstRange[0], np.sqrt(maxEstMSE[0]), np.divide(maxEstMSE[0], 2)),
                                                          uplims = upepsset, lolims = loepsset, color = 'blue', marker = 'o', label = "Dist")
 plotline18b, caplines18b, barlinecols18b = ax18.errorbar(epsset, maxEstMSE[1], yerr = np.minimum(maxEstRange[1], np.sqrt(maxEstMSE[1]), np.divide(maxEstMSE[1], 2)),
@@ -1054,7 +1054,7 @@ ax18.figure.savefig("Exp2_femnist_eps_est_f.png")
 plt.close()
 
 # EXPERIMENT 3: % of noise vs ground truth for each epsilon
-fig, ax19 = plt.subplots()
+fig, ax19 = plt.subplots(layout = 'constrained')
 plotline19a, caplines19a, barlinecols19a = ax19.errorbar(epsset, meanPerc[0], yerr = np.minimum(meanPercRange[0], np.sqrt(meanPerc[0]), np.divide(meanPerc[0], 2)),
                                                          uplims = upepsset, lolims = loepsset, color = 'blue', marker = 'o', label = "Dist")
 plotline19b, caplines19b, barlinecols19b = ax19.errorbar(epsset, meanPerc[1], yerr = np.minimum(meanPercRange[1], np.sqrt(meanPerc[1]), np.divide(meanPerc[1], 2)),
@@ -1076,7 +1076,7 @@ ax19.set_ylabel("Noise (%)")
 ax19.figure.savefig("Exp3_femnist_eps_perc_a.png")
 plt.close()
 
-fig, ax20 = plt.subplots()
+fig, ax20 = plt.subplots(layout = 'constrained')
 plotline20a, caplines20a, barlinecols20a = ax20.errorbar(epsset, minPerc[0], yerr = np.minimum(minPercRange[0], np.sqrt(minPerc[0]), np.divide(minPerc[0], 2)),
                                                          uplims = upepsset, lolims = loepsset, color = 'blue', marker = 'o', label = "Dist")
 plotline20b, caplines20b, barlinecols20b = ax20.errorbar(epsset, minPerc[1], yerr = np.minimum(minPercRange[1], np.sqrt(minPerc[1]), np.divide(minPerc[1], 2)),
@@ -1098,7 +1098,7 @@ ax20.set_ylabel("Noise (%)")
 ax20.figure.savefig("Exp3_femnist_eps_perc_b.png")
 plt.close()
 
-fig, ax21 = plt.subplots()
+fig, ax21 = plt.subplots(layout = 'constrained')
 plotline21a, caplines21a, barlinecols21a = ax21.errorbar(epsset, maxPerc[0], yerr = np.minimum(maxPercRange[0], np.sqrt(maxPerc[0]), np.divide(maxPerc[0], 2)),
                                                          uplims = upepsset, lolims = loepsset, color = 'blue', marker = 'o', label = "Dist")
 plotline21b, caplines21b, barlinecols21b = ax21.errorbar(epsset, maxPerc[1], yerr = np.minimum(maxPercRange[1], np.sqrt(maxPerc[1]), np.divide(maxPerc[1], 2)),
