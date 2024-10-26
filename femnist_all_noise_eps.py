@@ -91,7 +91,7 @@ maxEpsLargeRange = np.zeros((TS, LS))
 # global parameters
 ALPHA = 0.01 # smoothing parameter
 E = 17 # size of subset for k3 estimator
-DTA = 0.5
+DTA = 0.05
 A = 0 # parameter for addition of noise
 R1 = 90
 ldaStep = 0.05
