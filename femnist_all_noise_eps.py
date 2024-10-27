@@ -99,7 +99,7 @@ RS = 10
 SEED_FREQ = 0
 SMALL_INDEX = 0
 DEF_INDEX = 3
-MID_INDEX = 7
+MID_INDEX = 6
 LARGE_INDEX = 10
 
 for trial in range(4):
@@ -443,7 +443,7 @@ for trial in range(4):
                     tempMinEpsDef[l, rep] = minLda[l]
                     tempMaxEpsDef[l, rep] = maxLda[l]
 
-                # eps = 1.5 (mid)
+                # eps = 1.25 (mid)
                 if EPS_FREQ == MID_INDEX:
                     tempMeanEpsMid[l, rep] = meanLda[l]
                     tempMinEpsMid[l, rep] = minLda[l]
@@ -497,7 +497,7 @@ for trial in range(4):
                         tempMinEpsDef[l, rep] = (tempMinEpsDef[l, rep] + minDefNoise - tempMinValue[rep])**2
                         tempMaxEpsDef[l, rep] = (tempMaxEpsDef[l, rep] + maxDefNoise - tempMaxValue[rep])**2
 
-                    # eps = 1.5 (mid)
+                    # eps = 1.25 (mid)
                     if EPS_FREQ == MID_INDEX:
                         meanMidNoise = lapNoise.sample(sample_shape = (1,))
                         minMidNoise = lapNoise.sample(sample_shape = (1,))
@@ -535,7 +535,7 @@ for trial in range(4):
                         tempMinEpsDef[l, rep] = (tempMinEpsDef[l, rep] - tempMinValue[rep])**2
                         tempMaxEpsDef[l, rep] = (tempMaxEpsDef[l, rep] - tempMaxValue[rep])**2
 
-                    # eps = 1.5 (mid)
+                    # eps = 1.25 (mid)
                     if EPS_FREQ == MID_INDEX:
                         tempMeanEpsMid[l, rep] = (tempMeanEpsMid[l, rep] - tempMeanValue[rep])**2
                         tempMinEpsMid[l, rep] = (tempMinEpsMid[l, rep] - tempMinValue[rep])**2
@@ -655,7 +655,7 @@ loldaset = np.ones(LS, dtype = bool)
 upepsset = np.zeros(ES, dtype = bool)
 loepsset = np.ones(ES, dtype = bool)
 
-# EXPERIMENT 1: MSE of PRIEST-KLD for fixed epsilons (0.05, 0.5, 1.5, 3)
+# EXPERIMENT 1: MSE of PRIEST-KLD for fixed epsilons (0.05, 0.5, 1.25, 3)
 fig, ax1 = plt.subplots(layout = 'constrained')
 plotline1a, caplines1a, barlinecols1a = ax1.errorbar(ldaset, meanEpsSmall[0], yerr = np.minimum(meanEpsSmallRange[0], np.sqrt(meanEpsSmall[0]), np.divide(meanEpsSmall[0], 2)),
                                                      uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
@@ -722,7 +722,7 @@ ax3.set_yscale('log')
 ax3.set_ylim(0.01, 100)
 ax3.set_xlabel("Value of " + "$\mathit{\u03bb}$")
 ax3.set_ylabel("MSE of PRIEST-KLD")
-ax3.figure.savefig("Exp1_femnist_eps_est_a_1.5.png")
+ax3.figure.savefig("Exp1_femnist_eps_est_a_1.25.png")
 plt.close()
 
 fig, ax4 = plt.subplots(layout = 'constrained')
@@ -814,7 +814,7 @@ ax7.set_yscale('log')
 ax7.set_ylim(0.3, 2000)
 ax7.set_xlabel("Value of " + "$\mathit{\u03bb}$")
 ax7.set_ylabel("MSE of PRIEST-KLD")
-ax7.figure.savefig("Exp1_femnist_eps_est_b_1.5.png")
+ax7.figure.savefig("Exp1_femnist_eps_est_b_1.25.png")
 plt.close()
 
 fig, ax8 = plt.subplots(layout = 'constrained')
@@ -906,7 +906,7 @@ ax11.set_yscale('log')
 ax11.set_ylim(2, 200)
 ax11.set_xlabel("Value of " + "$\mathit{\u03bb}$")
 ax11.set_ylabel("MSE of PRIEST-KLD")
-ax11.figure.savefig("Exp1_femnist_eps_est_c_1.5.png")
+ax11.figure.savefig("Exp1_femnist_eps_est_c_1.25.png")
 plt.close()
 
 fig, ax12 = plt.subplots(layout = 'constrained')
