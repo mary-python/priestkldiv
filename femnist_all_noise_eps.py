@@ -99,7 +99,7 @@ RS = 10
 SEED_FREQ = 0
 SMALL_INDEX = 0
 DEF_INDEX = 3
-MID_INDEX = 6
+MID_INDEX = 5
 LARGE_INDEX = 10
 
 for trial in range(4):
