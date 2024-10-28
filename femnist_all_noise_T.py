@@ -45,14 +45,12 @@ meanValue = np.zeros((TS, ES))
 meanEstMSE = np.zeros((TS, ES))
 meanPerc = np.zeros((TS, ES))
 meanTSmall = np.zeros((TS, LS))
-meanTDef = np.zeros((TS, LS))
 meanTMid = np.zeros((TS, LS))
 meanTLarge = np.zeros((TS, LS))
 
 meanEstRange = np.zeros((TS, ES))
 meanPercRange = np.zeros((TS, ES))
 meanTSmallRange = np.zeros((TS, LS))
-meanTDefRange = np.zeros((TS, LS))
 meanTMidRange = np.zeros((TS, LS))
 meanTLargeRange = np.zeros((TS, LS))
 
@@ -61,14 +59,12 @@ minValue = np.zeros((TS, ES))
 minEstMSE = np.zeros((TS, ES))
 minPerc = np.zeros((TS, ES))
 minTSmall = np.zeros((TS, LS))
-minTDef = np.zeros((TS, LS))
 minTMid = np.zeros((TS, LS))
 minTLarge = np.zeros((TS, LS))
 
 minEstRange = np.zeros((TS, ES))
 minPercRange = np.zeros((TS, ES))
 minTSmallRange = np.zeros((TS, LS))
-minTDefRange = np.zeros((TS, LS))
 minTMidRange = np.zeros((TS, LS))
 minTLargeRange = np.zeros((TS, LS))
 
@@ -77,14 +73,12 @@ maxValue = np.zeros((TS, ES))
 maxEstMSE = np.zeros((TS, ES))
 maxPerc = np.zeros((TS, ES))
 maxTSmall = np.zeros((TS, LS))
-maxTDef = np.zeros((TS, LS))
 maxTMid = np.zeros((TS, LS))
 maxTLarge = np.zeros((TS, LS))
 
 maxEstRange = np.zeros((TS, ES))
 maxPercRange = np.zeros((TS, ES))
 maxTSmallRange = np.zeros((TS, LS))
-maxTDefRange = np.zeros((TS, LS))
 maxTMidRange = np.zeros((TS, LS))
 maxTLargeRange = np.zeros((TS, LS))
 
@@ -98,8 +92,7 @@ R1 = 90
 RS = 10
 SEED_FREQ = 0
 SMALL_INDEX = 0
-DEF_INDEX = 4
-MID_INDEX = 8
+MID_INDEX = 6
 LARGE_INDEX = 13
 
 for trial in range(4):
@@ -115,7 +108,6 @@ for trial in range(4):
         tempMeanEstMSE = np.zeros(RS)
         tempMeanPerc = np.zeros(RS)
         tempMeanTSmall = np.zeros((LS, RS))
-        tempMeanTDef = np.zeros((LS, RS))
         tempMeanTMid = np.zeros((LS, RS))
         tempMeanTLarge = np.zeros((LS, RS))
             
@@ -124,7 +116,6 @@ for trial in range(4):
         tempMinEstMSE = np.zeros(RS)
         tempMinPerc = np.zeros(RS)
         tempMinTSmall = np.zeros((LS, RS))
-        tempMinTDef = np.zeros((LS, RS))
         tempMinTMid = np.zeros((LS, RS))
         tempMinTLarge = np.zeros((LS, RS))
 
@@ -133,7 +124,6 @@ for trial in range(4):
         tempMaxEstMSE = np.zeros(RS)
         tempMaxPerc = np.zeros(RS)
         tempMaxTSmall = np.zeros((LS, RS))
-        tempMaxTDef = np.zeros((LS, RS))
         tempMaxTMid = np.zeros((LS, RS))
         tempMaxTLarge = np.zeros((LS, RS))
 
@@ -438,13 +428,7 @@ for trial in range(4):
                     tempMinTSmall[l, rep] = minLda[l]
                     tempMaxTSmall[l, rep] = maxLda[l]
 
-                # T = 180 (~5% of clients, def)
-                if T_FREQ == DEF_INDEX:
-                    tempMeanTDef[l, rep] = meanLda[l]
-                    tempMinTDef[l, rep] = minLda[l]
-                    tempMaxTDef[l, rep] = maxLda[l]
-
-                # T = 360 (~10% of clients, mid)
+                # T = 270 (~7.5% of clients, mid)
                 if T_FREQ == MID_INDEX:
                     tempMeanTMid[l, rep] = meanLda[l]
                     tempMinTMid[l, rep] = minLda[l]
@@ -489,16 +473,7 @@ for trial in range(4):
                         tempMinTSmall[l, rep] = (tempMinTSmall[l, rep] + minSmallNoise - tempMinValue[rep])**2
                         tempMaxTSmall[l, rep] = (tempMaxTSmall[l, rep] + maxSmallNoise - tempMaxValue[rep])**2
 
-                    # T = 180 (def)
-                    if T_FREQ == DEF_INDEX:
-                        meanDefNoise = lapNoise.sample(sample_shape = (1,))
-                        minDefNoise = lapNoise.sample(sample_shape = (1,))
-                        maxDefNoise = lapNoise.sample(sample_shape = (1,))
-                        tempMeanTDef[l, rep] = (tempMeanTDef[l, rep] + meanDefNoise - tempMeanValue[rep])**2
-                        tempMinTDef[l, rep] = (tempMinTDef[l, rep] + minDefNoise - tempMinValue[rep])**2
-                        tempMaxTDef[l, rep] = (tempMaxTDef[l, rep] + maxDefNoise - tempMaxValue[rep])**2
-
-                    # T = 360 (mid)
+                    # T = 270 (mid)
                     if T_FREQ == MID_INDEX:
                         meanMidNoise = lapNoise.sample(sample_shape = (1,))
                         minMidNoise = lapNoise.sample(sample_shape = (1,))
@@ -530,13 +505,7 @@ for trial in range(4):
                         tempMinTSmall[l, rep] = (tempMinTSmall[l, rep] - tempMinValue[rep])**2
                         tempMaxTSmall[l, rep] = (tempMaxTSmall[l, rep] - tempMaxValue[rep])**2
 
-                    # T = 180 (def)
-                    if T_FREQ == DEF_INDEX:
-                        tempMeanTDef[l, rep] = (tempMeanTDef[l, rep] - tempMeanValue[rep])**2
-                        tempMinTDef[l, rep] = (tempMinTDef[l, rep] - tempMinValue[rep])**2
-                        tempMaxTDef[l, rep] = (tempMaxTDef[l, rep] - tempMaxValue[rep])**2
-
-                    # T = 360 (mid)
+                    # T = 270 (mid)
                     if T_FREQ == MID_INDEX:
                         tempMeanTMid[l, rep] = (tempMeanTMid[l, rep] - tempMeanValue[rep])**2
                         tempMinTMid[l, rep] = (tempMinTMid[l, rep] - tempMinValue[rep])**2
@@ -584,10 +553,6 @@ for trial in range(4):
                 meanTSmall[trial, l] = np.mean(tempMeanTSmall[l])
                 minTSmall[trial, l] = np.mean(tempMinTSmall[l])
                 maxTSmall[trial, l] = np.mean(tempMaxTSmall[l])
-            if T_FREQ == DEF_INDEX:
-                meanTDef[trial, l] = np.mean(tempMeanTDef[l])
-                minTDef[trial, l] = np.mean(tempMinTDef[l])
-                maxTDef[trial, l] = np.mean(tempMaxTDef[l])
             if T_FREQ == MID_INDEX:
                 meanTMid[trial, l] = np.mean(tempMeanTMid[l])
                 minTMid[trial, l] = np.mean(tempMinTMid[l])
@@ -611,10 +576,6 @@ for trial in range(4):
                 meanTSmallRange[trial, l] = np.std(tempMeanTSmall[l])
                 minTSmallRange[trial, l] = np.std(tempMinTSmall[l])
                 maxTSmallRange[trial, l] = np.std(tempMaxTSmall[l])
-            if T_FREQ == DEF_INDEX:
-                meanTDefRange[trial, l] = np.std(tempMeanTDef[l])
-                minTDefRange[trial, l] = np.std(tempMinTDef[l])
-                maxTDefRange[trial, l] = np.std(tempMaxTDef[l])
             if T_FREQ == MID_INDEX:
                 meanTMidRange[trial, l] = np.std(tempMeanTMid[l])
                 minTMidRange[trial, l] = np.std(tempMinTMid[l])
@@ -631,7 +592,7 @@ loldaset = np.ones(LS, dtype = bool)
 upTset = np.zeros(ES, dtype = bool)
 loTset = np.ones(ES, dtype = bool)
 
-# EXPERIMENT 1: MSE of PRIEST-KLD for fixed T (36, 180, 360, 720)
+# EXPERIMENT 1: MSE of PRIEST-KLD for fixed T (36, 270, 720)
 fig, ax1 = plt.subplots(layout = 'constrained')
 plotline1a, caplines1a, barlinecols1a = ax1.errorbar(ldaset, meanTSmall[0], yerr = np.minimum(meanTSmallRange[0], np.sqrt(meanTSmall[0]), np.divide(meanTSmall[0], 2)),
                                                      uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
@@ -655,29 +616,6 @@ ax1.set_ylabel("MSE of PRIEST-KLD")
 ax1.figure.savefig("Exp1_femnist_T_est_a_36.png")
 plt.close()
 
-fig, ax2 = plt.subplots(layout = 'constrained')
-plotline2a, caplines2a, barlinecols2a = ax2.errorbar(ldaset, meanTDef[0], yerr = np.minimum(meanTDefRange[0], np.sqrt(meanTDef[0]), np.divide(meanTDef[0], 2)),
-                                                     uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
-plotline2b, caplines2b, barlinecols2b = ax2.errorbar(ldaset, meanTDef[1], yerr = np.minimum(meanTDefRange[1], np.sqrt(meanTDef[1]), np.divide(meanTDef[1], 2)),
-                                                     uplims = upldaset, lolims = loldaset, color = 'green', marker = 'o', label = "TAgg")
-plotline2c, caplines2c, barlinecols2c = ax2.errorbar(ldaset, meanTDef[2], yerr = np.minimum(meanTDefRange[2], np.sqrt(meanTDef[2]), np.divide(meanTDef[2], 2)),
-                                                     uplims = upldaset, lolims = loldaset, color = 'orange', marker = 'o', label = "Trusted")
-plotline2d, caplines2d, barlinecols2d = ax2.errorbar(ldaset, meanTDef[3], yerr = np.minimum(meanTDefRange[3], np.sqrt(meanTDef[3]), np.divide(meanTDef[3], 2)),
-                                                     uplims = upldaset, lolims = loldaset, color = 'red', marker = '*', label = "no privacy")
-caplines2a[0].set_marker('')
-caplines2b[0].set_marker('')
-caplines2c[0].set_marker('')
-caplines2d[0].set_marker('')
-handles2, labels2 = ax2.get_legend_handles_labels()
-handles2 = [h2[0] for h2 in handles2]
-ax2.legend(handles2, labels2, loc = 'best')
-ax2.set_yscale('log')
-ax2.set_ylim(0.005, 4000)
-ax2.set_xlabel("Value of " + "$\mathit{\u03bb}$")
-ax2.set_ylabel("MSE of PRIEST-KLD")
-ax2.figure.savefig("Exp1_femnist_T_est_a_180.png")
-plt.close()
-
 fig, ax3 = plt.subplots(layout = 'constrained')
 plotline3a, caplines3a, barlinecols3a = ax3.errorbar(ldaset, meanTMid[0], yerr = np.minimum(meanTMidRange[0], np.sqrt(meanTMid[0]), np.divide(meanTMid[0], 2)),
                                                      uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
@@ -698,7 +636,7 @@ ax3.set_yscale('log')
 ax3.set_ylim(0.01, 4000)
 ax3.set_xlabel("Value of " + "$\mathit{\u03bb}$")
 ax3.set_ylabel("MSE of PRIEST-KLD")
-ax3.figure.savefig("Exp1_femnist_T_est_a_360.png")
+ax3.figure.savefig("Exp1_femnist_T_est_a_270.png")
 plt.close()
 
 fig, ax4 = plt.subplots(layout = 'constrained')
@@ -747,29 +685,6 @@ ax5.set_ylabel("MSE of PRIEST-KLD")
 ax5.figure.savefig("Exp1_femnist_T_est_b_36.png")
 plt.close()
 
-fig, ax6 = plt.subplots(layout = 'constrained')
-plotline6a, caplines6a, barlinecols6a = ax6.errorbar(ldaset, minTDef[0], yerr = np.minimum(minTDefRange[0], np.sqrt(minTDef[0]), np.divide(minTDef[0], 2)),
-                                                     uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
-plotline6b, caplines6b, barlinecols6b = ax6.errorbar(ldaset, minTDef[1], yerr = np.minimum(minTDefRange[1], np.sqrt(minTDef[1]), np.divide(minTDef[1], 2)),
-                                                     uplims = upldaset, lolims = loldaset, color = 'green', marker = 'o', label = "TAgg")
-plotline6c, caplines6c, barlinecols6c = ax6.errorbar(ldaset, minTDef[2], yerr = np.minimum(minTDefRange[2], np.sqrt(minTDef[2]), np.divide(minTDef[2], 2)),
-                                                     uplims = upldaset, lolims = loldaset, color = 'orange', marker = 'o', label = "Trusted")
-plotline6d, caplines6d, barlinecols6d = ax6.errorbar(ldaset, minTDef[3], yerr = np.minimum(minTDefRange[3], np.sqrt(minTDef[3]), np.divide(minTDef[3], 2)),
-                                                     uplims = upldaset, lolims = loldaset, color = 'red', marker = '*', label = "no privacy")
-caplines6a[0].set_marker('')
-caplines6b[0].set_marker('')
-caplines6c[0].set_marker('')
-caplines6d[0].set_marker('')
-handles6, labels6 = ax6.get_legend_handles_labels()
-handles6 = [h6[0] for h6 in handles6]
-ax6.legend(handles6, labels6, loc = 'best')
-ax6.set_yscale('log')
-ax6.set_ylim(0.005, 5000)
-ax6.set_xlabel("Value of " + "$\mathit{\u03bb}$")
-ax6.set_ylabel("MSE of PRIEST-KLD")
-ax6.figure.savefig("Exp1_femnist_T_est_b_180.png")
-plt.close()
-
 fig, ax7 = plt.subplots(layout = 'constrained')
 plotline7a, caplines7a, barlinecols7a = ax7.errorbar(ldaset, minTMid[0], yerr = np.minimum(minTMidRange[0], np.sqrt(minTMid[0]), np.divide(minTMid[0], 2)),
                                                      uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
@@ -790,7 +705,7 @@ ax7.set_yscale('log')
 ax7.set_ylim(0.2, 5000)
 ax7.set_xlabel("Value of " + "$\mathit{\u03bb}$")
 ax7.set_ylabel("MSE of PRIEST-KLD")
-ax7.figure.savefig("Exp1_femnist_T_est_b_360.png")
+ax7.figure.savefig("Exp1_femnist_T_est_b_270.png")
 plt.close()
 
 fig, ax8 = plt.subplots(layout = 'constrained')
@@ -839,29 +754,6 @@ ax9.set_ylabel("MSE of PRIEST-KLD")
 ax9.figure.savefig("Exp1_femnist_T_est_c_36.png")
 plt.close()
 
-fig, ax10 = plt.subplots(layout = 'constrained')
-plotline10a, caplines10a, barlinecols10a = ax10.errorbar(ldaset, maxTDef[0], yerr = np.minimum(maxTDefRange[0], np.sqrt(maxTDef[0]), np.divide(maxTDef[0], 2)),
-                                                         uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
-plotline10b, caplines10b, barlinecols10b = ax10.errorbar(ldaset, maxTDef[1], yerr = np.minimum(maxTDefRange[1], np.sqrt(maxTDef[1]), np.divide(maxTDef[1], 2)),
-                                                         uplims = upldaset, lolims = loldaset, color = 'green', marker = 'o', label = "TAgg")
-plotline10c, caplines10c, barlinecols10c = ax10.errorbar(ldaset, maxTDef[2], yerr = np.minimum(maxTDefRange[2], np.sqrt(maxTDef[2]), np.divide(maxTDef[2], 2)),
-                                                         uplims = upldaset, lolims = loldaset, color = 'orange', marker = 'o', label = "Trusted")
-plotline10d, caplines10d, barlinecols10d = ax10.errorbar(ldaset, maxTDef[3], yerr = np.minimum(maxTDefRange[3], np.sqrt(maxTDef[3]), np.divide(maxTDef[3], 2)),
-                                                         uplims = upldaset, lolims = loldaset, color = 'red', marker = '*', label = "no privacy")
-caplines10a[0].set_marker('')
-caplines10b[0].set_marker('')
-caplines10c[0].set_marker('')
-caplines10d[0].set_marker('')
-handles10, labels10 = ax10.get_legend_handles_labels()
-handles10 = [h10[0] for h10 in handles10]
-ax10.legend(handles10, labels10, loc = 'best')
-ax10.set_yscale('log')
-ax10.set_ylim(2, 3000)
-ax10.set_xlabel("Value of " + "$\mathit{\u03bb}$")
-ax10.set_ylabel("MSE of PRIEST-KLD")
-ax10.figure.savefig("Exp1_femnist_T_est_c_180.png")
-plt.close()
-
 fig, ax11 = plt.subplots(layout = 'constrained')
 plotline11a, caplines11a, barlinecols11a = ax11.errorbar(ldaset, maxTMid[0], yerr = np.minimum(maxTMidRange[0], np.sqrt(maxTMid[0]), np.divide(maxTMid[0], 2)),
                                                          uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
@@ -882,7 +774,7 @@ ax11.set_yscale('log')
 ax11.set_ylim(2, 3000)
 ax11.set_xlabel("Value of " + "$\mathit{\u03bb}$")
 ax11.set_ylabel("MSE of PRIEST-KLD")
-ax11.figure.savefig("Exp1_femnist_T_est_c_360.png")
+ax11.figure.savefig("Exp1_femnist_T_est_c_270.png")
 plt.close()
 
 fig, ax12 = plt.subplots(layout = 'constrained')
