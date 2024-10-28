@@ -457,9 +457,9 @@ for trial in range(4):
                     tempMaxTLarge[l, rep] = maxLda[l]
 
             # choose best lambda from experiment 1
-            meanLdaIndex = 4
-            minLdaIndex = 4
-            maxLdaIndex = 10
+            meanLdaIndex = 1
+            minLdaIndex = 5
+            maxLdaIndex = 1
 
             # mean / min / max across clients for best lambda
             tempMeanEst[rep] = meanLda[meanLdaIndex]
