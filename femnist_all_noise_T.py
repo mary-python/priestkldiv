@@ -616,14 +616,37 @@ ax1.set_ylabel("MSE of PRIEST-KLD")
 ax1.figure.savefig("Exp1_femnist_T_est_a_36.png")
 plt.close()
 
-fig, ax3 = plt.subplots(layout = 'constrained')
-plotline3a, caplines3a, barlinecols3a = ax3.errorbar(ldaset, meanTMid[0], yerr = np.minimum(meanTMidRange[0], np.sqrt(meanTMid[0]), np.divide(meanTMid[0], 2)),
+fig, ax2 = plt.subplots(layout = 'constrained')
+plotline2a, caplines2a, barlinecols2a = ax2.errorbar(ldaset, meanTMid[0], yerr = np.minimum(meanTMidRange[0], np.sqrt(meanTMid[0]), np.divide(meanTMid[0], 2)),
                                                      uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
-plotline3b, caplines3b, barlinecols3b = ax3.errorbar(ldaset, meanTMid[1], yerr = np.minimum(meanTMidRange[1], np.sqrt(meanTMid[1]), np.divide(meanTMid[1], 2)),
+plotline2b, caplines2b, barlinecols2b = ax2.errorbar(ldaset, meanTMid[1], yerr = np.minimum(meanTMidRange[1], np.sqrt(meanTMid[1]), np.divide(meanTMid[1], 2)),
                                                      uplims = upldaset, lolims = loldaset, color = 'green', marker = 'o', label = "TAgg")
-plotline3c, caplines3c, barlinecols3c = ax3.errorbar(ldaset, meanTMid[2], yerr = np.minimum(meanTMidRange[2], np.sqrt(meanTMid[2]), np.divide(meanTMid[2], 2)),
+plotline2c, caplines2c, barlinecols2c = ax2.errorbar(ldaset, meanTMid[2], yerr = np.minimum(meanTMidRange[2], np.sqrt(meanTMid[2]), np.divide(meanTMid[2], 2)),
                                                      uplims = upldaset, lolims = loldaset, color = 'orange', marker = 'o', label = "Trusted")
-plotline3d, caplines3d, barlinecols3d = ax3.errorbar(ldaset, meanTMid[3], yerr = np.minimum(meanTMidRange[3], np.sqrt(meanTMid[3]), np.divide(meanTMid[3], 2)),
+plotline2d, caplines2d, barlinecols2d = ax2.errorbar(ldaset, meanTMid[3], yerr = np.minimum(meanTMidRange[3], np.sqrt(meanTMid[3]), np.divide(meanTMid[3], 2)),
+                                                     uplims = upldaset, lolims = loldaset, color = 'red', marker = '*', label = "no privacy")
+caplines2a[0].set_marker('')
+caplines2b[0].set_marker('')
+caplines2c[0].set_marker('')
+caplines2d[0].set_marker('')
+handles2, labels2 = ax2.get_legend_handles_labels()
+handles2 = [h2[0] for h2 in handles2]
+ax2.legend(handles2, labels2, loc = 'lower right')
+ax2.set_yscale('log')
+ax2.set_ylim(0.01, 4000)
+ax2.set_xlabel("Value of " + "$\mathit{\u03bb}$")
+ax2.set_ylabel("MSE of PRIEST-KLD")
+ax2.figure.savefig("Exp1_femnist_T_est_a_270.png")
+plt.close()
+
+fig, ax3 = plt.subplots(layout = 'constrained')
+plotline3a, caplines3a, barlinecols3a = ax3.errorbar(ldaset, meanTLarge[0], yerr = np.minimum(meanTLargeRange[0], np.sqrt(meanTLarge[0]), np.divide(meanTLarge[0], 2)),
+                                                     uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
+plotline3b, caplines3b, barlinecols3b = ax3.errorbar(ldaset, meanTLarge[1], yerr = np.minimum(meanTLargeRange[1], np.sqrt(meanTLarge[1]), np.divide(meanTLarge[1], 2)),
+                                                     uplims = upldaset, lolims = loldaset, color = 'green', marker = 'o', label = "TAgg")
+plotline3c, caplines3c, barlinecols3c = ax3.errorbar(ldaset, meanTLarge[2], yerr = np.minimum(meanTLargeRange[2], np.sqrt(meanTLarge[2]), np.divide(meanTLarge[2], 2)),
+                                                     uplims = upldaset, lolims = loldaset, color = 'orange', marker = 'o', label = "Trusted")
+plotline3d, caplines3d, barlinecols3d = ax3.errorbar(ldaset, meanTLarge[3], yerr = np.minimum(meanTLargeRange[3], np.sqrt(meanTLarge[3]), np.divide(meanTLarge[3], 2)),
                                                      uplims = upldaset, lolims = loldaset, color = 'red', marker = '*', label = "no privacy")
 caplines3a[0].set_marker('')
 caplines3b[0].set_marker('')
@@ -633,20 +656,20 @@ handles3, labels3 = ax3.get_legend_handles_labels()
 handles3 = [h3[0] for h3 in handles3]
 ax3.legend(handles3, labels3, loc = 'lower right')
 ax3.set_yscale('log')
-ax3.set_ylim(0.01, 4000)
+ax3.set_ylim(0.01, 5000)
 ax3.set_xlabel("Value of " + "$\mathit{\u03bb}$")
 ax3.set_ylabel("MSE of PRIEST-KLD")
-ax3.figure.savefig("Exp1_femnist_T_est_a_270.png")
+ax3.figure.savefig("Exp1_femnist_T_est_a_720.png")
 plt.close()
 
 fig, ax4 = plt.subplots(layout = 'constrained')
-plotline4a, caplines4a, barlinecols4a = ax4.errorbar(ldaset, meanTLarge[0], yerr = np.minimum(meanTLargeRange[0], np.sqrt(meanTLarge[0]), np.divide(meanTLarge[0], 2)),
+plotline4a, caplines4a, barlinecols4a = ax4.errorbar(ldaset, minTSmall[0], yerr = np.minimum(minTSmallRange[0], np.sqrt(minTSmall[0]), np.divide(minTSmall[0], 2)),
                                                      uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
-plotline4b, caplines4b, barlinecols4b = ax4.errorbar(ldaset, meanTLarge[1], yerr = np.minimum(meanTLargeRange[1], np.sqrt(meanTLarge[1]), np.divide(meanTLarge[1], 2)),
+plotline4b, caplines4b, barlinecols4b = ax4.errorbar(ldaset, minTSmall[1], yerr = np.minimum(minTSmallRange[1], np.sqrt(minTSmall[1]), np.divide(minTSmall[1], 2)),
                                                      uplims = upldaset, lolims = loldaset, color = 'green', marker = 'o', label = "TAgg")
-plotline4c, caplines4c, barlinecols4c = ax4.errorbar(ldaset, meanTLarge[2], yerr = np.minimum(meanTLargeRange[2], np.sqrt(meanTLarge[2]), np.divide(meanTLarge[2], 2)),
+plotline4c, caplines4c, barlinecols4c = ax4.errorbar(ldaset, minTSmall[2], yerr = np.minimum(minTSmallRange[2], np.sqrt(minTSmall[2]), np.divide(minTSmall[2], 2)),
                                                      uplims = upldaset, lolims = loldaset, color = 'orange', marker = 'o', label = "Trusted")
-plotline4d, caplines4d, barlinecols4d = ax4.errorbar(ldaset, meanTLarge[3], yerr = np.minimum(meanTLargeRange[3], np.sqrt(meanTLarge[3]), np.divide(meanTLarge[3], 2)),
+plotline4d, caplines4d, barlinecols4d = ax4.errorbar(ldaset, minTSmall[3], yerr = np.minimum(minTSmallRange[3], np.sqrt(minTSmall[3]), np.divide(minTSmall[3], 2)),
                                                      uplims = upldaset, lolims = loldaset, color = 'red', marker = '*', label = "no privacy")
 caplines4a[0].set_marker('')
 caplines4b[0].set_marker('')
@@ -654,22 +677,22 @@ caplines4c[0].set_marker('')
 caplines4d[0].set_marker('')
 handles4, labels4 = ax4.get_legend_handles_labels()
 handles4 = [h4[0] for h4 in handles4]
-ax4.legend(handles4, labels4, loc = 'lower right')
+ax4.legend(handles4, labels4, loc = 'best')
 ax4.set_yscale('log')
-ax4.set_ylim(0.01, 5000)
+ax4.set_ylim(0.05, 4000)
 ax4.set_xlabel("Value of " + "$\mathit{\u03bb}$")
 ax4.set_ylabel("MSE of PRIEST-KLD")
-ax4.figure.savefig("Exp1_femnist_T_est_a_720.png")
+ax4.figure.savefig("Exp1_femnist_T_est_b_36.png")
 plt.close()
 
 fig, ax5 = plt.subplots(layout = 'constrained')
-plotline5a, caplines5a, barlinecols5a = ax5.errorbar(ldaset, minTSmall[0], yerr = np.minimum(minTSmallRange[0], np.sqrt(minTSmall[0]), np.divide(minTSmall[0], 2)),
+plotline5a, caplines5a, barlinecols5a = ax5.errorbar(ldaset, minTMid[0], yerr = np.minimum(minTMidRange[0], np.sqrt(minTMid[0]), np.divide(minTMid[0], 2)),
                                                      uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
-plotline5b, caplines5b, barlinecols5b = ax5.errorbar(ldaset, minTSmall[1], yerr = np.minimum(minTSmallRange[1], np.sqrt(minTSmall[1]), np.divide(minTSmall[1], 2)),
+plotline5b, caplines5b, barlinecols5b = ax5.errorbar(ldaset, minTMid[1], yerr = np.minimum(minTMidRange[1], np.sqrt(minTMid[1]), np.divide(minTMid[1], 2)),
                                                      uplims = upldaset, lolims = loldaset, color = 'green', marker = 'o', label = "TAgg")
-plotline5c, caplines5c, barlinecols5c = ax5.errorbar(ldaset, minTSmall[2], yerr = np.minimum(minTSmallRange[2], np.sqrt(minTSmall[2]), np.divide(minTSmall[2], 2)),
+plotline5c, caplines5c, barlinecols5c = ax5.errorbar(ldaset, minTMid[2], yerr = np.minimum(minTMidRange[2], np.sqrt(minTMid[2]), np.divide(minTMid[2], 2)),
                                                      uplims = upldaset, lolims = loldaset, color = 'orange', marker = 'o', label = "Trusted")
-plotline5d, caplines5d, barlinecols5d = ax5.errorbar(ldaset, minTSmall[3], yerr = np.minimum(minTSmallRange[3], np.sqrt(minTSmall[3]), np.divide(minTSmall[3], 2)),
+plotline5d, caplines5d, barlinecols5d = ax5.errorbar(ldaset, minTMid[3], yerr = np.minimum(minTMidRange[3], np.sqrt(minTMid[3]), np.divide(minTMid[3], 2)),
                                                      uplims = upldaset, lolims = loldaset, color = 'red', marker = '*', label = "no privacy")
 caplines5a[0].set_marker('')
 caplines5b[0].set_marker('')
@@ -677,22 +700,45 @@ caplines5c[0].set_marker('')
 caplines5d[0].set_marker('')
 handles5, labels5 = ax5.get_legend_handles_labels()
 handles5 = [h5[0] for h5 in handles5]
-ax5.legend(handles5, labels5, loc = 'best')
+ax5.legend(handles5, labels5, loc = 'lower right')
 ax5.set_yscale('log')
-ax5.set_ylim(0.05, 4000)
+ax5.set_ylim(0.2, 5000)
 ax5.set_xlabel("Value of " + "$\mathit{\u03bb}$")
 ax5.set_ylabel("MSE of PRIEST-KLD")
-ax5.figure.savefig("Exp1_femnist_T_est_b_36.png")
+ax5.figure.savefig("Exp1_femnist_T_est_b_270.png")
+plt.close()
+
+fig, ax6 = plt.subplots(layout = 'constrained')
+plotline6a, caplines6a, barlinecols6a = ax6.errorbar(ldaset, minTLarge[0], yerr = np.minimum(minTLargeRange[0], np.sqrt(minTLarge[0]), np.divide(minTLarge[0], 2)),
+                                                     uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
+plotline6b, caplines6b, barlinecols6b = ax6.errorbar(ldaset, minTLarge[1], yerr = np.minimum(minTLargeRange[1], np.sqrt(minTLarge[1]), np.divide(minTLarge[1], 2)),
+                                                     uplims = upldaset, lolims = loldaset, color = 'green', marker = 'o', label = "TAgg")
+plotline6c, caplines6c, barlinecols6c = ax6.errorbar(ldaset, minTLarge[2], yerr = np.minimum(minTLargeRange[2], np.sqrt(minTLarge[2]), np.divide(minTLarge[2], 2)),
+                                                     uplims = upldaset, lolims = loldaset, color = 'orange', marker = 'o', label = "Trusted")
+plotline6d, caplines6d, barlinecols6d = ax6.errorbar(ldaset, minTLarge[3], yerr = np.minimum(minTLargeRange[3], np.sqrt(minTLarge[3]), np.divide(minTLarge[3], 2)),
+                                                     uplims = upldaset, lolims = loldaset, color = 'red', marker = '*', label = "no privacy")
+caplines6a[0].set_marker('')
+caplines6b[0].set_marker('')
+caplines6c[0].set_marker('')
+caplines6d[0].set_marker('')
+handles6, labels6 = ax6.get_legend_handles_labels()
+handles6 = [h6[0] for h6 in handles6]
+ax6.legend(handles6, labels6, loc = 'center right')
+ax6.set_yscale('log')
+ax6.set_ylim(0.1, 5000)
+ax6.set_xlabel("Value of " + "$\mathit{\u03bb}$")
+ax6.set_ylabel("MSE of PRIEST-KLD")
+ax6.figure.savefig("Exp1_femnist_T_est_b_720.png")
 plt.close()
 
 fig, ax7 = plt.subplots(layout = 'constrained')
-plotline7a, caplines7a, barlinecols7a = ax7.errorbar(ldaset, minTMid[0], yerr = np.minimum(minTMidRange[0], np.sqrt(minTMid[0]), np.divide(minTMid[0], 2)),
+plotline7a, caplines7a, barlinecols7a = ax7.errorbar(ldaset, maxTSmall[0], yerr = np.minimum(maxTSmallRange[0], np.sqrt(maxTSmall[0]), np.divide(maxTSmall[0], 2)),
                                                      uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
-plotline7b, caplines7b, barlinecols7b = ax7.errorbar(ldaset, minTMid[1], yerr = np.minimum(minTMidRange[1], np.sqrt(minTMid[1]), np.divide(minTMid[1], 2)),
+plotline7b, caplines7b, barlinecols7b = ax7.errorbar(ldaset, maxTSmall[1], yerr = np.minimum(maxTSmallRange[1], np.sqrt(maxTSmall[1]), np.divide(maxTSmall[1], 2)),
                                                      uplims = upldaset, lolims = loldaset, color = 'green', marker = 'o', label = "TAgg")
-plotline7c, caplines7c, barlinecols7c = ax7.errorbar(ldaset, minTMid[2], yerr = np.minimum(minTMidRange[2], np.sqrt(minTMid[2]), np.divide(minTMid[2], 2)),
+plotline7c, caplines7c, barlinecols7c = ax7.errorbar(ldaset, maxTSmall[2], yerr = np.minimum(maxTSmallRange[2], np.sqrt(maxTSmall[2]), np.divide(maxTSmall[2], 2)),
                                                      uplims = upldaset, lolims = loldaset, color = 'orange', marker = 'o', label = "Trusted")
-plotline7d, caplines7d, barlinecols7d = ax7.errorbar(ldaset, minTMid[3], yerr = np.minimum(minTMidRange[3], np.sqrt(minTMid[3]), np.divide(minTMid[3], 2)),
+plotline7d, caplines7d, barlinecols7d = ax7.errorbar(ldaset, maxTSmall[3], yerr = np.minimum(maxTSmallRange[3], np.sqrt(maxTSmall[3]), np.divide(maxTSmall[3], 2)),
                                                      uplims = upldaset, lolims = loldaset, color = 'red', marker = '*', label = "no privacy")
 caplines7a[0].set_marker('')
 caplines7b[0].set_marker('')
@@ -700,46 +746,46 @@ caplines7c[0].set_marker('')
 caplines7d[0].set_marker('')
 handles7, labels7 = ax7.get_legend_handles_labels()
 handles7 = [h7[0] for h7 in handles7]
-ax7.legend(handles7, labels7, loc = 'lower right')
+ax7.legend(handles7, labels7, loc = 'best')
 ax7.set_yscale('log')
-ax7.set_ylim(0.2, 5000)
+ax7.set_ylim(2, 3000)
 ax7.set_xlabel("Value of " + "$\mathit{\u03bb}$")
 ax7.set_ylabel("MSE of PRIEST-KLD")
-ax7.figure.savefig("Exp1_femnist_T_est_b_270.png")
+ax7.figure.savefig("Exp1_femnist_T_est_c_36.png")
 plt.close()
 
 fig, ax8 = plt.subplots(layout = 'constrained')
-plotline8a, caplines8a, barlinecols8a = ax8.errorbar(ldaset, minTLarge[0], yerr = np.minimum(minTLargeRange[0], np.sqrt(minTLarge[0]), np.divide(minTLarge[0], 2)),
-                                                     uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
-plotline8b, caplines8b, barlinecols8b = ax8.errorbar(ldaset, minTLarge[1], yerr = np.minimum(minTLargeRange[1], np.sqrt(minTLarge[1]), np.divide(minTLarge[1], 2)),
-                                                     uplims = upldaset, lolims = loldaset, color = 'green', marker = 'o', label = "TAgg")
-plotline8c, caplines8c, barlinecols8c = ax8.errorbar(ldaset, minTLarge[2], yerr = np.minimum(minTLargeRange[2], np.sqrt(minTLarge[2]), np.divide(minTLarge[2], 2)),
-                                                     uplims = upldaset, lolims = loldaset, color = 'orange', marker = 'o', label = "Trusted")
-plotline8d, caplines8d, barlinecols8d = ax8.errorbar(ldaset, minTLarge[3], yerr = np.minimum(minTLargeRange[3], np.sqrt(minTLarge[3]), np.divide(minTLarge[3], 2)),
-                                                     uplims = upldaset, lolims = loldaset, color = 'red', marker = '*', label = "no privacy")
+plotline8a, caplines8a, barlinecols8a = ax8.errorbar(ldaset, maxTMid[0], yerr = np.minimum(maxTMidRange[0], np.sqrt(maxTMid[0]), np.divide(maxTMid[0], 2)),
+                                                         uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
+plotline8b, caplines8b, barlinecols8b = ax8.errorbar(ldaset, maxTMid[1], yerr = np.minimum(maxTMidRange[1], np.sqrt(maxTMid[1]), np.divide(maxTMid[1], 2)),
+                                                         uplims = upldaset, lolims = loldaset, color = 'green', marker = 'o', label = "TAgg")
+plotline8c, caplines8c, barlinecols8c = ax8.errorbar(ldaset, maxTMid[2], yerr = np.minimum(maxTMidRange[2], np.sqrt(maxTMid[2]), np.divide(maxTMid[2], 2)),
+                                                         uplims = upldaset, lolims = loldaset, color = 'orange', marker = 'o', label = "Trusted")
+plotline8d, caplines8d, barlinecols8d = ax8.errorbar(ldaset, maxTMid[3], yerr = np.minimum(maxTMidRange[3], np.sqrt(maxTMid[3]), np.divide(maxTMid[3], 2)),
+                                                         uplims = upldaset, lolims = loldaset, color = 'red', marker = '*', label = "no privacy")
 caplines8a[0].set_marker('')
 caplines8b[0].set_marker('')
 caplines8c[0].set_marker('')
 caplines8d[0].set_marker('')
 handles8, labels8 = ax8.get_legend_handles_labels()
 handles8 = [h8[0] for h8 in handles8]
-ax8.legend(handles8, labels8, loc = 'center right')
+ax8.legend(handles8, labels8, loc = 'best')
 ax8.set_yscale('log')
-ax8.set_ylim(0.1, 5000)
+ax8.set_ylim(2, 3000)
 ax8.set_xlabel("Value of " + "$\mathit{\u03bb}$")
 ax8.set_ylabel("MSE of PRIEST-KLD")
-ax8.figure.savefig("Exp1_femnist_T_est_b_720.png")
+ax8.figure.savefig("Exp1_femnist_T_est_c_270.png")
 plt.close()
 
 fig, ax9 = plt.subplots(layout = 'constrained')
-plotline9a, caplines9a, barlinecols9a = ax9.errorbar(ldaset, maxTSmall[0], yerr = np.minimum(maxTSmallRange[0], np.sqrt(maxTSmall[0]), np.divide(maxTSmall[0], 2)),
-                                                     uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
-plotline9b, caplines9b, barlinecols9b = ax9.errorbar(ldaset, maxTSmall[1], yerr = np.minimum(maxTSmallRange[1], np.sqrt(maxTSmall[1]), np.divide(maxTSmall[1], 2)),
-                                                     uplims = upldaset, lolims = loldaset, color = 'green', marker = 'o', label = "TAgg")
-plotline9c, caplines9c, barlinecols9c = ax9.errorbar(ldaset, maxTSmall[2], yerr = np.minimum(maxTSmallRange[2], np.sqrt(maxTSmall[2]), np.divide(maxTSmall[2], 2)),
-                                                     uplims = upldaset, lolims = loldaset, color = 'orange', marker = 'o', label = "Trusted")
-plotline9d, caplines9d, barlinecols9d = ax9.errorbar(ldaset, maxTSmall[3], yerr = np.minimum(maxTSmallRange[3], np.sqrt(maxTSmall[3]), np.divide(maxTSmall[3], 2)),
-                                                     uplims = upldaset, lolims = loldaset, color = 'red', marker = '*', label = "no privacy")
+plotline9a, caplines9a, barlinecols9a = ax9.errorbar(ldaset, maxTLarge[0], yerr = np.minimum(maxTLargeRange[0], np.sqrt(maxTLarge[0]), np.divide(maxTLarge[0], 2)),
+                                                         uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
+plotline9b, caplines9b, barlinecols9b = ax9.errorbar(ldaset, maxTLarge[1], yerr = np.minimum(maxTLargeRange[1], np.sqrt(maxTLarge[1]), np.divide(maxTLarge[1], 2)),
+                                                         uplims = upldaset, lolims = loldaset, color = 'green', marker = 'o', label = "TAgg")
+plotline9c, caplines9c, barlinecols9c = ax9.errorbar(ldaset, maxTLarge[2], yerr = np.minimum(maxTLargeRange[2], np.sqrt(maxTLarge[2]), np.divide(maxTLarge[2], 2)),
+                                                         uplims = upldaset, lolims = loldaset, color = 'orange', marker = 'o', label = "Trusted")
+plotline9d, caplines9d, barlinecols9d = ax9.errorbar(ldaset, maxTLarge[3], yerr = np.minimum(maxTLargeRange[3], np.sqrt(maxTLarge[3]), np.divide(maxTLarge[3], 2)),
+                                                         uplims = upldaset, lolims = loldaset, color = 'red', marker = '*', label = "no privacy")
 caplines9a[0].set_marker('')
 caplines9b[0].set_marker('')
 caplines9c[0].set_marker('')
@@ -751,124 +797,147 @@ ax9.set_yscale('log')
 ax9.set_ylim(2, 3000)
 ax9.set_xlabel("Value of " + "$\mathit{\u03bb}$")
 ax9.set_ylabel("MSE of PRIEST-KLD")
-ax9.figure.savefig("Exp1_femnist_T_est_c_36.png")
+ax9.figure.savefig("Exp1_femnist_T_est_c_720.png")
+plt.close()
+
+# EXPERIMENT 2: MSE of PRIEST-KLD for each T
+fig, ax10 = plt.subplots(layout = 'constrained')
+plotline10a, caplines10a, barlinecols10a = ax10.errorbar(Tset, meanEstMSE[0], yerr = np.minimum(meanEstRange[0], np.sqrt(meanEstMSE[0]), np.divide(meanEstMSE[0], 2)),
+                                                         uplims = upTset, lolims = loTset, color = 'blueviolet', marker = 'o', label = "mean")
+plotline10b, caplines10b, barlinecols10b = ax10.errorbar(Tset, minEstMSE[0], yerr = np.minimum(minEstRange[0], np.sqrt(minEstMSE[0]), np.divide(minEstMSE[0], 2)),
+                                                         uplims = upTset, lolims = loTset, color = 'lime', marker = 'o', label = "min pair")
+plotline10c, caplines10c, barlinecols10c = ax10.errorbar(Tset, maxEstMSE[0], yerr = np.minimum(maxEstRange[0], np.sqrt(maxEstMSE[0]), np.divide(maxEstMSE[0], 2)),
+                                                         uplims = upTset, lolims = loTset, color = 'gold', marker = 'o', label = "max pair")
+caplines10a[0].set_marker('')
+caplines10b[0].set_marker('')
+caplines10c[0].set_marker('')
+handles10, labels10 = ax10.get_legend_handles_labels()
+handles10 = [h10[0] for h10 in handles10]
+ax10.legend(handles10, labels10, loc = 'best')
+ax10.set_yscale('log')
+ax10.set_ylim(0.03, 100)
+ax10.set_xlabel("Number of clients " + "$\mathit{n}$")
+ax10.set_ylabel("MSE of PRIEST-KLD")
+ax10.figure.savefig("Exp2_femnist_T_est_a.png")
 plt.close()
 
 fig, ax11 = plt.subplots(layout = 'constrained')
-plotline11a, caplines11a, barlinecols11a = ax11.errorbar(ldaset, maxTMid[0], yerr = np.minimum(maxTMidRange[0], np.sqrt(maxTMid[0]), np.divide(maxTMid[0], 2)),
-                                                         uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
-plotline11b, caplines11b, barlinecols11b = ax11.errorbar(ldaset, maxTMid[1], yerr = np.minimum(maxTMidRange[1], np.sqrt(maxTMid[1]), np.divide(maxTMid[1], 2)),
-                                                         uplims = upldaset, lolims = loldaset, color = 'green', marker = 'o', label = "TAgg")
-plotline11c, caplines11c, barlinecols11c = ax11.errorbar(ldaset, maxTMid[2], yerr = np.minimum(maxTMidRange[2], np.sqrt(maxTMid[2]), np.divide(maxTMid[2], 2)),
-                                                         uplims = upldaset, lolims = loldaset, color = 'orange', marker = 'o', label = "Trusted")
-plotline11d, caplines11d, barlinecols11d = ax11.errorbar(ldaset, maxTMid[3], yerr = np.minimum(maxTMidRange[3], np.sqrt(maxTMid[3]), np.divide(maxTMid[3], 2)),
-                                                         uplims = upldaset, lolims = loldaset, color = 'red', marker = '*', label = "no privacy")
+plotline11a, caplines11a, barlinecols11a = ax11.errorbar(Tset, meanEstMSE[1], yerr = np.minimum(meanEstRange[1], np.sqrt(meanEstMSE[1]), np.divide(meanEstMSE[1], 2)),
+                                                         uplims = upTset, lolims = loTset, color = 'blueviolet', marker = 'o', label = "mean")
+plotline11b, caplines11b, barlinecols11b = ax11.errorbar(Tset, minEstMSE[1], yerr = np.minimum(minEstRange[1], np.sqrt(minEstMSE[1]), np.divide(minEstMSE[1], 2)),
+                                                         uplims = upTset, lolims = loTset, color = 'lime', marker = 'o', label = "min pair")
+plotline11c, caplines11c, barlinecols11c = ax11.errorbar(Tset, maxEstMSE[1], yerr = np.minimum(maxEstRange[1], np.sqrt(maxEstMSE[1]), np.divide(maxEstMSE[1], 2)),
+                                                         uplims = upTset, lolims = loTset, color = 'gold', marker = 'o', label = "max pair")
 caplines11a[0].set_marker('')
 caplines11b[0].set_marker('')
 caplines11c[0].set_marker('')
-caplines11d[0].set_marker('')
 handles11, labels11 = ax11.get_legend_handles_labels()
 handles11 = [h11[0] for h11 in handles11]
 ax11.legend(handles11, labels11, loc = 'best')
 ax11.set_yscale('log')
-ax11.set_ylim(2, 3000)
-ax11.set_xlabel("Value of " + "$\mathit{\u03bb}$")
+ax11.set_ylim(0.1, 70)
+ax11.set_xlabel("Number of clients " + "$\mathit{n}$")
 ax11.set_ylabel("MSE of PRIEST-KLD")
-ax11.figure.savefig("Exp1_femnist_T_est_c_270.png")
+ax11.figure.savefig("Exp2_femnist_T_est_b.png")
 plt.close()
 
 fig, ax12 = plt.subplots(layout = 'constrained')
-plotline12a, caplines12a, barlinecols12a = ax12.errorbar(ldaset, maxTLarge[0], yerr = np.minimum(maxTLargeRange[0], np.sqrt(maxTLarge[0]), np.divide(maxTLarge[0], 2)),
-                                                         uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
-plotline12b, caplines12b, barlinecols12b = ax12.errorbar(ldaset, maxTLarge[1], yerr = np.minimum(maxTLargeRange[1], np.sqrt(maxTLarge[1]), np.divide(maxTLarge[1], 2)),
-                                                         uplims = upldaset, lolims = loldaset, color = 'green', marker = 'o', label = "TAgg")
-plotline12c, caplines12c, barlinecols12c = ax12.errorbar(ldaset, maxTLarge[2], yerr = np.minimum(maxTLargeRange[2], np.sqrt(maxTLarge[2]), np.divide(maxTLarge[2], 2)),
-                                                         uplims = upldaset, lolims = loldaset, color = 'orange', marker = 'o', label = "Trusted")
-plotline12d, caplines12d, barlinecols12d = ax12.errorbar(ldaset, maxTLarge[3], yerr = np.minimum(maxTLargeRange[3], np.sqrt(maxTLarge[3]), np.divide(maxTLarge[3], 2)),
-                                                         uplims = upldaset, lolims = loldaset, color = 'red', marker = '*', label = "no privacy")
+plotline12a, caplines12a, barlinecols12a = ax12.errorbar(Tset, meanEstMSE[2], yerr = np.minimum(meanEstRange[2], np.sqrt(meanEstMSE[2]), np.divide(meanEstMSE[2], 2)),
+                                                         uplims = upTset, lolims = loTset, color = 'blueviolet', marker = 'o', label = "mean")
+plotline12b, caplines12b, barlinecols12b = ax12.errorbar(Tset, minEstMSE[2], yerr = np.minimum(minEstRange[2], np.sqrt(minEstMSE[2]), np.divide(minEstMSE[2], 2)),
+                                                         uplims = upTset, lolims = loTset, color = 'lime', marker = 'o', label = "min pair")
+plotline12c, caplines12c, barlinecols12c = ax12.errorbar(Tset, maxEstMSE[2], yerr = np.minimum(maxEstRange[2], np.sqrt(maxEstMSE[2]), np.divide(maxEstMSE[2], 2)),
+                                                         uplims = upTset, lolims = loTset, color = 'gold', marker = 'o', label = "max pair")
 caplines12a[0].set_marker('')
 caplines12b[0].set_marker('')
 caplines12c[0].set_marker('')
-caplines12d[0].set_marker('')
 handles12, labels12 = ax12.get_legend_handles_labels()
 handles12 = [h12[0] for h12 in handles12]
 ax12.legend(handles12, labels12, loc = 'best')
 ax12.set_yscale('log')
-ax12.set_ylim(2, 3000)
-ax12.set_xlabel("Value of " + "$\mathit{\u03bb}$")
+ax12.set_ylim(100, 4000)
+ax12.set_xlabel("Number of clients " + "$\mathit{n}$")
 ax12.set_ylabel("MSE of PRIEST-KLD")
-ax12.figure.savefig("Exp1_femnist_T_est_c_720.png")
+ax12.figure.savefig("Exp2_femnist_T_est_c.png")
 plt.close()
 
-# EXPERIMENT 2: MSE of PRIEST-KLD for each T
 fig, ax13 = plt.subplots(layout = 'constrained')
 plotline13a, caplines13a, barlinecols13a = ax13.errorbar(Tset, meanEstMSE[0], yerr = np.minimum(meanEstRange[0], np.sqrt(meanEstMSE[0]), np.divide(meanEstMSE[0], 2)),
-                                                         uplims = upTset, lolims = loTset, color = 'blueviolet', marker = 'o', label = "mean")
-plotline13b, caplines13b, barlinecols13b = ax13.errorbar(Tset, minEstMSE[0], yerr = np.minimum(minEstRange[0], np.sqrt(minEstMSE[0]), np.divide(minEstMSE[0], 2)),
-                                                         uplims = upTset, lolims = loTset, color = 'lime', marker = 'o', label = "min pair")
-plotline13c, caplines13c, barlinecols13c = ax13.errorbar(Tset, maxEstMSE[0], yerr = np.minimum(maxEstRange[0], np.sqrt(maxEstMSE[0]), np.divide(maxEstMSE[0], 2)),
-                                                         uplims = upTset, lolims = loTset, color = 'gold', marker = 'o', label = "max pair")
+                                                         uplims = upTset, lolims = loTset, color = 'blue', marker = 'o', label = "Dist")
+plotline13b, caplines13b, barlinecols13b = ax13.errorbar(Tset, meanEstMSE[1], yerr = np.minimum(meanEstRange[1], np.sqrt(meanEstMSE[1]), np.divide(meanEstMSE[1], 2)),
+                                                         uplims = upTset, lolims = loTset, color = 'green', marker = 'o', label = "TAgg")
+plotline13c, caplines13c, barlinecols13c = ax13.errorbar(Tset, meanEstMSE[2], yerr = np.minimum(meanEstRange[2], np.sqrt(meanEstMSE[2]), np.divide(meanEstMSE[2], 2)),
+                                                         uplims = upTset, lolims = loTset, color = 'orange', marker = 'o', label = "Trusted")
+plotline13d, caplines13d, barlinecols13d = ax13.errorbar(Tset, meanEstMSE[3], yerr = np.minimum(meanEstRange[3], np.sqrt(meanEstMSE[3]), np.divide(meanEstMSE[3], 2)),
+                                                         uplims = upTset, lolims = loTset, color = 'red', marker = '*', label = "no privacy")
 caplines13a[0].set_marker('')
 caplines13b[0].set_marker('')
 caplines13c[0].set_marker('')
+caplines13d[0].set_marker('')
 handles13, labels13 = ax13.get_legend_handles_labels()
 handles13 = [h13[0] for h13 in handles13]
 ax13.legend(handles13, labels13, loc = 'best')
 ax13.set_yscale('log')
-ax13.set_ylim(0.03, 100)
+ax13.set_ylim(0.05, 5000)
 ax13.set_xlabel("Number of clients " + "$\mathit{n}$")
 ax13.set_ylabel("MSE of PRIEST-KLD")
-ax13.figure.savefig("Exp2_femnist_T_est_a.png")
+ax13.figure.savefig("Exp2_femnist_T_est_d.png")
 plt.close()
 
 fig, ax14 = plt.subplots(layout = 'constrained')
-plotline14a, caplines14a, barlinecols14a = ax14.errorbar(Tset, meanEstMSE[1], yerr = np.minimum(meanEstRange[1], np.sqrt(meanEstMSE[1]), np.divide(meanEstMSE[1], 2)),
-                                                         uplims = upTset, lolims = loTset, color = 'blueviolet', marker = 'o', label = "mean")
+plotline14a, caplines14a, barlinecols14a = ax14.errorbar(Tset, minEstMSE[0], yerr = np.minimum(minEstRange[0], np.sqrt(minEstMSE[0]), np.divide(minEstMSE[0], 2)),
+                                                         uplims = upTset, lolims = loTset, color = 'blue', marker = 'o', label = "Dist")
 plotline14b, caplines14b, barlinecols14b = ax14.errorbar(Tset, minEstMSE[1], yerr = np.minimum(minEstRange[1], np.sqrt(minEstMSE[1]), np.divide(minEstMSE[1], 2)),
-                                                         uplims = upTset, lolims = loTset, color = 'lime', marker = 'o', label = "min pair")
-plotline14c, caplines14c, barlinecols14c = ax14.errorbar(Tset, maxEstMSE[1], yerr = np.minimum(maxEstRange[1], np.sqrt(maxEstMSE[1]), np.divide(maxEstMSE[1], 2)),
-                                                         uplims = upTset, lolims = loTset, color = 'gold', marker = 'o', label = "max pair")
+                                                         uplims = upTset, lolims = loTset, color = 'green', marker = 'o', label = "TAgg")
+plotline14c, caplines14c, barlinecols14c = ax14.errorbar(Tset, minEstMSE[2], yerr = np.minimum(minEstRange[2], np.sqrt(minEstMSE[2]), np.divide(minEstMSE[2], 2)),
+                                                         uplims = upTset, lolims = loTset, color = 'orange', marker = 'o', label = "Trusted")
+plotline14d, caplines14d, barlinecols14d = ax14.errorbar(Tset, minEstMSE[3], yerr = np.minimum(minEstRange[3], np.sqrt(minEstMSE[3]), np.divide(minEstMSE[3], 2)),
+                                                         uplims = upTset, lolims = loTset, color = 'red', marker = '*', label = "no privacy")
 caplines14a[0].set_marker('')
 caplines14b[0].set_marker('')
 caplines14c[0].set_marker('')
+caplines14d[0].set_marker('')
 handles14, labels14 = ax14.get_legend_handles_labels()
 handles14 = [h14[0] for h14 in handles14]
 ax14.legend(handles14, labels14, loc = 'best')
 ax14.set_yscale('log')
-ax14.set_ylim(0.1, 70)
+ax14.set_ylim(0.01, 4000)
 ax14.set_xlabel("Number of clients " + "$\mathit{n}$")
 ax14.set_ylabel("MSE of PRIEST-KLD")
-ax14.figure.savefig("Exp2_femnist_T_est_b.png")
+ax14.figure.savefig("Exp2_femnist_T_est_e.png")
 plt.close()
 
 fig, ax15 = plt.subplots(layout = 'constrained')
-plotline15a, caplines15a, barlinecols15a = ax15.errorbar(Tset, meanEstMSE[2], yerr = np.minimum(meanEstRange[2], np.sqrt(meanEstMSE[2]), np.divide(meanEstMSE[2], 2)),
-                                                         uplims = upTset, lolims = loTset, color = 'blueviolet', marker = 'o', label = "mean")
-plotline15b, caplines15b, barlinecols15b = ax15.errorbar(Tset, minEstMSE[2], yerr = np.minimum(minEstRange[2], np.sqrt(minEstMSE[2]), np.divide(minEstMSE[2], 2)),
-                                                         uplims = upTset, lolims = loTset, color = 'lime', marker = 'o', label = "min pair")
+plotline15a, caplines15a, barlinecols15a = ax15.errorbar(Tset, maxEstMSE[0], yerr = np.minimum(maxEstRange[0], np.sqrt(maxEstMSE[0]), np.divide(maxEstMSE[0], 2)),
+                                                         uplims = upTset, lolims = loTset, color = 'blue', marker = 'o', label = "Dist")
+plotline15b, caplines15b, barlinecols15b = ax15.errorbar(Tset, maxEstMSE[1], yerr = np.minimum(maxEstRange[1], np.sqrt(maxEstMSE[1]), np.divide(maxEstMSE[1], 2)),
+                                                         uplims = upTset, lolims = loTset, color = 'green', marker = 'o', label = "TAgg")
 plotline15c, caplines15c, barlinecols15c = ax15.errorbar(Tset, maxEstMSE[2], yerr = np.minimum(maxEstRange[2], np.sqrt(maxEstMSE[2]), np.divide(maxEstMSE[2], 2)),
-                                                         uplims = upTset, lolims = loTset, color = 'gold', marker = 'o', label = "max pair")
+                                                         uplims = upTset, lolims = loTset, color = 'orange', marker = 'o', label = "Trusted")
+plotline15d, caplines15d, barlinecols15d = ax15.errorbar(Tset, maxEstMSE[3], yerr = np.minimum(maxEstRange[3], np.sqrt(maxEstMSE[3]), np.divide(maxEstMSE[3], 2)),
+                                                         uplims = upTset, lolims = loTset, color = 'red', marker = '*', label = "no privacy")
 caplines15a[0].set_marker('')
 caplines15b[0].set_marker('')
 caplines15c[0].set_marker('')
+caplines15d[0].set_marker('')
 handles15, labels15 = ax15.get_legend_handles_labels()
 handles15 = [h15[0] for h15 in handles15]
 ax15.legend(handles15, labels15, loc = 'best')
 ax15.set_yscale('log')
-ax15.set_ylim(100, 4000)
 ax15.set_xlabel("Number of clients " + "$\mathit{n}$")
 ax15.set_ylabel("MSE of PRIEST-KLD")
-ax15.figure.savefig("Exp2_femnist_T_est_c.png")
+ax15.figure.savefig("Exp2_femnist_T_est_f.png")
 plt.close()
 
+# EXPERIMENT 3: % of noise vs ground truth for each T
 fig, ax16 = plt.subplots(layout = 'constrained')
-plotline16a, caplines16a, barlinecols16a = ax16.errorbar(Tset, meanEstMSE[0], yerr = np.minimum(meanEstRange[0], np.sqrt(meanEstMSE[0]), np.divide(meanEstMSE[0], 2)),
+plotline16a, caplines16a, barlinecols16a = ax16.errorbar(Tset, meanPerc[0], yerr = np.minimum(meanPercRange[0], np.sqrt(meanPerc[0]), np.divide(meanPerc[0], 2)),
                                                          uplims = upTset, lolims = loTset, color = 'blue', marker = 'o', label = "Dist")
-plotline16b, caplines16b, barlinecols16b = ax16.errorbar(Tset, meanEstMSE[1], yerr = np.minimum(meanEstRange[1], np.sqrt(meanEstMSE[1]), np.divide(meanEstMSE[1], 2)),
+plotline16b, caplines16b, barlinecols16b = ax16.errorbar(Tset, meanPerc[1], yerr = np.minimum(meanPercRange[1], np.sqrt(meanPerc[1]), np.divide(meanPerc[1], 2)),
                                                          uplims = upTset, lolims = loTset, color = 'green', marker = 'o', label = "TAgg")
-plotline16c, caplines16c, barlinecols16c = ax16.errorbar(Tset, meanEstMSE[2], yerr = np.minimum(meanEstRange[2], np.sqrt(meanEstMSE[2]), np.divide(meanEstMSE[2], 2)),
+plotline16c, caplines16c, barlinecols16c = ax16.errorbar(Tset, meanPerc[2], yerr = np.minimum(meanPercRange[2], np.sqrt(meanPerc[2]), np.divide(meanPerc[2], 2)),
                                                          uplims = upTset, lolims = loTset, color = 'orange', marker = 'o', label = "Trusted")
-plotline16d, caplines16d, barlinecols16d = ax16.errorbar(Tset, meanEstMSE[3], yerr = np.minimum(meanEstRange[3], np.sqrt(meanEstMSE[3]), np.divide(meanEstMSE[3], 2)),
+plotline16d, caplines16d, barlinecols16d = ax16.errorbar(Tset, meanPerc[3], yerr = np.minimum(meanPercRange[3], np.sqrt(meanPerc[3]), np.divide(meanPerc[3], 2)),
                                                          uplims = upTset, lolims = loTset, color = 'red', marker = '*', label = "no privacy")
 caplines16a[0].set_marker('')
 caplines16b[0].set_marker('')
@@ -878,20 +947,22 @@ handles16, labels16 = ax16.get_legend_handles_labels()
 handles16 = [h16[0] for h16 in handles16]
 ax16.legend(handles16, labels16, loc = 'best')
 ax16.set_yscale('log')
-ax16.set_ylim(0.05, 5000)
+ax16.set_yticks([100, 1000])
+ax16.set_ylim(60, 1000)
+ax16.yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
 ax16.set_xlabel("Number of clients " + "$\mathit{n}$")
-ax16.set_ylabel("MSE of PRIEST-KLD")
-ax16.figure.savefig("Exp2_femnist_T_est_d.png")
+ax16.set_ylabel("Noise (%)")
+ax16.figure.savefig("Exp3_femnist_T_perc_a.png")
 plt.close()
 
 fig, ax17 = plt.subplots(layout = 'constrained')
-plotline17a, caplines17a, barlinecols17a = ax17.errorbar(Tset, minEstMSE[0], yerr = np.minimum(minEstRange[0], np.sqrt(minEstMSE[0]), np.divide(minEstMSE[0], 2)),
+plotline17a, caplines17a, barlinecols17a = ax17.errorbar(Tset, minPerc[0], yerr = np.minimum(minPercRange[0], np.sqrt(minPerc[0]), np.divide(minPerc[0], 2)),
                                                          uplims = upTset, lolims = loTset, color = 'blue', marker = 'o', label = "Dist")
-plotline17b, caplines17b, barlinecols17b = ax17.errorbar(Tset, minEstMSE[1], yerr = np.minimum(minEstRange[1], np.sqrt(minEstMSE[1]), np.divide(minEstMSE[1], 2)),
+plotline17b, caplines17b, barlinecols17b = ax17.errorbar(Tset, minPerc[1], yerr = np.minimum(minPercRange[1], np.sqrt(minPerc[1]), np.divide(minPerc[1], 2)),
                                                          uplims = upTset, lolims = loTset, color = 'green', marker = 'o', label = "TAgg")
-plotline17c, caplines17c, barlinecols17c = ax17.errorbar(Tset, minEstMSE[2], yerr = np.minimum(minEstRange[2], np.sqrt(minEstMSE[2]), np.divide(minEstMSE[2], 2)),
+plotline17c, caplines17c, barlinecols17c = ax17.errorbar(Tset, minPerc[2], yerr = np.minimum(minPercRange[2], np.sqrt(minPerc[2]), np.divide(minPerc[2], 2)),
                                                          uplims = upTset, lolims = loTset, color = 'orange', marker = 'o', label = "Trusted")
-plotline17d, caplines17d, barlinecols17d = ax17.errorbar(Tset, minEstMSE[3], yerr = np.minimum(minEstRange[3], np.sqrt(minEstMSE[3]), np.divide(minEstMSE[3], 2)),
+plotline17d, caplines17d, barlinecols17d = ax17.errorbar(Tset, minPerc[3], yerr = np.minimum(minPercRange[3], np.sqrt(minPerc[3]), np.divide(minPerc[3], 2)),
                                                          uplims = upTset, lolims = loTset, color = 'red', marker = '*', label = "no privacy")
 caplines17a[0].set_marker('')
 caplines17b[0].set_marker('')
@@ -901,20 +972,22 @@ handles17, labels17 = ax17.get_legend_handles_labels()
 handles17 = [h17[0] for h17 in handles17]
 ax17.legend(handles17, labels17, loc = 'best')
 ax17.set_yscale('log')
-ax17.set_ylim(0.01, 4000)
+ax17.set_yticks([100, 200])
+ax17.set_ylim(70, 350)
+ax17.yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
 ax17.set_xlabel("Number of clients " + "$\mathit{n}$")
-ax17.set_ylabel("MSE of PRIEST-KLD")
-ax17.figure.savefig("Exp2_femnist_T_est_e.png")
+ax17.set_ylabel("Noise (%)")
+ax17.figure.savefig("Exp3_femnist_T_perc_b.png")
 plt.close()
 
 fig, ax18 = plt.subplots(layout = 'constrained')
-plotline18a, caplines18a, barlinecols18a = ax18.errorbar(Tset, maxEstMSE[0], yerr = np.minimum(maxEstRange[0], np.sqrt(maxEstMSE[0]), np.divide(maxEstMSE[0], 2)),
+plotline18a, caplines18a, barlinecols18a = ax18.errorbar(Tset, maxPerc[0], yerr = np.minimum(maxPercRange[0], np.sqrt(maxPerc[0]), np.divide(maxPerc[0], 2)),
                                                          uplims = upTset, lolims = loTset, color = 'blue', marker = 'o', label = "Dist")
-plotline18b, caplines18b, barlinecols18b = ax18.errorbar(Tset, maxEstMSE[1], yerr = np.minimum(maxEstRange[1], np.sqrt(maxEstMSE[1]), np.divide(maxEstMSE[1], 2)),
+plotline18b, caplines18b, barlinecols18b = ax18.errorbar(Tset, maxPerc[1], yerr = np.minimum(maxPercRange[1], np.sqrt(maxPerc[1]), np.divide(maxPerc[1], 2)),
                                                          uplims = upTset, lolims = loTset, color = 'green', marker = 'o', label = "TAgg")
-plotline18c, caplines18c, barlinecols18c = ax18.errorbar(Tset, maxEstMSE[2], yerr = np.minimum(maxEstRange[2], np.sqrt(maxEstMSE[2]), np.divide(maxEstMSE[2], 2)),
+plotline18c, caplines18c, barlinecols18c = ax18.errorbar(Tset, maxPerc[2], yerr = np.minimum(maxPercRange[2], np.sqrt(maxPerc[2]), np.divide(maxPerc[2], 2)),
                                                          uplims = upTset, lolims = loTset, color = 'orange', marker = 'o', label = "Trusted")
-plotline18d, caplines18d, barlinecols18d = ax18.errorbar(Tset, maxEstMSE[3], yerr = np.minimum(maxEstRange[3], np.sqrt(maxEstMSE[3]), np.divide(maxEstMSE[3], 2)),
+plotline18d, caplines18d, barlinecols18d = ax18.errorbar(Tset, maxPerc[3], yerr = np.minimum(maxPercRange[3], np.sqrt(maxPerc[3]), np.divide(maxPerc[3], 2)),
                                                          uplims = upTset, lolims = loTset, color = 'red', marker = '*', label = "no privacy")
 caplines18a[0].set_marker('')
 caplines18b[0].set_marker('')
@@ -924,85 +997,12 @@ handles18, labels18 = ax18.get_legend_handles_labels()
 handles18 = [h18[0] for h18 in handles18]
 ax18.legend(handles18, labels18, loc = 'best')
 ax18.set_yscale('log')
+ax18.set_yticks([10, 100, 1000])
+ax18.set_ylim(10, 5000)
+ax18.yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
 ax18.set_xlabel("Number of clients " + "$\mathit{n}$")
-ax18.set_ylabel("MSE of PRIEST-KLD")
-ax18.figure.savefig("Exp2_femnist_T_est_f.png")
-plt.close()
-
-# EXPERIMENT 3: % of noise vs ground truth for each T
-fig, ax19 = plt.subplots(layout = 'constrained')
-plotline19a, caplines19a, barlinecols19a = ax19.errorbar(Tset, meanPerc[0], yerr = np.minimum(meanPercRange[0], np.sqrt(meanPerc[0]), np.divide(meanPerc[0], 2)),
-                                                         uplims = upTset, lolims = loTset, color = 'blue', marker = 'o', label = "Dist")
-plotline19b, caplines19b, barlinecols19b = ax19.errorbar(Tset, meanPerc[1], yerr = np.minimum(meanPercRange[1], np.sqrt(meanPerc[1]), np.divide(meanPerc[1], 2)),
-                                                         uplims = upTset, lolims = loTset, color = 'green', marker = 'o', label = "TAgg")
-plotline19c, caplines19c, barlinecols19c = ax19.errorbar(Tset, meanPerc[2], yerr = np.minimum(meanPercRange[2], np.sqrt(meanPerc[2]), np.divide(meanPerc[2], 2)),
-                                                         uplims = upTset, lolims = loTset, color = 'orange', marker = 'o', label = "Trusted")
-plotline19d, caplines19d, barlinecols19d = ax19.errorbar(Tset, meanPerc[3], yerr = np.minimum(meanPercRange[3], np.sqrt(meanPerc[3]), np.divide(meanPerc[3], 2)),
-                                                         uplims = upTset, lolims = loTset, color = 'red', marker = '*', label = "no privacy")
-caplines19a[0].set_marker('')
-caplines19b[0].set_marker('')
-caplines19c[0].set_marker('')
-caplines19d[0].set_marker('')
-handles19, labels19 = ax19.get_legend_handles_labels()
-handles19 = [h19[0] for h19 in handles19]
-ax19.legend(handles19, labels19, loc = 'best')
-ax19.set_yscale('log')
-ax19.set_yticks([100, 1000])
-ax19.set_ylim(60, 1000)
-ax19.yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
-ax19.set_xlabel("Number of clients " + "$\mathit{n}$")
-ax19.set_ylabel("Noise (%)")
-ax19.figure.savefig("Exp3_femnist_T_perc_a.png")
-plt.close()
-
-fig, ax20 = plt.subplots(layout = 'constrained')
-plotline20a, caplines20a, barlinecols20a = ax20.errorbar(Tset, minPerc[0], yerr = np.minimum(minPercRange[0], np.sqrt(minPerc[0]), np.divide(minPerc[0], 2)),
-                                                         uplims = upTset, lolims = loTset, color = 'blue', marker = 'o', label = "Dist")
-plotline20b, caplines20b, barlinecols20b = ax20.errorbar(Tset, minPerc[1], yerr = np.minimum(minPercRange[1], np.sqrt(minPerc[1]), np.divide(minPerc[1], 2)),
-                                                         uplims = upTset, lolims = loTset, color = 'green', marker = 'o', label = "TAgg")
-plotline20c, caplines20c, barlinecols20c = ax20.errorbar(Tset, minPerc[2], yerr = np.minimum(minPercRange[2], np.sqrt(minPerc[2]), np.divide(minPerc[2], 2)),
-                                                         uplims = upTset, lolims = loTset, color = 'orange', marker = 'o', label = "Trusted")
-plotline20d, caplines20d, barlinecols20d = ax20.errorbar(Tset, minPerc[3], yerr = np.minimum(minPercRange[3], np.sqrt(minPerc[3]), np.divide(minPerc[3], 2)),
-                                                         uplims = upTset, lolims = loTset, color = 'red', marker = '*', label = "no privacy")
-caplines20a[0].set_marker('')
-caplines20b[0].set_marker('')
-caplines20c[0].set_marker('')
-caplines20d[0].set_marker('')
-handles20, labels20 = ax20.get_legend_handles_labels()
-handles20 = [h20[0] for h20 in handles20]
-ax20.legend(handles20, labels20, loc = 'best')
-ax20.set_yscale('log')
-ax20.set_yticks([100, 200])
-ax20.set_ylim(70, 350)
-ax20.yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
-ax20.set_xlabel("Number of clients " + "$\mathit{n}$")
-ax20.set_ylabel("Noise (%)")
-ax20.figure.savefig("Exp3_femnist_T_perc_b.png")
-plt.close()
-
-fig, ax21 = plt.subplots(layout = 'constrained')
-plotline21a, caplines21a, barlinecols21a = ax21.errorbar(Tset, maxPerc[0], yerr = np.minimum(maxPercRange[0], np.sqrt(maxPerc[0]), np.divide(maxPerc[0], 2)),
-                                                         uplims = upTset, lolims = loTset, color = 'blue', marker = 'o', label = "Dist")
-plotline21b, caplines21b, barlinecols21b = ax21.errorbar(Tset, maxPerc[1], yerr = np.minimum(maxPercRange[1], np.sqrt(maxPerc[1]), np.divide(maxPerc[1], 2)),
-                                                         uplims = upTset, lolims = loTset, color = 'green', marker = 'o', label = "TAgg")
-plotline21c, caplines21c, barlinecols21c = ax21.errorbar(Tset, maxPerc[2], yerr = np.minimum(maxPercRange[2], np.sqrt(maxPerc[2]), np.divide(maxPerc[2], 2)),
-                                                         uplims = upTset, lolims = loTset, color = 'orange', marker = 'o', label = "Trusted")
-plotline21d, caplines21d, barlinecols21d = ax21.errorbar(Tset, maxPerc[3], yerr = np.minimum(maxPercRange[3], np.sqrt(maxPerc[3]), np.divide(maxPerc[3], 2)),
-                                                         uplims = upTset, lolims = loTset, color = 'red', marker = '*', label = "no privacy")
-caplines21a[0].set_marker('')
-caplines21b[0].set_marker('')
-caplines21c[0].set_marker('')
-caplines21d[0].set_marker('')
-handles21, labels21 = ax21.get_legend_handles_labels()
-handles21 = [h21[0] for h21 in handles21]
-ax21.legend(handles21, labels21, loc = 'best')
-ax21.set_yscale('log')
-ax21.set_yticks([10, 100, 1000])
-ax21.set_ylim(10, 5000)
-ax21.yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
-ax21.set_xlabel("Number of clients " + "$\mathit{n}$")
-ax21.set_ylabel("Noise (%)")
-ax21.figure.savefig("Exp3_femnist_T_perc_c.png")
+ax18.set_ylabel("Noise (%)")
+ax18.figure.savefig("Exp3_femnist_T_perc_c.png")
 plt.close()
 
 # compute total runtime
