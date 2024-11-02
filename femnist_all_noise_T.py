@@ -86,7 +86,7 @@ maxTLargeRange = np.zeros((TS, LS))
 ALPHA = 0.01 # smoothing parameter
 E = 17 # size of subset for k3 estimator
 EPS = 0.5
-DTA = 0.05
+DTA = 0.01
 A = 0 # parameter for addition of noise
 R1 = 90
 RS = 10
@@ -901,7 +901,7 @@ handles14, labels14 = ax14.get_legend_handles_labels()
 handles14 = [h14[0] for h14 in handles14]
 ax14.legend(handles14, labels14, loc = 'center left')
 ax14.set_yscale('log')
-ax14.set_ylim(0.025, 40000)
+ax14.set_ylim(0.03, 50000)
 ax14.set_xlabel("Number of clients " + "$\mathit{n}$")
 ax14.set_ylabel("MSE of PRIEST-KLD")
 ax14.figure.savefig("Exp2_femnist_T_est_e.png")
