@@ -1,12 +1,12 @@
-# Privacy-Preserving Estimation of KL Divergence of High-Dimensional Distributions: Experimental Evaluation
+# Distributed, communication-efficient, and differentially private estimation of KL divergence: Experimental evaluation
 
-This repository contains all the supporting files for the **experimental section** of the paper **_Privacy-Preserving Estimation of KL Divergence of High-Dimensional Distributions_**, including all the Python files necessary for anyone to repeat all of the experiments given as evidence for the results in the paper.
+This repository contains all the supporting files for the **experimental section** of the paper **_Distributed, communication-efficient, and differentially private estimation of KL divergence_**, including all the Python files necessary for anyone to repeat all of the experiments given as evidence for the results in the paper.
 
 ## Environment
 
 - Install the [**latest version of Python 3**](https://www.python.org/downloads/), and install the additional packages **h5py, matplotlib, numpy and tensorflow** using **PIP**.
 - Download the Python files **group_by_writer.py**, **converter.py** and **femnist_test.py**, for preprocessing purposes.
-- Download the Python files **femnist_all_noise_eps.py** and/or **femnist_all_noise_T.py**, if interested in the experiments involving the privacy parameter $\varepsilon$ and/or the number of clients $T$.
+- Download the Python files **femnist_all_noise_eps.py** and/or **femnist_all_noise_Ct_eps_low.py** and/or **femnist_all_noise_Ct_eps_mid.py**, if interested in the experiments involving the privacy parameter $\varepsilon$ and/or the client sample size $|C_t|$.
 - Download the ZIP folder **by_class.zip** (~1GB) from the [**National Institute of Standards and Technology**](https://s3.amazonaws.com/nist-srd/SD19/by_class.zip).
 - Unzip this folder using unzipping software for large folders, e.g. [**7-Zip File Manager**](https://7-zip.org/download.html).
 - **Create a new folder named "data"** in the same folder as the Python files, and **place the unzipped by_class folder in this new "data" folder**.
@@ -20,10 +20,10 @@ This repository contains all the supporting files for the **experimental section
 
 ## Experiments
 
-- If all outputs of **femnist_test.py** are as expected, open and run **femnist_all_noise_eps.py** or **femnist_all_noise_T.py**. There will be various text updates appearing in the terminal, indicating which experiment is being run.
+- If all outputs of **femnist_test.py** are as expected, open and run **femnist_all_noise_eps.py** or **femnist_all_noise_Ct_eps_low.py** or **femnist_all_noise_Ct_eps_high.py**. There will be various text updates appearing in the terminal, indicating which experiment is being run.
 - When the final text update indicating the runtime appears, the experiments have finished and the final plots have been saved in the same folder as the Python files. This should happen after approximately **6-12 hours**, depending on the computer or laptop used. 
-- These final plots should be **exactly the graphs found in the experimental section** of **_Privacy-Preserving Estimation of KL Divergence of High-Dimensional Distributions_** featuring the privacy parameter $\varepsilon$ or the number of clients $T$ respectively.
-- Repeat all steps in the **Experiments** section with the other Python file, if interested in the experiments featuring the other parameter.
+- These final plots should be **exactly the graphs found in the experimental section** of **_Distributed, communication-efficient, and differentially private estimation of KL divergence_** featuring the privacy parameter $\varepsilon$ and/or the client sample size $|C_t|$ respectively.
+- Repeat all steps in the **Experiments** section with the another Python file, if interested in the experiments featuring other parameters.
 
 ## Authors
 
