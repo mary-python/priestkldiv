@@ -3,7 +3,6 @@ create static, animated, and interactive visualisations, provide both a high- an
 to the HDF5 library, work with arrays, and carry out fast numerical computations in Python."""
 import time
 from math import log
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 import h5py
 import numpy as np
@@ -30,7 +29,7 @@ writers = sorted(file.keys())
 numWriters = len(writers)
 
 # investigate samples from approx 1% to approx 20% of writers
-Ctset = [36, 72, 108, 144, 180, 225, 270, 315, 360, 420, 480, 540, 600, 660]
+Ctset = [36, 72, 108, 144, 180, 225, 270, 315, 360, 420, 480, 540, 600, 660, 720]
 ES = len(Ctset)
 
 # list of the lambdas and trials that will be explored
@@ -87,7 +86,7 @@ T = 10
 SEED_FREQ = 0
 SMALL_INDEX = 0
 MID_INDEX = 6
-LARGE_INDEX = 13
+LARGE_INDEX = 14
 
 for trial in range(4):
 
@@ -419,13 +418,13 @@ for trial in range(4):
                     tempMinTSmall[l, rep] = minLda[l]
                     tempMaxTSmall[l, rep] = maxLda[l]
 
-                # Ct = 270 (~7% of clients, mid)
+                # Ct = 270 (~7.5% of clients, mid)
                 if Ct_FREQ == MID_INDEX:
                     tempMeanTMid[l, rep] = meanLda[l]
                     tempMinTMid[l, rep] = minLda[l]
                     tempMaxTMid[l, rep] = maxLda[l]
 
-                # Ct = 660 (~20% of clients, large)
+                # Ct = 720 (~20% of clients, large)
                 if Ct_FREQ == LARGE_INDEX:
                     tempMeanTLarge[l, rep] = meanLda[l]
                     tempMinTLarge[l, rep] = minLda[l]
@@ -473,7 +472,7 @@ for trial in range(4):
                         tempMinTMid[l, rep] = (tempMinTMid[l, rep] + minMidNoise - tempMinValue[rep])**2
                         tempMaxTMid[l, rep] = (tempMaxTMid[l, rep] + maxMidNoise - tempMaxValue[rep])**2
 
-                    # Ct = 660 (large)
+                    # Ct = 720 (large)
                     if Ct_FREQ == LARGE_INDEX:
                         meanLargeNoise = lapNoise.sample(sample_shape = (1,))
                         minLargeNoise = lapNoise.sample(sample_shape = (1,))
@@ -502,7 +501,7 @@ for trial in range(4):
                         tempMinTMid[l, rep] = (tempMinTMid[l, rep] - tempMinValue[rep])**2
                         tempMaxTMid[l, rep] = (tempMaxTMid[l, rep] - tempMaxValue[rep])**2
 
-                    # Ct = 660 (large)
+                    # Ct = 720 (large)
                     if Ct_FREQ == LARGE_INDEX:
                         tempMeanTLarge[l, rep] = (tempMeanTLarge[l, rep] - tempMeanValue[rep])**2
                         tempMinTLarge[l, rep] = (tempMinTLarge[l, rep] - tempMinValue[rep])**2
@@ -559,7 +558,7 @@ loldaset = np.ones(LS, dtype = bool)
 upTset = np.zeros(ES, dtype = bool)
 loTset = np.ones(ES, dtype = bool)
 
-# EXPERIMENT 1: MSE of PRIEST-KLD for fixed Ct (36, 270, 660)
+# EXPERIMENT 1: MSE of PRIEST-KLD for fixed Ct (36, 270, 720)
 fig, ax1 = plt.subplots(layout = 'constrained')
 plotline1a, caplines1a, barlinecols1a = ax1.errorbar(ldaset, meanTSmall[0], yerr = np.minimum(meanTSmallRange[0], np.sqrt(meanTSmall[0]), np.divide(meanTSmall[0], 2)),
                                                      uplims = upldaset, lolims = loldaset, color = 'blue', marker = 'o', label = "Dist")
@@ -577,7 +576,7 @@ handles1, labels1 = ax1.get_legend_handles_labels()
 handles1 = [h1[0] for h1 in handles1]
 ax1.legend(handles1, labels1, loc = 'lower right')
 ax1.set_yscale('log')
-ax1.set_ylim(0.03, 100)
+ax1.set_ylim(0.07, 70)
 ax1.set_xlabel("Value of " + "$\mathit{\u03bb}$")
 ax1.set_ylabel("MSE of PRIEST-KLD")
 ax1.figure.savefig("Eps_mid_exp1_femnist_Ct_est_a_36.png")
@@ -623,10 +622,10 @@ handles3, labels3 = ax3.get_legend_handles_labels()
 handles3 = [h3[0] for h3 in handles3]
 ax3.legend(handles3, labels3, loc = 'lower right')
 ax3.set_yscale('log')
-ax3.set_ylim(0.01, 100)
+ax3.set_ylim(0.01, 300)
 ax3.set_xlabel("Value of " + "$\mathit{\u03bb}$")
 ax3.set_ylabel("MSE of PRIEST-KLD")
-ax3.figure.savefig("Eps_mid_exp1_femnist_Ct_est_a_660.png")
+ax3.figure.savefig("Eps_mid_exp1_femnist_Ct_est_a_720.png")
 plt.close()
 
 fig, ax4 = plt.subplots(layout = 'constrained')
@@ -644,9 +643,9 @@ caplines4c[0].set_marker('')
 caplines4d[0].set_marker('')
 handles4, labels4 = ax4.get_legend_handles_labels()
 handles4 = [h4[0] for h4 in handles4]
-ax4.legend(handles4, labels4, loc = 'best')
+ax4.legend(handles4, labels4, loc = 'lower right')
 ax4.set_yscale('log')
-ax4.set_ylim(0.01, 100)
+ax4.set_ylim(0.05, 500)
 ax4.set_xlabel("Value of " + "$\mathit{\u03bb}$")
 ax4.set_ylabel("MSE of PRIEST-KLD")
 ax4.figure.savefig("Eps_mid_exp1_femnist_Ct_est_b_36.png")
@@ -669,7 +668,7 @@ handles5, labels5 = ax5.get_legend_handles_labels()
 handles5 = [h5[0] for h5 in handles5]
 ax5.legend(handles5, labels5, loc = 'lower right')
 ax5.set_yscale('log')
-ax5.set_ylim(0.01, 500)
+ax5.set_ylim(0.01, 300)
 ax5.set_xlabel("Value of " + "$\mathit{\u03bb}$")
 ax5.set_ylabel("MSE of PRIEST-KLD")
 ax5.figure.savefig("Eps_mid_exp1_femnist_Ct_est_b_270.png")
@@ -690,12 +689,12 @@ caplines6c[0].set_marker('')
 caplines6d[0].set_marker('')
 handles6, labels6 = ax6.get_legend_handles_labels()
 handles6 = [h6[0] for h6 in handles6]
-ax6.legend(handles6, labels6, loc = 'center right')
+ax6.legend(handles6, labels6, loc = 'lower right')
 ax6.set_yscale('log')
-ax6.set_ylim(0.1, 8000)
+ax6.set_ylim(0.1, 4000)
 ax6.set_xlabel("Value of " + "$\mathit{\u03bb}$")
 ax6.set_ylabel("MSE of PRIEST-KLD")
-ax6.figure.savefig("Eps_mid_exp1_femnist_Ct_est_b_660.png")
+ax6.figure.savefig("Eps_mid_exp1_femnist_Ct_est_b_720.png")
 plt.close()
 
 fig, ax7 = plt.subplots(layout = 'constrained')
@@ -713,9 +712,9 @@ caplines7c[0].set_marker('')
 caplines7d[0].set_marker('')
 handles7, labels7 = ax7.get_legend_handles_labels()
 handles7 = [h7[0] for h7 in handles7]
-ax7.legend(handles7, labels7, loc = 'best')
+ax7.legend(handles7, labels7, loc = 'upper left')
 ax7.set_yscale('log')
-ax7.set_ylim(1, 1000)
+ax7.set_ylim(2, 500)
 ax7.set_xlabel("Value of " + "$\mathit{\u03bb}$")
 ax7.set_ylabel("MSE of PRIEST-KLD")
 ax7.figure.savefig("Eps_mid_exp1_femnist_Ct_est_c_36.png")
@@ -738,7 +737,7 @@ handles8, labels8 = ax8.get_legend_handles_labels()
 handles8 = [h8[0] for h8 in handles8]
 ax8.legend(handles8, labels8, loc = 'best')
 ax8.set_yscale('log')
-ax8.set_ylim(1, 1000)
+ax8.set_ylim(2, 400)
 ax8.set_xlabel("Value of " + "$\mathit{\u03bb}$")
 ax8.set_ylabel("MSE of PRIEST-KLD")
 ax8.figure.savefig("Eps_mid_exp1_femnist_Ct_est_c_270.png")
@@ -759,18 +758,18 @@ caplines9c[0].set_marker('')
 caplines9d[0].set_marker('')
 handles9, labels9 = ax9.get_legend_handles_labels()
 handles9 = [h9[0] for h9 in handles9]
-ax9.legend(handles9, labels9, loc = 'best')
+ax9.legend(handles9, labels9, loc = 'upper left')
 ax9.set_yscale('log')
-ax9.set_ylim(1, 5000)
+ax9.set_ylim(2, 800)
 ax9.set_xlabel("Value of " + "$\mathit{\u03bb}$")
 ax9.set_ylabel("MSE of PRIEST-KLD")
-ax9.figure.savefig("Eps_mid_exp1_femnist_Ct_est_c_660.png")
+ax9.figure.savefig("Eps_mid_exp1_femnist_Ct_est_c_720.png")
 plt.close()
 
 # EXPERIMENT 2: MSE of PRIEST-KLD for each Ct
 fig, ax10 = plt.subplots(layout = 'constrained')
 plotline10a, caplines10a, barlinecols10a = ax10.errorbar(Ctset, meanEstMSE[0], yerr = np.minimum(meanEstRange[0], np.sqrt(meanEstMSE[0]), np.divide(meanEstMSE[0], 2)),
-                                                         uplims = upTset, lolims = loTset, color = 'magenta', marker = 'o', label = "mean")
+                                                         uplims = upTset, lolims = loTset, color = 'fuchsia', marker = 'o', label = "mean")
 plotline10b, caplines10b, barlinecols10b = ax10.errorbar(Ctset, minEstMSE[0], yerr = np.minimum(minEstRange[0], np.sqrt(minEstMSE[0]), np.divide(minEstMSE[0], 2)),
                                                          uplims = upTset, lolims = loTset, color = 'mediumorchid', marker = 'o', label = "min pair")
 plotline10c, caplines10c, barlinecols10c = ax10.errorbar(Ctset, maxEstMSE[0], yerr = np.minimum(maxEstRange[0], np.sqrt(maxEstMSE[0]), np.divide(maxEstMSE[0], 2)),
@@ -790,7 +789,7 @@ plt.close()
 
 fig, ax11 = plt.subplots(layout = 'constrained')
 plotline11a, caplines11a, barlinecols11a = ax11.errorbar(Ctset, meanEstMSE[1], yerr = np.minimum(meanEstRange[1], np.sqrt(meanEstMSE[1]), np.divide(meanEstMSE[1], 2)),
-                                                         uplims = upTset, lolims = loTset, color = 'magenta', marker = 'o', label = "mean")
+                                                         uplims = upTset, lolims = loTset, color = 'fuchsia', marker = 'o', label = "mean")
 plotline11b, caplines11b, barlinecols11b = ax11.errorbar(Ctset, minEstMSE[1], yerr = np.minimum(minEstRange[1], np.sqrt(minEstMSE[1]), np.divide(minEstMSE[1], 2)),
                                                          uplims = upTset, lolims = loTset, color = 'mediumorchid', marker = 'o', label = "min pair")
 plotline11c, caplines11c, barlinecols11c = ax11.errorbar(Ctset, maxEstMSE[1], yerr = np.minimum(maxEstRange[1], np.sqrt(maxEstMSE[1]), np.divide(maxEstMSE[1], 2)),
@@ -810,7 +809,7 @@ plt.close()
 
 fig, ax12 = plt.subplots(layout = 'constrained')
 plotline12a, caplines12a, barlinecols12a = ax12.errorbar(Ctset, meanEstMSE[2], yerr = np.minimum(meanEstRange[2], np.sqrt(meanEstMSE[2]), np.divide(meanEstMSE[2], 2)),
-                                                         uplims = upTset, lolims = loTset, color = 'magenta', marker = 'o', label = "mean")
+                                                         uplims = upTset, lolims = loTset, color = 'fuchsia', marker = 'o', label = "mean")
 plotline12b, caplines12b, barlinecols12b = ax12.errorbar(Ctset, minEstMSE[2], yerr = np.minimum(minEstRange[2], np.sqrt(minEstMSE[2]), np.divide(minEstMSE[2], 2)),
                                                          uplims = upTset, lolims = loTset, color = 'mediumorchid', marker = 'o', label = "min pair")
 plotline12c, caplines12c, barlinecols12c = ax12.errorbar(Ctset, maxEstMSE[2], yerr = np.minimum(maxEstRange[2], np.sqrt(maxEstMSE[2]), np.divide(maxEstMSE[2], 2)),
@@ -820,9 +819,9 @@ caplines12b[0].set_marker('')
 caplines12c[0].set_marker('')
 handles12, labels12 = ax12.get_legend_handles_labels()
 handles12 = [h12[0] for h12 in handles12]
-ax12.legend(handles12, labels12, loc = 'best')
+ax12.legend(handles12, labels12, loc = 'lower right')
 ax12.set_yscale('log')
-ax12.set_ylim(0.01, 200)
+ax12.set_ylim(1, 100)
 ax12.set_xlabel("Client sample size " + "$\mathit{|C_{t}|}$")
 ax12.set_ylabel("MSE of PRIEST-KLD")
 ax12.figure.savefig("Eps_mid_exp2_femnist_Ct_est_c.png")
@@ -891,7 +890,7 @@ handles15, labels15 = ax15.get_legend_handles_labels()
 handles15 = [h15[0] for h15 in handles15]
 ax15.legend(handles15, labels15, loc = 'best')
 ax15.set_yscale('log')
-ax15.set_ylim(1, 500)
+ax15.set_ylim(2, 300)
 ax15.set_xlabel("Client sample size " + "$\mathit{|C_{t}|}$")
 ax15.set_ylabel("MSE of PRIEST-KLD")
 ax15.figure.savefig("Eps_mid_exp2_femnist_Ct_est_f.png")

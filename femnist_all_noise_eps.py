@@ -823,11 +823,11 @@ plt.close()
 # EXPERIMENT 2: MSE of PRIEST-KLD for each epsilon
 fig, ax10 = plt.subplots(layout = 'constrained')
 plotline10a, caplines10a, barlinecols10a = ax10.errorbar(epsset, meanEstMSE[0], yerr = np.minimum(meanEstRange[0], np.sqrt(meanEstMSE[0]), np.divide(meanEstMSE[0], 2)),
-                                                         uplims = upepsset, lolims = loepsset, color = 'blueviolet', marker = 'o', label = "mean")
+                                                         uplims = upepsset, lolims = loepsset, color = 'fuchsia', marker = 'o', label = "mean")
 plotline10b, caplines10b, barlinecols10b = ax10.errorbar(epsset, minEstMSE[0], yerr = np.minimum(minEstRange[0], np.sqrt(minEstMSE[0]), np.divide(minEstMSE[0], 2)),
-                                                         uplims = upepsset, lolims = loepsset, color = 'lime', marker = 'o', label = "min pair")
+                                                         uplims = upepsset, lolims = loepsset, color = 'mediumorchid', marker = 'o', label = "min pair")
 plotline10c, caplines10c, barlinecols10c = ax10.errorbar(epsset, maxEstMSE[0], yerr = np.minimum(maxEstRange[0], np.sqrt(maxEstMSE[0]), np.divide(maxEstMSE[0], 2)),
-                                                         uplims = upepsset, lolims = loepsset, color = 'gold', marker = 'o', label = "max pair")
+                                                         uplims = upepsset, lolims = loepsset, color = 'darkcyan', marker = 'o', label = "max pair")
 caplines10a[0].set_marker('')
 caplines10b[0].set_marker('')
 caplines10c[0].set_marker('')
@@ -843,11 +843,11 @@ plt.close()
 
 fig, ax11 = plt.subplots(layout = 'constrained')
 plotline11a, caplines11a, barlinecols11a = ax11.errorbar(epsset, meanEstMSE[1], yerr = np.minimum(meanEstRange[1], np.sqrt(meanEstMSE[1]), np.divide(meanEstMSE[1], 2)),
-                                                         uplims = upepsset, lolims = loepsset, color = 'blueviolet', marker = 'o', label = "mean")
+                                                         uplims = upepsset, lolims = loepsset, color = 'fuchsia', marker = 'o', label = "mean")
 plotline11b, caplines11b, barlinecols11b = ax11.errorbar(epsset, minEstMSE[1], yerr = np.minimum(minEstRange[1], np.sqrt(minEstMSE[1]), np.divide(minEstMSE[1], 2)),
-                                                         uplims = upepsset, lolims = loepsset, color = 'lime', marker = 'o', label = "min pair")
+                                                         uplims = upepsset, lolims = loepsset, color = 'mediumorchid', marker = 'o', label = "min pair")
 plotline11c, caplines11c, barlinecols11c = ax11.errorbar(epsset, maxEstMSE[1], yerr = np.minimum(maxEstRange[1], np.sqrt(maxEstMSE[1]), np.divide(maxEstMSE[1], 2)),
-                                                         uplims = upepsset, lolims = loepsset, color = 'gold', marker = 'o', label = "max pair")
+                                                         uplims = upepsset, lolims = loepsset, color = 'darkcyan', marker = 'o', label = "max pair")
 caplines11a[0].set_marker('')
 caplines11b[0].set_marker('')
 caplines11c[0].set_marker('')
@@ -863,11 +863,11 @@ plt.close()
 
 fig, ax12 = plt.subplots(layout = 'constrained')
 plotline12a, caplines12a, barlinecols12a = ax12.errorbar(epsset, meanEstMSE[2], yerr = np.minimum(meanEstRange[2], np.sqrt(meanEstMSE[2]), np.divide(meanEstMSE[2], 2)),
-                                                         uplims = upepsset, lolims = loepsset, color = 'blueviolet', marker = 'o', label = "mean")
+                                                         uplims = upepsset, lolims = loepsset, color = 'fuchsia', marker = 'o', label = "mean")
 plotline12b, caplines12b, barlinecols12b = ax12.errorbar(epsset, minEstMSE[2], yerr = np.minimum(minEstRange[2], np.sqrt(minEstMSE[2]), np.divide(minEstMSE[2], 2)),
-                                                         uplims = upepsset, lolims = loepsset, color = 'lime', marker = 'o', label = "min pair")
+                                                         uplims = upepsset, lolims = loepsset, color = 'mediumorchid', marker = 'o', label = "min pair")
 plotline12c, caplines12c, barlinecols12c = ax12.errorbar(epsset, maxEstMSE[2], yerr = np.minimum(maxEstRange[2], np.sqrt(maxEstMSE[2]), np.divide(maxEstMSE[2], 2)),
-                                                         uplims = upepsset, lolims = loepsset, color = 'gold', marker = 'o', label = "max pair")
+                                                         uplims = upepsset, lolims = loepsset, color = 'darkcyan', marker = 'o', label = "max pair")
 caplines12a[0].set_marker('')
 caplines12b[0].set_marker('')
 caplines12c[0].set_marker('')
