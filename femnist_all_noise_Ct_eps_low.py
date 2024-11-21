@@ -10,7 +10,7 @@ import tensorflow as tf
 import tensorflow_probability as tfp
 np.set_printoptions(suppress = True)
 np.seterr(divide = 'ignore', invalid = 'ignore')
-plt.rcParams.update({'font.size': 16})
+plt.rcParams.update({'font.size': 14})
 
 # initialising start time
 startTime = time.perf_counter()
@@ -86,7 +86,7 @@ T = 10
 SEED_FREQ = 0
 SMALL_INDEX = 0
 MID_INDEX = 6
-LARGE_INDEX = 13
+LARGE_INDEX = 12
 
 for trial in range(4):
 
@@ -576,7 +576,7 @@ handles1, labels1 = ax1.get_legend_handles_labels()
 handles1 = [h1[0] for h1 in handles1]
 ax1.legend(handles1, labels1, loc = 'best')
 ax1.set_yscale('log')
-ax1.set_ylim(0.03, 20000)
+ax1.set_ylim(0.08, 20000)
 ax1.set_xlabel("Value of " + "$\mathit{\u03bb}$")
 ax1.set_ylabel("MSE of PRIEST-KLD")
 ax1.figure.savefig("Eps_low_exp1_femnist_Ct_est_a_36.png")
@@ -691,7 +691,7 @@ handles6, labels6 = ax6.get_legend_handles_labels()
 handles6 = [h6[0] for h6 in handles6]
 ax6.legend(handles6, labels6, loc = 'lower right')
 ax6.set_yscale('log')
-ax6.set_ylim(0.3, 20000)
+ax6.set_ylim(0.01, 20000)
 ax6.set_xlabel("Value of " + "$\mathit{\u03bb}$")
 ax6.set_ylabel("MSE of PRIEST-KLD")
 ax6.figure.savefig("Eps_low_exp1_femnist_Ct_est_b_660.png")
@@ -784,7 +784,7 @@ handles10, labels10 = ax10.get_legend_handles_labels()
 handles10 = [h10[0] for h10 in handles10]
 ax10.legend(handles10, labels10, loc = 'best')
 ax10.set_yscale('log')
-ax10.set_ylim(0.008, 50000)
+ax10.set_ylim(0.01, 50000)
 ax10.set_xlabel("Client sample size " + "$\mathit{|C_{t}|}$")
 ax10.set_ylabel("MSE of PRIEST-KLD")
 ax10.figure.savefig("Eps_low_exp2_femnist_Ct_est_a.png")
@@ -807,7 +807,7 @@ handles11, labels11 = ax11.get_legend_handles_labels()
 handles11 = [h11[0] for h11 in handles11]
 ax11.legend(handles11, labels11, loc = 'center left')
 ax11.set_yscale('log')
-ax11.set_ylim(0.03, 50000)
+ax11.set_ylim(0.06, 50000)
 ax11.set_xlabel("Client sample size " + "$\mathit{|C_{t}|}$")
 ax11.set_ylabel("MSE of PRIEST-KLD")
 ax11.figure.savefig("Eps_low_exp2_femnist_Ct_est_b.png")
