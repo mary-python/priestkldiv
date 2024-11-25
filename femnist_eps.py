@@ -128,7 +128,7 @@ for trial in range(4):
         tempMaxEpsLarge = np.zeros((LS, T))
 
         for rep in range(T):
-            print(f"epsilon = {eps}, repeat {rep + 1}...")
+            print(f"epsilon = {eps}, round {rep + 1}...")
 
             # initialising seeds for random sampling
             tf.random.set_seed(SEED_FREQ)
@@ -534,7 +534,7 @@ for trial in range(4):
             
             SEED_FREQ = SEED_FREQ + 1
 
-        # compute mean of repeats
+        # compute mean of rounds
         meanValue[trial, EPS_FREQ] = np.mean(tempMeanValue)
         meanEstMSE[trial, EPS_FREQ] = np.mean(tempMeanEstMSE)
         meanPerc[trial, EPS_FREQ] = np.mean(tempMeanPerc)
@@ -571,7 +571,7 @@ for trial in range(4):
             if EPS_FREQ == LARGE_INDEX:
                 maxEpsLarge[trial, l] = np.mean(tempMaxEpsLarge[l])
 
-        # compute standard deviation of repeats
+        # compute standard deviation of rounds
         meanEstRange[trial, EPS_FREQ] = np.std(tempMeanEstMSE)
         meanPercRange[trial, EPS_FREQ] = np.std(tempMeanPerc)
 
