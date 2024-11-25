@@ -870,7 +870,7 @@ handles14, labels14 = ax14.get_legend_handles_labels()
 handles14 = [h14[0] for h14 in handles14]
 ax14.legend(handles14, labels14, loc = 'best')
 ax14.set_yscale('log')
-ax14.set_ylim(0.01, 200)
+ax14.set_ylim(0.01, 300)
 ax14.set_xlabel("Client sample size " + "$\mathit{|C_{t}|}$")
 ax14.set_ylabel("MSE of PRIEST-KLD")
 ax14.figure.savefig("Eps_mid_exp2_Ct_est_e.png")
