@@ -28,5 +28,6 @@ This repository contains all the supporting files for the **experimental section
 ## Authors
 
 - **[Mary Scott](https://mary-python.github.io/)**, Department of Computer Science, University of Warwick
+- **[Sayan Biswas](https://people.epfl.ch/sayan.biswas?lang=en)**, EPFL, Switzerland
 - **[Graham Cormode](http://dimacs.rutgers.edu/~graham/)**, Department of Computer Science, University of Warwick
 - **[Carsten Maple](https://warwick.ac.uk/fac/sci/wmg/people/profile/?wmgid=1102)**, WMG, University of Warwick
